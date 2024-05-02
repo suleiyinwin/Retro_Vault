@@ -39,10 +39,7 @@ class MyApp extends StatelessWidget {
       // home: const Placeholder(
       //   fallbackHeight: 200,
       //   fallbackWidth: 200,)
-      home: const Placeholder(
-        fallbackHeight: 200,
-        fallbackWidth: 200,
-      )
+      home: const SplashScreen(),
     );
   }
 }
