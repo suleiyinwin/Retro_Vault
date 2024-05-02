@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "85207850072",
+    "project_id": "retrovault121",
+    "storage_bucket": "retrovault121.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:85207850072:android:35543cd375ed7369e93e2d",
+        "android_client_info": {
+          "package_name": "com.example.retro"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCGNZSfYKfIdscxM8azjpj8w89cQr9Qar4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:85207850072:android:c62124c7a4a9d00de93e2d",
+        "android_client_info": {
+          "package_name": "com.example.retro_vault"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCGNZSfYKfIdscxM8azjpj8w89cQr9Qar4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
