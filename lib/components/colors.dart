@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
   static const Color accentColor = Color(0xFFAC5B05);
   static const Color systemGreay04Light = Color(0xFFD1D1D6);
   static const Color systemGreay06Light = Color(0xFFF2F2F7);
+  static const Color backArrow = Color(0xFF6C6A66);
   static const Color black = Color(0xFF000000);
   static const Color white = Color(0xFFFFFFFF);
   static const Color errorRed = Color(0xFFEF3B30);
