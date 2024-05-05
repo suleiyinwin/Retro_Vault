@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart'; // new
 import 'package:provider/provider.dart';
 import 'pages/authentication/splashscreen.dart'; // new
+import 'package:get/get.dart'; // new
 
 void main() {
   runApp(const MyApp());
