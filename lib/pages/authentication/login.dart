@@ -3,7 +3,9 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:get/get.dart';
 import 'package:retro/firebase_options.dart';
+import 'package:retro/pages/authentication/forgot_pwd.dart';
 import 'package:retro/pages/authentication/singup.dart';
 
 import '../../components/colors.dart';
@@ -42,7 +44,7 @@ class _LoginPageState extends State<LoginPage> {
   Widget build(BuildContext context) {
     const appTitle = 'Login';
     // final screenWidth = MediaQuery.of(context).size.width;
-    return MaterialApp(
+    return GetMaterialApp(
       title: appTitle,
       theme: ThemeData(
         scaffoldBackgroundColor: AppColors.backgroundColor,
@@ -183,7 +185,7 @@ class _LoginPageState extends State<LoginPage> {
                         ),
                       ),
                     ),
-                    /*Row(
+                    Row(
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
                         Padding(
@@ -206,6 +208,11 @@ class _LoginPageState extends State<LoginPage> {
                               ),
                             ),
                             onPressed: () {
+                              showModalBottomSheet(
+                                context: context,
+                                builder: (context) => const ForgotPwd(),
+                                // isScrollControlled: true,
+                              );
                               // Handle forgot password logic
                               print('Forgot password button pressed');
                             },
@@ -216,7 +223,7 @@ class _LoginPageState extends State<LoginPage> {
                         ),
                       ],
                     ),
-                    */
+                    
                     const SizedBox(height: 20.0),
                     SizedBox(
                       width: 160.0,
