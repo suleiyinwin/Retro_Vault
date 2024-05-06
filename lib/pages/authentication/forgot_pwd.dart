@@ -16,12 +16,7 @@ class _ForgotPwdState extends State<ForgotPwd> {
     return Scaffold(
       backgroundColor: Colors.transparent, // Makes the popup full screen
       body: Container(
-              height: MediaQuery.of(context).size.height, // Set height to half of screen
-              // // Expand to bottom with full width
-              // constraints: BoxConstraints(
-              //   maxWidth: MediaQuery.of(context).size.width,
-              //   maxHeight: MediaQuery.of(context).size.height,
-              // ),
+              height: MediaQuery.of(context).size.height,
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
                 color: AppColors.backgroundColor,

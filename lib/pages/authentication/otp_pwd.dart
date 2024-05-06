@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:retro/pages/authentication/reset_pwd.dart';
 import '../../components/colors.dart';
 
 class OtpVerify extends StatefulWidget {
@@ -88,7 +89,13 @@ class _OtpVerifyState extends State<OtpVerify> {
                           backgroundColor: AppColors.primaryColor,
                           foregroundColor: AppColors.backgroundColor,
                         ),
-                        onPressed: () {},
+                        onPressed: () {
+                          showModalBottomSheet(
+                            context: context,
+                            builder: (context) => const ResetPwd(),
+                            // isScrollControlled: true,  // Makes the popup full screen
+                          );
+                        },
                         child: const Text('Next',
                           style: TextStyle(
                             color: Colors.white,
