@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:retro/components/colors.dart';
+import 'package:retro/pages/user_management/edit_profile.dart';
 
 class ProfileView extends StatefulWidget {
   const ProfileView({super.key});
@@ -16,12 +17,13 @@ class _ProfileViewState extends State<ProfileView> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: AppColors.backgroundColor,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.arrow_back),
-            onPressed: () {},
-          ),
-        ],
+        //displays the back button if canPop returns true, indicating there's a previous route.
+        leading: ModalRoute.of(context)?.canPop == true
+              ? IconButton(
+                  icon: const Icon(Icons.arrow_back),
+                  onPressed: () => Navigator.pop(context),
+                )
+              : null,
       ),
       backgroundColor: AppColors.backgroundColor,
       body: SingleChildScrollView(
@@ -37,7 +39,7 @@ class _ProfileViewState extends State<ProfileView> {
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: const Row(
+                  child: Row(
                     mainAxisAlignment: MainAxisAlignment.start,
                     children: [
                       CircleAvatar(
@@ -61,7 +63,12 @@ class _ProfileViewState extends State<ProfileView> {
                       SizedBox(width: 50),
                       IconButton(
                         icon: Icon(Icons.chevron_right),
-                        onPressed: null,
+                        onPressed: () {
+                          Navigator.push(
+                            context, // Pass the current context to the Navigator
+                            MaterialPageRoute(builder: (context) => const EditProfile()),
+                          );
+                        },
                       ),
                     ],
                   ),
