@@ -51,7 +51,7 @@ class _SignupState extends State<Signup> {
 
   @override
   Widget build(BuildContext context) {
-    const appTitle = 'Sing Up';
+    const appTitle = 'Sign Up';
     return MaterialApp(
       title: appTitle,
       theme: ThemeData(
@@ -197,7 +197,10 @@ class _SignupState extends State<Signup> {
                           if (value == null || value.isEmpty) {
                             return 'Please Enter a password';
                           } else if (!passwordRegex.hasMatch(value)) {
-                            return 'Password should contain at least 1 uppercase, 1 lowercase, 1 number and 1 special character and total length should be 6 characters.';
+                            return 'Password must contain at least 6 characters, including:\n'
+                                '• Uppercase\n'
+                                '• Lowercase\n'
+                                '• Numbers and special characters';
                           }
                           return null;
                         },
@@ -333,10 +336,17 @@ class _SignupState extends State<Signup> {
                                     'email': _emailController.text,
                                     'password': _passwordController.text,
                                     'userId': user.uid,
-                                  });
+                                  }
+                                  );
                                   setState(() {
                                     errorMessage = '';
                                   });
+
+                                  Navigator.pushReplacement(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (context) => const LoginPage()),
+                                  );
                                  } 
                                  on FirebaseException catch (e) {
                                    setState(() {
