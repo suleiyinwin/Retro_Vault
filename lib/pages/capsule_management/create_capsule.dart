@@ -712,8 +712,8 @@ class _CreateCapsuleState extends State<CreateCapsule> {
                               final docRef = await FirebaseFirestore.instance
                                   .collection('capsules')
                                   .add({
-                                'userId': userReference,
-                                // 'userId':user.uid,
+                                'userRef': userReference,
+                                'userId':userId,
                                 'capsuleId': capsuleId,
                                 'title': _titleController.text,
                                 'message': _messageController.text,
