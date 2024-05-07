@@ -360,9 +360,14 @@ class _CreateCapsuleState extends State<CreateCapsule> {
                   ),
                 ),
                 const SizedBox(height: 20),
-                const Text(
-                  '**Edid before date cannot be changed in the future',
-                  style: TextStyle(color: AppColors.errorRed, fontSize: 13),
+                const Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                     Text(
+                      '**Edit before date cannot be changed in the future',
+                      style: TextStyle(color: AppColors.errorRed, fontSize: 13), textAlign: TextAlign.left,
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 20),
                 const Row(
