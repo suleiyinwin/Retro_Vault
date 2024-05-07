@@ -3,10 +3,10 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:get/get.dart';
 import 'package:retro/firebase_options.dart';
 import 'package:retro/pages/authentication/forgot_pwd.dart';
-import 'package:retro/pages/authentication/singup.dart';
+import 'package:retro/pages/authentication/signup.dart';
+import 'package:retro/pages/capsule_management/capsule_list.dart';
 
 import '../../components/colors.dart';
 
@@ -21,15 +21,19 @@ class _LoginPageState extends State<LoginPage> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final emailRegex = RegExp(
+      r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+");
+  final passwordRegex = RegExp(
+      r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{6,}$");
   String errorMessage = '';
   String errorEmail = '';
-  bool passwordVisible = false; 
+  bool passwordVisible = false;
   List<Map<String, dynamic>> userDataList = [];
   @override
   void initState() {
     super.initState();
     passwordVisible = true;
-     Firebase.initializeApp(
+    Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
   }
@@ -44,7 +48,7 @@ class _LoginPageState extends State<LoginPage> {
   Widget build(BuildContext context) {
     const appTitle = 'Login';
     // final screenWidth = MediaQuery.of(context).size.width;
-    return GetMaterialApp(
+    return MaterialApp(
       title: appTitle,
       theme: ThemeData(
         scaffoldBackgroundColor: AppColors.backgroundColor,
@@ -91,10 +95,12 @@ class _LoginPageState extends State<LoginPage> {
                         validator: (value) {
                           if (value == null || value.isEmpty) {
                             return 'Email is required';
-                          } 
-                          else if(errorEmail.isNotEmpty){
+                          } else if (!emailRegex.hasMatch(value)) {
+                            return 'Please enter a valid email address';
+                          } else if (errorEmail.isNotEmpty) {
                             return errorEmail;
                           }
+
                           return null;
                         },
                         decoration: InputDecoration(
@@ -105,9 +111,9 @@ class _LoginPageState extends State<LoginPage> {
                             padding:
                                 const EdgeInsets.only(left: 35.0, right: 15.0),
                             child: Icon(Icons.email_outlined,
-                                color:  AppColors.primaryColor.withOpacity(0.5)),
-        
-                                //AppColors.primaryColor.withOpacity(0.5)),
+                                color: AppColors.primaryColor.withOpacity(0.5)),
+
+                            //AppColors.primaryColor.withOpacity(0.5)),
                           ),
                           fillColor: Colors.white,
                           filled: true,
@@ -136,9 +142,13 @@ class _LoginPageState extends State<LoginPage> {
                         validator: (value) {
                           if (value == null || value.isEmpty) {
                             return 'Password is requried';
-                          }
-                          else if(errorMessage.isNotEmpty){
+                          } else if (errorMessage.isNotEmpty) {
                             return errorMessage;
+                          } else if (!passwordRegex.hasMatch(value)) {
+                            return 'Password must contain at least 6 characters, including:\n'
+                                '• Uppercase\n'
+                                '• Lowercase\n'
+                                '• Numbers and special characters';
                           }
                           return null;
                         },
@@ -151,7 +161,7 @@ class _LoginPageState extends State<LoginPage> {
                                 const EdgeInsets.only(left: 35.0, right: 15.0),
                             child: Icon(Icons.lock_outline,
                                 color: AppColors.primaryColor.withOpacity(0.5)),
-                                // AppColors.primaryColor.withOpacity(0.5)),
+                            // AppColors.primaryColor.withOpacity(0.5)),
                           ),
                           suffixIcon: Padding(
                             padding: const EdgeInsets.only(right: 15.0),
@@ -159,7 +169,7 @@ class _LoginPageState extends State<LoginPage> {
                                 icon: Icon(
                                   passwordVisible
                                       ? Icons.visibility_off_outlined
-                                      : Icons.visibility_off_outlined,
+                                      : Icons.visibility_outlined,
                                   color: AppColors.primaryColor,
                                 ),
                                 onPressed: () {
@@ -185,6 +195,7 @@ class _LoginPageState extends State<LoginPage> {
                         ),
                       ),
                     ),
+                    const SizedBox(height: 2.0),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
@@ -208,12 +219,8 @@ class _LoginPageState extends State<LoginPage> {
                               ),
                             ),
                             onPressed: () {
-                              showModalBottomSheet(
-                                context: context,
-                                builder: (context) => const ForgotPwd(),
-                                // isScrollControlled: true,
-                              );
                               // Handle forgot password logic
+                              showModalBottomSheet(context: context, builder: (context) => const ForgotPwd());
                               print('Forgot password button pressed');
                             },
                             child: const Text('Forgot password?',
@@ -223,7 +230,6 @@ class _LoginPageState extends State<LoginPage> {
                         ),
                       ],
                     ),
-                    
                     const SizedBox(height: 20.0),
                     SizedBox(
                       width: 160.0,
@@ -234,71 +240,62 @@ class _LoginPageState extends State<LoginPage> {
                                 color: AppColors.primaryColor, width: 1.0),
                           ),
                           onPressed: () async {
-                            if(_formKey.currentState!.validate()){
+                            // Validate the form
+                            if (_formKey.currentState!.validate()) {
                               _formKey.currentState!.save();
-                              try{
-                              CollectionReference users = FirebaseFirestore.instance.collection('user');
-                              QuerySnapshot querySnapshot = await users.get();
-                              for (final doc in querySnapshot.docs){
-                              print(doc.data());
-                              final userData = doc.data();
-                              final email = doc['email'];
-                              final password =  doc['password'];
-                              print('$email, $password testing heee');
-                              if (email == _emailController.text && password == _passwordController.text){
-                                Fluttertoast.showToast(
-                                msg: "Account Login Successfully",
-                                toastLength: Toast.LENGTH_SHORT,
-                                gravity: ToastGravity.BOTTOM,
-                                webPosition: "center",
-                                webBgColor: '#D1D1D6',
-                                textColor: AppColors.primaryColor,
-                                fontSize: 16.0);
-                                setState(() {
-                                  errorMessage = '';
-                                });
-                                break;
+                              var collection =
+                                  FirebaseFirestore.instance.collection('user');
+                              var querySnapshot = await collection.get();
+                              for (var queryDocumentSnapshot
+                                  in querySnapshot.docs) {
+                                Map<String, dynamic> data =
+                                    queryDocumentSnapshot.data();
+                                var email = data['email'];
+                                var password = data['password'];
+                                var controllereamil = _emailController.text;
+                                var controllerpassword =
+                                    _passwordController.text;
+                                print(
+                                    'Email: $email,contrller eamil -> $controllereamil, passwordcontroller -> $controllerpassword, Password: $password');
+                                //check codintion
+                                //when email and password are the same
+                                if (email == _emailController.text &&
+                                    password == _passwordController.text) {
+                                  Fluttertoast.showToast(
+                                      msg: "Account Login Successfully",
+                                      toastLength: Toast.LENGTH_SHORT,
+                                      gravity: ToastGravity.BOTTOM,
+                                      webPosition: "center",
+                                      webBgColor: '#D1D1D6',
+                                      textColor: AppColors.primaryColor,
+                                      fontSize: 16.0);
+                                  setState(() {
+                                    errorMessage = '';
+                                  });
+                                  Navigator.pushReplacement(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (context) => const HomeScreen()),
+                                  );
+                                  break;
+                                }
+                                //email same , password are not same
+                                 else if(email == _emailController.text && password != _passwordController.text){
+                                  errorMessage = 'Incorrect Password';
+                                  break;
+                                }
+                                //email diff , password  same
+                                 else if(email != _emailController.text && password == _passwordController.text){
+                                  errorMessage = 'Incorrect Email';
+                                  break;
+                                }
+                                print('Email: $email, Password: $password');
                               }
-                              
-                              // else if(email == _emailController.text && password != _passwordController.text){
-                                
-                              //     errorMessage = 'Incorrect Password';
-                              //   break;
-                              // }
-                              // else if(email != _emailController.text && password == _passwordController.text){
-                              //   //setState(() {
-                              //     errorMessage = 'Incorrect Email';
-                              //     break;
-                              //   //});
-                              // }
-                              else {
-                                Fluttertoast.showToast(
-                                msg: "Have you created an account?",
-                                toastLength: Toast.LENGTH_SHORT,
-                                gravity: ToastGravity.BOTTOM,
-                                webPosition: "center",
-                                webBgColor: '#D1D1D6',
-                                textColor: AppColors.primaryColor,
-                                fontSize: 16.0);
-                                break;
-                              }
-                              //print(email);
                             }
-                          }
-                              on FirebaseAuthException catch (e){
-                               setState(() {
-                                errorMessage = e.message!;
-                               });
-                              }
-                              
-                              
-                            }
-                            
-
                             // Handle sign up logic
                             print('Sign up button pressed');
                           },
-                      child: const Text(
+                          child: const Text(
                             'Login',
                             style: TextStyle(
                                 color: AppColors.primaryColor,
@@ -343,7 +340,7 @@ class _LoginPageState extends State<LoginPage> {
                             Navigator.pushReplacement(
                               context,
                               MaterialPageRoute(
-                                  builder: (context) => const Signup()),
+                                  builder: (context) => const Signup() ),
                             );
                             // Handle sign up logic
                             print('Sign up button pressed');
@@ -367,3 +364,39 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 }
+
+// class ForgotPasswordModal extends StatelessWidget {
+//   const ForgotPasswordModal({super.key});
+
+//   @override
+//   Widget build(BuildContext context) {
+//     return Center(
+//       child: ElevatedButton(
+//         child: const Text('showModalBottomSheet'),
+//         onPressed: () {
+//           showModalBottomSheet<void>(
+//             context: context,
+//             builder: (BuildContext context) {
+//               return SizedBox(
+//                 height: 200,
+//                 child: Center(
+//                   child: Column(
+//                     mainAxisAlignment: MainAxisAlignment.center,
+//                     mainAxisSize: MainAxisSize.min,
+//                     children: <Widget>[
+//                       const Text('Modal BottomSheet'),
+//                       ElevatedButton(
+//                         child: const Text('Close BottomSheet'),
+//                         onPressed: () => Navigator.pop(context),
+//                       ),
+//                     ],
+//                   ),
+//                 ),
+//               );
+//             },
+//           );
+//         },
+//       ),
+//     );
+//   }
+// }
