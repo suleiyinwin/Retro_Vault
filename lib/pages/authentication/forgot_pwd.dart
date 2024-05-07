@@ -1,6 +1,8 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:retro/firebase_options.dart';
 import '../../components/colors.dart';
 
@@ -41,29 +43,15 @@ class _ForgotPasswordModalState extends State<ForgotPasswordModal> {
     _passwordController.dispose();
     _confirmPasswordController.dispose();
     _emailController.dispose();
-
     super.dispose();
   }
-  Future passwordReset() async {
-      try {
-        await auth.sendPasswordResetEmail(email: _emailController.text);
-        print(_emailController.text);
-      } on FirebaseAuthException catch (e) {
-        if (e.code == 'user-not-found') {
-          errorMessage = 'No user found for that email.';
-          print(e);
-        }
-        print(e);
-      }
-    }
+
   void _handleSendEmail() {
+    print('handle send');
     // Simulate sending email with OTP code (replace with actual logic)
     setState(() {
       showEmailField = false;
-      passwordReset();
     });
-    
-
   }
 
   void _handleVerifyOtp() {
@@ -92,7 +80,8 @@ class _ForgotPasswordModalState extends State<ForgotPasswordModal> {
               alignment: Alignment.topRight,
               child: IconButton(
                 onPressed: () => Navigator.pop(context),
-                icon: const Icon(Icons.cancel, color: AppColors.systemGreayLight),
+                icon:
+                    const Icon(Icons.cancel, color: AppColors.systemGreayLight),
               ),
             ),
             Text(
@@ -143,12 +132,15 @@ class _ForgotPasswordModalState extends State<ForgotPasswordModal> {
                       validator: (value) {
                         if (value == null || value.isEmpty) {
                           return 'Please Enter an email address';
-                        } else if (!emailRegex.hasMatch(value)) {
-                          return 'Email address is not valid';
                         } else if (errorMessage.isNotEmpty) {
                           return errorMessage;
                         }
                         return null;
+                      },
+                      onChanged: (value) {
+                        setState(() {
+                          errorMessage = '';
+                        });
                       },
                       decoration: InputDecoration(
                         labelStyle: TextStyle(
@@ -162,7 +154,8 @@ class _ForgotPasswordModalState extends State<ForgotPasswordModal> {
                         errorBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(20.0),
                           borderSide: const BorderSide(
-                              color: Colors.red), // Custom border color for validation error
+                              color: Colors
+                                  .red), // Custom border color for validation error
                         ),
                         floatingLabelBehavior: FloatingLabelBehavior.never,
                       ),
@@ -173,9 +166,58 @@ class _ForgotPasswordModalState extends State<ForgotPasswordModal> {
                     width: 160,
                     height: 50,
                     child: ElevatedButton(
-                      onPressed:() async{
+                      onPressed: () async {
+                        print('hello');
                         if (_formKey.currentState!.validate()) {
-                          _handleSendEmail();
+                          _formKey.currentState!.save();
+                          try {
+                            final collection = FirebaseFirestore.instance
+                                .collection(
+                                    'user'); // Replace with your collection name
+                            final snapshot = await collection
+                                .where('email',
+                                    isEqualTo: _emailController.text.trim())
+                                .get();
+                            if (snapshot.docs.isEmpty) {
+                              errorMessage = 'No user found for that email.';
+                              _formKey.currentState!
+                                  .validate(); // This might not be necessary here
+                              return;
+                            }
+                            else{
+                              print('user found');
+                              Fluttertoast.showToast(
+                                    msg: "Email sent successfully! \n Check your email for the code.",
+                                    toastLength: Toast.LENGTH_SHORT,
+                                    gravity: ToastGravity.BOTTOM,
+                                    webPosition: "center",
+                                    webBgColor: '#D1D1D6',
+                                    textColor: AppColors.primaryColor,
+                                    fontSize: 16.0);
+                            }
+                            _formKey.currentState!
+                                .validate(); // This might not be necessary here
+
+                            _handleSendEmail();
+
+                            _formKey.currentState!
+                                .validate(); // This might not be necessary here
+                          } on FirebaseAuthException catch (e) {
+                            if (e.code == 'user-not-found') {
+                              errorMessage = 'No user found for that email.';
+                            } else if (e.code == 'invalid-email') {
+                              errorMessage = 'Invalid email address.';
+                            } else {
+                              print("error: $e");
+                              errorMessage =
+                                  e.code; // Set error message to error code
+                              print("error1: $errorMessage");
+                              _formKey.currentState!
+                                  .validate(); // This might not be necessary here
+                            }
+                          }
+                          _formKey.currentState!
+                                  .validate(); 
                         }
                       },
                       style: ElevatedButton.styleFrom(
@@ -248,7 +290,8 @@ class _ForgotPasswordModalState extends State<ForgotPasswordModal> {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.primaryColor,
                       ),
-                      onPressed: _handleVerifyOtp, // Call function to verify OTP
+                      onPressed:
+                          _handleVerifyOtp, // Call function to verify OTP
                       child: const Text(
                         'Next',
                         style: TextStyle(
@@ -283,40 +326,40 @@ class _ForgotPasswordModalState extends State<ForgotPasswordModal> {
                       obscureText: passwordVisibleOne, // Password field
                       controller: _passwordController,
                       validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Please Enter a password';
-                            } else if (!passwordRegex.hasMatch(value)) {
-                              return 'Password must contain at least 6 characters, including:\n'
-                                  '• Uppercase\n'
-                                  '• Lowercase\n'
-                                  '• Numbers and special characters';
-                            }
-                            return null;
-                     },
+                        if (value == null || value.isEmpty) {
+                          return 'Please Enter a password';
+                        } else if (!passwordRegex.hasMatch(value)) {
+                          return 'Password must contain at least 6 characters, including:\n'
+                              '• Uppercase\n'
+                              '• Lowercase\n'
+                              '• Numbers and special characters';
+                        }
+                        return null;
+                      },
                       decoration: InputDecoration(
                         labelStyle: TextStyle(
                             color: AppColors.primaryColor.withOpacity(0.5)),
                         prefixIcon: Padding(
-                              padding:
-                                  const EdgeInsets.only(left: 35.0, right: 15.0),
-                              child: Icon(Icons.lock_outline,
-                                  color: AppColors.primaryColor.withOpacity(0.5)),
-                            ),
-                            suffixIcon: Padding(
-                              padding: const EdgeInsets.only(right: 15.0),
-                              child: IconButton(
-                                  icon: Icon(
-                                    passwordVisibleOne
-                                        ? Icons.visibility_off_outlined
-                                        : Icons.visibility_outlined,
-                                    color: AppColors.primaryColor,
-                                  ),
-                                  onPressed: () {
-                                    setState(() {
-                                      passwordVisibleOne = !passwordVisibleOne;
-                                    });
-                                  }),
-                            ),
+                          padding:
+                              const EdgeInsets.only(left: 35.0, right: 15.0),
+                          child: Icon(Icons.lock_outline,
+                              color: AppColors.primaryColor.withOpacity(0.5)),
+                        ),
+                        suffixIcon: Padding(
+                          padding: const EdgeInsets.only(right: 15.0),
+                          child: IconButton(
+                              icon: Icon(
+                                passwordVisibleOne
+                                    ? Icons.visibility_off_outlined
+                                    : Icons.visibility_outlined,
+                                color: AppColors.primaryColor,
+                              ),
+                              onPressed: () {
+                                setState(() {
+                                  passwordVisibleOne = !passwordVisibleOne;
+                                });
+                              }),
+                        ),
                         fillColor: Colors.white,
                         filled: true,
                         border: OutlineInputBorder(
@@ -347,26 +390,26 @@ class _ForgotPasswordModalState extends State<ForgotPasswordModal> {
                         labelStyle: TextStyle(
                             color: AppColors.primaryColor.withOpacity(0.5)),
                         prefixIcon: Padding(
-                              padding:
-                                  const EdgeInsets.only(left: 35.0, right: 15.0),
-                              child: Icon(Icons.lock_outline,
-                                  color: AppColors.primaryColor.withOpacity(0.5)),
+                          padding:
+                              const EdgeInsets.only(left: 35.0, right: 15.0),
+                          child: Icon(Icons.lock_outline,
+                              color: AppColors.primaryColor.withOpacity(0.5)),
                         ),
                         suffixIcon: Padding(
-                              padding: const EdgeInsets.only(right: 15.0),
-                              child: IconButton(
-                                  icon: Icon(
-                                    passwordVisibleTwo
-                                        ? Icons.visibility_off_outlined
-                                        : Icons.visibility_outlined,
-                                    color: AppColors.primaryColor,
-                                  ),
-                                  onPressed: () {
-                                    setState(() {
-                                      passwordVisibleTwo = !passwordVisibleTwo;
-                                    });
-                                  }),
-                            ),
+                          padding: const EdgeInsets.only(right: 15.0),
+                          child: IconButton(
+                              icon: Icon(
+                                passwordVisibleTwo
+                                    ? Icons.visibility_off_outlined
+                                    : Icons.visibility_outlined,
+                                color: AppColors.primaryColor,
+                              ),
+                              onPressed: () {
+                                setState(() {
+                                  passwordVisibleTwo = !passwordVisibleTwo;
+                                });
+                              }),
+                        ),
                         fillColor: Colors.white,
                         filled: true,
                         border: OutlineInputBorder(
@@ -374,11 +417,11 @@ class _ForgotPasswordModalState extends State<ForgotPasswordModal> {
                           borderSide: BorderSide.none,
                         ),
                         errorBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(30.0),
-                              borderSide: const BorderSide(
-                                  color: Colors
-                                      .red), // Custom border color for validation error
-                            ),
+                          borderRadius: BorderRadius.circular(30.0),
+                          borderSide: const BorderSide(
+                              color: Colors
+                                  .red), // Custom border color for validation error
+                        ),
                         floatingLabelBehavior: FloatingLabelBehavior.never,
                         labelText: 'Confirm Password',
                       ),
