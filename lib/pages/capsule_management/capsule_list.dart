@@ -14,8 +14,10 @@ class UserInformation extends StatefulWidget {
 }
 
 class _UserInformationState extends State<UserInformation> {
-  final Stream<QuerySnapshot> _usersStream =
-      FirebaseFirestore.instance.collection('capsules').where('userId', isEqualTo: FirebaseAuth.instance.currentUser!.uid).snapshots();
+  final Stream<QuerySnapshot> _usersStream = FirebaseFirestore.instance
+      .collection('capsules')
+      .where('userId', isEqualTo: FirebaseAuth.instance.currentUser!.uid)
+      .snapshots();
 
   @override
   Widget build(BuildContext context) {
@@ -141,52 +143,57 @@ class CapsuleWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.all(10),
-      height: 150,
-      decoration: BoxDecoration(
-        border: Border.all(color: AppColors.primaryColor),
-        borderRadius: BorderRadius.circular(150),
-      ),
-      child: Row(children: [
-        Expanded(
-          child: ClipRRect(
-            borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(150),
-                bottomLeft: Radius.circular(150)),
-            // child: Image.asset('image/IMG_4439.jpeg', fit: BoxFit.cover),
-            child: Image.network(imageUrl, fit: BoxFit.cover),
-          ),
-        ),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Padding(
-                padding:
-                    const EdgeInsets.only(left: 20.0, right: 10.0, top: 50.0),
-                child: Text(
-                  title,
-                  style: const TextStyle(
-                    fontSize: 17,
-                    color: AppColors.primaryColor,
-                    fontWeight: FontWeight.bold,
-                  ),
+    return FutureBuilder<Object>(
+        future: author,
+        builder: (context, snapshot) {
+          return Container(
+            margin: const EdgeInsets.all(10),
+            height: 150,
+            decoration: BoxDecoration(
+              border: Border.all(color: AppColors.primaryColor),
+              borderRadius: BorderRadius.circular(150),
+            ),
+            child: Row(children: [
+              Expanded(
+                child: ClipRRect(
+                  borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(150),
+                      bottomLeft: Radius.circular(150)),
+                  // child: Image.asset('image/IMG_4439.jpeg', fit: BoxFit.cover),
+                  child: Image.network(imageUrl, fit: BoxFit.cover),
                 ),
               ),
-              Padding(
-                padding: const EdgeInsets.only(left: 20.0, right: 10.0),
-                child: Text('Shared by $author',
-                    style: const TextStyle(
-                      fontSize: 12,
-                      color: AppColors.primaryColor,
-                    )),
-              ),
-            ],
-          ),
-        )
-      ]),
-    );
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.only(
+                          left: 20.0, right: 10.0, top: 50.0),
+                      child: Text(
+                        title,
+                        style: const TextStyle(
+                          fontSize: 17,
+                          color: AppColors.primaryColor,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.only(left: 20.0, right: 10.0),
+                      child: Text(
+                          'Shared by ${snapshot.connectionState == ConnectionState.waiting ? '…' : snapshot.data}',
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: AppColors.primaryColor,
+                          )),
+                    ),
+                  ],
+                ),
+              )
+            ]),
+          );
+        });
   }
 }
 
@@ -231,11 +238,11 @@ class HomeScreen extends StatelessWidget {
                   backgroundColor: AppColors.primaryColor,
                   onPressed: () async {
                     Navigator.pushReplacement(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (context) => const CreateCapsule()),
-                                );
-                    },
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const CreateCapsule()),
+                    );
+                  },
                   child: const IconTheme(
                     data: IconThemeData(
                         color: AppColors.backgroundColor, size: 40),
@@ -253,7 +260,6 @@ class HomeScreen extends StatelessWidget {
                     //     title: capsule.title, author: capsule.author, imageUrl: capsule.image))
                   ],
                 ),
-                
               ],
             )),
       ),
