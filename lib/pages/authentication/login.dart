@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
@@ -150,8 +149,12 @@ class _LoginPageState extends State<LoginPage> {
                                 '• Lowercase\n'
                                 '• Numbers and special characters';
                           }
+                          errorMessage = '';
                           return null;
                         },
+                        onChanged: (value) => setState(() {
+                          errorMessage = '';
+                        }),
                         decoration: InputDecoration(
                           labelText: 'Password',
                           labelStyle: TextStyle(
@@ -220,7 +223,20 @@ class _LoginPageState extends State<LoginPage> {
                             ),
                             onPressed: () {
                               // Handle forgot password logic
-                              showModalBottomSheet(context: context, builder: (context) => const ForgotPwd());
+                              showModalBottomSheet(
+                                context: context,
+                                builder: (context) => Container(
+                                  decoration: const BoxDecoration(
+                                    color: AppColors.backgroundColor,
+                                    borderRadius: BorderRadius.only(
+                                      topLeft: Radius.circular(20.0),
+                                      topRight: Radius.circular(20.0),
+                                    ),
+                                  ),
+                                  child: const ForgotPasswordModal(),
+                                ),
+                              );
+
                               print('Forgot password button pressed');
                             },
                             child: const Text('Forgot password?',
@@ -242,58 +258,46 @@ class _LoginPageState extends State<LoginPage> {
                           onPressed: () async {
                             // Validate the form
                             if (_formKey.currentState!.validate()) {
-                              _formKey.currentState!.save();
-                              var collection =
-                                  FirebaseFirestore.instance.collection('user');
-                              var querySnapshot = await collection.get();
-                              for (var queryDocumentSnapshot
-                                  in querySnapshot.docs) {
-                                Map<String, dynamic> data =
-                                    queryDocumentSnapshot.data();
-                                var email = data['email'];
-                                var password = data['password'];
-                                var controllereamil = _emailController.text;
-                                var controllerpassword =
-                                    _passwordController.text;
-                                print(
-                                    'Email: $email,contrller eamil -> $controllereamil, passwordcontroller -> $controllerpassword, Password: $password');
-                                //check codintion
-                                //when email and password are the same
-                                if (email == _emailController.text &&
-                                    password == _passwordController.text) {
-                                  Fluttertoast.showToast(
-                                      msg: "Account Login Successfully",
-                                      toastLength: Toast.LENGTH_SHORT,
-                                      gravity: ToastGravity.BOTTOM,
-                                      webPosition: "center",
-                                      webBgColor: '#D1D1D6',
-                                      textColor: AppColors.primaryColor,
-                                      fontSize: 16.0);
-                                  setState(() {
-                                    errorMessage = '';
-                                  });
-                                  Navigator.pushReplacement(
-                                    context,
-                                    MaterialPageRoute(
-                                        builder: (context) => const HomeScreen()),
-                                  );
-                                  break;
+                              try {
+                                // Sign in with email and password
+                                await FirebaseAuth.instance
+                                    .signInWithEmailAndPassword(
+                                  email: _emailController.text.trim(),
+                                  password: _passwordController.text.trim(),
+                                );
+                                Fluttertoast.showToast(
+                                    msg: "Account Login Successfully",
+                                    toastLength: Toast.LENGTH_SHORT,
+                                    gravity: ToastGravity.BOTTOM,
+                                    webPosition: "center",
+                                    webBgColor: '#D1D1D6',
+                                    textColor: AppColors.primaryColor,
+                                    fontSize: 16.0);
+                                setState(() {
+                                  errorMessage = '';
+                                });
+                                // If sign-in is successful, navigate to the home screen
+                                Navigator.pushReplacement(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) => const HomeScreen()),
+                                );
+                              } on FirebaseAuthException catch (e) {
+                                // Handle specific errors
+                                if (e.code == 'user-not-found') {
+                                    errorMessage = 'User not found';
+                                } else if (e.code == 'wrong-password') {
+                                    errorMessage = 'Incorrect password';
+                                 
+                                } else {
+                                    errorMessage = 'Error: ${e.message}';
                                 }
-                                //email same , password are not same
-                                 else if(email == _emailController.text && password != _passwordController.text){
-                                  errorMessage = 'Incorrect Password';
-                                  break;
-                                }
-                                //email diff , password  same
-                                 else if(email != _emailController.text && password == _passwordController.text){
-                                  errorMessage = 'Incorrect Email';
-                                  break;
-                                }
-                                print('Email: $email, Password: $password');
+                              } catch (e) {
+                                // Handle generic errors
+                                  errorMessage = 'Error: $e';
                               }
                             }
-                            // Handle sign up logic
-                            print('Sign up button pressed');
+                            _formKey.currentState!.validate();
                           },
                           child: const Text(
                             'Login',
@@ -340,7 +344,7 @@ class _LoginPageState extends State<LoginPage> {
                             Navigator.pushReplacement(
                               context,
                               MaterialPageRoute(
-                                  builder: (context) => const Signup() ),
+                                  builder: (context) => const Signup()),
                             );
                             // Handle sign up logic
                             print('Sign up button pressed');
@@ -364,39 +368,3 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 }
-
-// class ForgotPasswordModal extends StatelessWidget {
-//   const ForgotPasswordModal({super.key});
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return Center(
-//       child: ElevatedButton(
-//         child: const Text('showModalBottomSheet'),
-//         onPressed: () {
-//           showModalBottomSheet<void>(
-//             context: context,
-//             builder: (BuildContext context) {
-//               return SizedBox(
-//                 height: 200,
-//                 child: Center(
-//                   child: Column(
-//                     mainAxisAlignment: MainAxisAlignment.center,
-//                     mainAxisSize: MainAxisSize.min,
-//                     children: <Widget>[
-//                       const Text('Modal BottomSheet'),
-//                       ElevatedButton(
-//                         child: const Text('Close BottomSheet'),
-//                         onPressed: () => Navigator.pop(context),
-//                       ),
-//                     ],
-//                   ),
-//                 ),
-//               );
-//             },
-//           );
-//         },
-//       ),
-//     );
-//   }
-// }
