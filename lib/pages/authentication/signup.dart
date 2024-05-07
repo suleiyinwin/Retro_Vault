@@ -329,13 +329,13 @@ class _SignupState extends State<Signup> {
                                  try{
                                     FirebaseFirestore.instance
                                       .collection('user')
-                                      .add(<String, dynamic>{
+                                      .add({
                                     'firstName': '',
                                     'lastName': '',
                                     'username': _usernameController.text.trim(),
                                     'email': _emailController.text.trim(),
                                     'password': _passwordController.text.trim(),
-                                    'userId': user.uid,
+                                    'userId': user.uid.trim(),
                                   }
                                   );
                                   setState(() {

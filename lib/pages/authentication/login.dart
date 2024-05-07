@@ -150,6 +150,7 @@ class _LoginPageState extends State<LoginPage> {
                                 '• Lowercase\n'
                                 '• Numbers and special characters';
                           }
+                          errorMessage = '';
                           return null;
                         },
                         onChanged: (value) => setState(() {
