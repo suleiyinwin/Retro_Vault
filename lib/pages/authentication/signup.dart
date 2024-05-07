@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:retro/firebase_options.dart';
 import 'package:retro/pages/authentication/login.dart';
-
 import '../../components/colors.dart';
 
 class Signup extends StatefulWidget {
@@ -258,7 +257,7 @@ class _SignupState extends State<Signup> {
                           if (value == null || value.isEmpty) {
                             return 'Please Enter Your Passowrd Again';
                           } else if (value != _passwordController.text) {
-                            return 'Password Do Not Match';
+                            return 'Password does Not Match';
                           }
                           return null;
                         },
@@ -318,6 +317,7 @@ class _SignupState extends State<Signup> {
                             if (_formKey.currentState!.validate()) {
                               _formKey.currentState!.save();
                               try {
+                                //creat user
                                 final credential = await FirebaseAuth.instance
                                     .createUserWithEmailAndPassword(
                                   email: _emailController.text,
@@ -325,16 +325,16 @@ class _SignupState extends State<Signup> {
                                 );
                                 final user = credential.user;
                                 if (user != null) {
-
+                                //adding user detail
                                  try{
                                     FirebaseFirestore.instance
                                       .collection('user')
                                       .add(<String, dynamic>{
                                     'firstName': '',
                                     'lastName': '',
-                                    'username': _usernameController.text,
-                                    'email': _emailController.text,
-                                    'password': _passwordController.text,
+                                    'username': _usernameController.text.trim(),
+                                    'email': _emailController.text.trim(),
+                                    'password': _passwordController.text.trim(),
                                     'userId': user.uid,
                                   }
                                   );
