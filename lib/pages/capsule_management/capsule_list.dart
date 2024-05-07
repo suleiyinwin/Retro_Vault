@@ -48,16 +48,6 @@ class _UserInformationState extends State<UserInformation> {
   }
 }
 
-// void main() {
-//   runApp(const MyApp());
-// }
-
-// Future<void> main() async {
-//   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform,);
-
-//   runApp(const MyApp());
-// }
-
 Future<String> getUserName(String userId) async {
   Map<String, String> simpleCache = <String, String>{};
 
@@ -90,45 +80,6 @@ class Capsule {
   });
 }
 
-List<Capsule> capsules = [
-  Capsule(
-    title: 'Summer Trip',
-    author: 'Sara',
-    image: 'assets/gatsby.jpg',
-    locked: false,
-  ),
-  Capsule(
-    title: 'To my future self',
-    author: 'Sara',
-    image: 'assets/gatsby.jpg',
-    locked: false,
-  ),
-  Capsule(
-    title: 'Beach Therapy',
-    author: 'Jame',
-    image: 'assets/gatsby.jpg',
-    locked: false,
-  ),
-  Capsule(
-    title: 'School Days',
-    author: 'Sara',
-    image: 'assets/gatsby.jpg',
-    locked: false,
-  ),
-  Capsule(
-    title: 'School Days',
-    author: 'Jame',
-    image: 'assets/gatsby.jpg',
-    locked: false,
-  ),
-  // Capsule(
-  //   title: 'School Days',
-  //   author: 'Jame',
-  //   image: 'assets/gatsby.jpg',
-  //   locked: false,
-  // ),
-];
-
 class CapsuleWidget extends StatelessWidget {
   final String title;
   final Future<String> author;
@@ -159,7 +110,6 @@ class CapsuleWidget extends StatelessWidget {
                   borderRadius: const BorderRadius.only(
                       topLeft: Radius.circular(150),
                       bottomLeft: Radius.circular(150)),
-                  // child: Image.asset('image/IMG_4439.jpeg', fit: BoxFit.cover),
                   child: Image.network(imageUrl, fit: BoxFit.cover),
                 ),
               ),
@@ -247,18 +197,13 @@ class HomeScreen extends StatelessWidget {
                     data: IconThemeData(
                         color: AppColors.backgroundColor, size: 40),
                     child: Icon(Icons.add),
-                  )
-                  // child: const Icon(Icons.add),
-                  ),
+                  )),
             ),
             body: TabBarView(
               children: <Widget>[
                 UserInformation(),
                 Column(
-                  children: [
-                    // ...capsules.map((capsule) => CapsuleWidget(
-                    //     title: capsule.title, author: capsule.author, imageUrl: capsule.image))
-                  ],
+                  children: [],
                 ),
               ],
             )),
