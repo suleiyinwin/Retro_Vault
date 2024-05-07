@@ -1,7 +1,9 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:retro/pages/capsule_management/create_capsule.dart';
 import '../../components/colors.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:retro/firebase_options.dart';
@@ -13,7 +15,7 @@ class UserInformation extends StatefulWidget {
 
 class _UserInformationState extends State<UserInformation> {
   final Stream<QuerySnapshot> _usersStream =
-      FirebaseFirestore.instance.collection('capsules').snapshots();
+      FirebaseFirestore.instance.collection('capsules').where('userId', isEqualTo: FirebaseAuth.instance.currentUser!.uid).snapshots();
 
   @override
   Widget build(BuildContext context) {
@@ -34,7 +36,7 @@ class _UserInformationState extends State<UserInformation> {
                 document.data()! as Map<String, dynamic>;
             return CapsuleWidget(
               title: data['title'],
-              author: data['message'],
+              author: getUserName(FirebaseAuth.instance.currentUser!.uid),
               imageUrl: data['coverPhotoUrl'],
             );
           }),
@@ -53,6 +55,24 @@ class _UserInformationState extends State<UserInformation> {
 
 //   runApp(const MyApp());
 // }
+
+Future<String> getUserName(String userId) async {
+  Map<String, String> simpleCache = <String, String>{};
+
+  if (simpleCache.containsKey(userId)) {
+    return simpleCache[userId]!;
+  } else {
+    var snapshot = await FirebaseFirestore.instance
+        .collection('user')
+        .where('userId', isEqualTo: userId)
+        .get();
+
+    var username = await snapshot.docs[0].get('username');
+    simpleCache[userId] = username;
+
+    return username;
+  }
+}
 
 class Capsule {
   final String title;
@@ -109,7 +129,7 @@ List<Capsule> capsules = [
 
 class CapsuleWidget extends StatelessWidget {
   final String title;
-  final String author;
+  final Future<String> author;
   final String imageUrl;
 
   const CapsuleWidget({
@@ -210,19 +230,12 @@ class HomeScreen extends StatelessWidget {
                   shape: const CircleBorder(),
                   backgroundColor: AppColors.primaryColor,
                   onPressed: () async {
-                    // Add your onPressed code here!
-
-                    await Firebase.initializeApp(
-                      options: DefaultFirebaseOptions.currentPlatform,
-                    ); //
-                    var collection =
-                        FirebaseFirestore.instance.collection('capsules');
-                    var querySnapshot = await collection.get();
-                    for (var queryDocumentSnapshot in querySnapshot.docs) {
-                      Map<String, dynamic> data = queryDocumentSnapshot.data();
-                      print(data['coverPhotoUrl']);
-                    }
-                  },
+                    Navigator.pushReplacement(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) => const CreateCapsule()),
+                                );
+                    },
                   child: const IconTheme(
                     data: IconThemeData(
                         color: AppColors.backgroundColor, size: 40),
@@ -233,13 +246,14 @@ class HomeScreen extends StatelessWidget {
             ),
             body: TabBarView(
               children: <Widget>[
+                UserInformation(),
                 Column(
                   children: [
-                    ...capsules.map((capsule) => CapsuleWidget(
-                        title: capsule.title, author: capsule.author, imageUrl: capsule.image))
+                    // ...capsules.map((capsule) => CapsuleWidget(
+                    //     title: capsule.title, author: capsule.author, imageUrl: capsule.image))
                   ],
                 ),
-                UserInformation(),
+                
               ],
             )),
       ),
