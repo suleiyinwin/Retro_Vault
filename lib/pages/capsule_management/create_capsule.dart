@@ -363,9 +363,10 @@ class _CreateCapsuleState extends State<CreateCapsule> {
                 const Row(
                   mainAxisAlignment: MainAxisAlignment.start,
                   children: [
-                     Text(
+                    Text(
                       '**Edit before date cannot be changed in the future',
-                      style: TextStyle(color: AppColors.errorRed, fontSize: 13), textAlign: TextAlign.left,
+                      style: TextStyle(color: AppColors.errorRed, fontSize: 13),
+                      textAlign: TextAlign.left,
                     ),
                   ],
                 ),
@@ -718,7 +719,7 @@ class _CreateCapsuleState extends State<CreateCapsule> {
                                   .collection('capsules')
                                   .add({
                                 'userRef': userReference,
-                                'userId':userId,
+                                'userId': userId,
                                 'capsuleId': capsuleId,
                                 'title': _titleController.text,
                                 'message': _messageController.text,
