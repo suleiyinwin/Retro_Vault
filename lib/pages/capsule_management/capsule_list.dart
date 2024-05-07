@@ -98,7 +98,7 @@ class CapsuleWidget extends StatelessWidget {
         future: author,
         builder: (context, snapshot) {
           return Container(
-            margin: const EdgeInsets.all(10),
+            margin: const EdgeInsets.all(8),
             height: 150,
             decoration: BoxDecoration(
               border: Border.all(color: AppColors.primaryColor),
@@ -119,7 +119,7 @@ class CapsuleWidget extends StatelessWidget {
                   children: [
                     Padding(
                       padding: const EdgeInsets.only(
-                          left: 20.0, right: 10.0, top: 50.0),
+                          left: 16, right: 8, top: 48),
                       child: Text(
                         title,
                         style: const TextStyle(
@@ -130,7 +130,7 @@ class CapsuleWidget extends StatelessWidget {
                       ),
                     ),
                     Padding(
-                      padding: const EdgeInsets.only(left: 20.0, right: 10.0),
+                      padding: const EdgeInsets.only(left: 16, right: 8),
                       child: Text(
                           'Shared by ${snapshot.connectionState == ConnectionState.waiting ? '…' : snapshot.data}',
                           style: const TextStyle(
@@ -147,9 +147,9 @@ class CapsuleWidget extends StatelessWidget {
   }
 }
 
-class style {
-  const style();
-}
+// class style {
+//   const style();
+// }
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -180,6 +180,7 @@ class HomeScreen extends StatelessWidget {
                 ],
               ),
             ),
+
             floatingActionButton: SizedBox(
               width: 80,
               height: 80,
@@ -202,7 +203,7 @@ class HomeScreen extends StatelessWidget {
             body: TabBarView(
               children: <Widget>[
                 UserInformation(),
-                Column(
+                const Column(
                   children: [],
                 ),
               ],
