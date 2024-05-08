@@ -16,13 +16,36 @@ class ProfileView extends StatefulWidget {
 
 class _ProfileViewState extends State<ProfileView> {
   late Stream<String> _usernameStream;
+  String _profilePhotoUrl = '';
 
   @override
   void initState() {
     super.initState();
+    _loadProfilePhoto();
     _usernameStream = _getUserNameStream(FirebaseAuth.instance.currentUser!.uid);
   }
-
+// Function to load profile photo URL
+  void _loadProfilePhoto() async {
+    User? currentUser = FirebaseAuth.instance.currentUser;
+    if (currentUser != null) {
+      try {
+        final userId = currentUser.uid;
+        final userRef = await FirebaseFirestore.instance
+            .collection('user')
+            .where('userId', isEqualTo: userId)
+            .get();
+        if (userRef.docs.isNotEmpty) {
+          final userData = userRef.docs.first.data();
+          final profilePhotoUrl = userData['profile_photo_url'];
+          setState(() {
+            _profilePhotoUrl = profilePhotoUrl ?? ''; // Set profile photo URL
+          });
+        }
+      } catch (error) {
+        print('Error fetching profile photo: $error');
+      }
+    }
+  }
   Stream<String> _getUserNameStream(String userId) async* {
     Map<String, String> simpleCache = <String, String>{};
 
@@ -188,10 +211,12 @@ class _ProfileViewState extends State<ProfileView> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.start,
                     children: [
-                      const CircleAvatar(
+                     CircleAvatar(
                         radius: 50,
                         backgroundColor: AppColors.primaryColor,
-                        backgroundImage: AssetImage('image/splashlogo.png'),
+                        child: _profilePhotoUrl.isNotEmpty
+                            ? Image.network(_profilePhotoUrl) // Load profile photo from URL
+                            : Image.asset('image/splashlogo.png'), // Fallback image if URL is empty
                       ),
                       const SizedBox(width: 16),
                       Column(

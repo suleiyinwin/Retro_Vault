@@ -25,96 +25,26 @@ class  ChgPwdState extends State <ChgPwd> {
   bool passwordVisibleThree = false;
   final passwordRegex = RegExp(
       r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{6,}$");
-  String? _userId;
-  String? _password;
   @override
   void initState() {
     super.initState();
     passwordVisibleOne = true;
     passwordVisibleTwo = true;
     passwordVisibleThree = true;
-    _userId = FirebaseAuth.instance.currentUser!.uid;
-    print('User ID: $_userId');
-    Firebase.initializeApp(
-      options: DefaultFirebaseOptions.currentPlatform,
-    ).then((_) {
-      _initUserStream();
-      printCurrentUser();
-    });
-  }
-
-  void printCurrentUser() {
-  User? user = FirebaseAuth.instance.currentUser;
-  if (user != null) {
-    print('User ID: ${user.uid}');
-    print('Email: ${user.email}');
-    // Add more user information as needed
-  } else {
-    print('No user signed in');
-  }
-}
-   void _initUserStream() {
-    FirebaseFirestore.instance
-       .collection('user')
-       .doc(FirebaseAuth.instance.currentUser!.uid)
-       .get()
-       .then((documentSnapshot) {
-      if (documentSnapshot.exists) {
-        setState(() {
-          _password = documentSnapshot.get('password');
-        });
-      } else {
-        print('Document does not exist');
-      }
-    });
   }
 
   @override
-  void dispose(){
+  void dispose() {
     _currentPasswordController.dispose();
     _newPasswordController.dispose();
     _confirmNewPasswordController.dispose();
     super.dispose();
   }
-// Update the password in Firestore
-  Future<void> _updatePasswordInFirestore(String newPassword) async {
-    await FirebaseFirestore.instance
-        .collection('user')
-        .doc(_userId)
-        .update({'password': newPassword});
-  }
 
-  // Update the password in Firebase Authentication
-  Future<void> _updatePasswordInAuthentication(String newPassword) async {
-    final user = FirebaseAuth.instance.currentUser;
-    await user!.updatePassword(newPassword);
-  }
-
-//   Stream<String> _getPasswordStream(String userId) async* {
-//   Map<String, String> simpleCache = <String, String>{};
-
-//   while (true) {
-//     if (simpleCache.containsKey(userId)) {
-//       yield simpleCache[userId]!;
-//     } else {
-//       var snapshot = await FirebaseFirestore.instance
-//           .collection('user')
-//           .where('userId', isEqualTo: userId) // Accessing user document directly using userId
-//           .get();
-
-//       var password = await snapshot.docs[0].get('password'); // Get the password field from the document data
-//       simpleCache[userId] = password; // Store password in cache
-//       yield password; 
-//     }
-   
-    
-//   }
-// }
-
-Future<void> _updatePassword(String newPassword) async {
+  Future<void> _updatePassword(String newPassword) async {
     try {
       // Verify new password and confirm password match
-      if (newPassword!= _newPasswordController.text) {
+      if (newPassword != _newPasswordController.text) {
         Fluttertoast.showToast(
           msg: 'New password and confirm password do not match',
           toastLength: Toast.LENGTH_SHORT,
@@ -135,12 +65,21 @@ Future<void> _updatePassword(String newPassword) async {
       );
 
       // If current password is correct, update the password
-      if (authResult.user!= null) {
+      if (authResult.user != null) {
+        final userId = currentUser.uid;
+        final userRef = await FirebaseFirestore.instance
+            .collection('user')
+            .where('userId', isEqualTo: userId)
+            .get();
+        final userDocId = userRef.docs.first.id;
+
         // Update password in Firebase Authentication
-        await _updatePasswordInAuthentication(newPassword);
+        await authResult.user!.updatePassword(newPassword);
 
         // Update password in Firestore
-        await _updatePasswordInFirestore(newPassword);
+        await FirebaseFirestore.instance.collection('user').doc(userDocId).update({
+          'password': newPassword,
+        });
 
         // Show success message
         Fluttertoast.showToast(
@@ -157,7 +96,7 @@ Future<void> _updatePassword(String newPassword) async {
         Navigator.pop(context);
       } else {
         setState(() {
-          errorMessage = 'Invalid current password';
+         errorMessage = 'wrong current password. try again';
         });
       }
     } catch (e) {
@@ -166,6 +105,7 @@ Future<void> _updatePassword(String newPassword) async {
       });
     }
   }
+
   @override
   Widget build(BuildContext context) {
     const appTitle = "Change Password";
@@ -217,12 +157,6 @@ Future<void> _updatePassword(String newPassword) async {
                             }
                             else if(errorMessage.isNotEmpty){
                               return errorMessage;
-                            }
-                            else if (!passwordRegex.hasMatch(value)){
-                              return 'Password must contain at least 6 characters, including:\n'
-                                      '• Uppercase\n'
-                                      '• Lowercase\n'
-                                      '• Numbers and special characters';
                             }
                             errorMessage = '';
                             return null;
