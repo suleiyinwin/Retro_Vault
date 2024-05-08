@@ -5,6 +5,13 @@ class NotiPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Placeholder();
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Notification'), 
+      ),
+      body: const Center(
+        child: Text('Notification Page'),
+      ),
+    );
   }
 }
