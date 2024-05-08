@@ -27,7 +27,7 @@ class CreateCapsule extends StatefulWidget {
 
 class _CreateCapsuleState extends State<CreateCapsule> {
   final _formKey = GlobalKey<FormState>();
-   String errorMessage = '';
+  String errorMessage = '';
   final _titleController = TextEditingController();
   final _messageController = TextEditingController();
   Uint8List? _imageBytes;
@@ -53,14 +53,14 @@ class _CreateCapsuleState extends State<CreateCapsule> {
     if (user != null) {
       return user.uid;
     } else {
-      
       return 'AEHcUcxLJkhE2aQmVcfMLTYp9an2';
     }
   }
+
   String generateUniqueId() {
-  const uuid = Uuid();
-  return uuid.v4(); // Generate a Version 4 (random) UUID
-}
+    const uuid = Uuid();
+    return uuid.v4(); // Generate a Version 4 (random) UUID
+  }
 
   // Future<void> _saveData() async {
   //   // if (_formKey.currentState!.validate()) {
@@ -358,6 +358,17 @@ class _CreateCapsuleState extends State<CreateCapsule> {
                       ),
                     ],
                   ),
+                ),
+                const SizedBox(height: 20),
+                const Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    Text(
+                      '**Edit before date cannot be changed in the future',
+                      style: TextStyle(color: AppColors.errorRed, fontSize: 13),
+                      textAlign: TextAlign.left,
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 20),
                 const Row(
@@ -662,9 +673,17 @@ class _CreateCapsuleState extends State<CreateCapsule> {
                             width: 1,
                           ),
                         ),
-                        child: const Text('Cancel', style: TextStyle(color: AppColors.textColor),),
+                        child: const Text(
+                          'Cancel',
+                          style: TextStyle(color: AppColors.textColor),
+                        ),
                         onPressed: () {
-                          // Implement cancel logic
+                          Navigator.pushAndRemoveUntil(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => const HomeScreen()),
+                            (Route<dynamic> route) => false,
+                          );
                         },
                       ),
                     ),
@@ -679,71 +698,90 @@ class _CreateCapsuleState extends State<CreateCapsule> {
                             width: 1,
                           ),
                           backgroundColor: AppColors.primaryColor,
-                          
                         ),
-                        child: const Text('Save',style: TextStyle(color: AppColors.white),),
-                        onPressed: () async{
+                        child: const Text(
+                          'Save',
+                          style: TextStyle(color: AppColors.white),
+                        ),
+                        onPressed: () async {
                           // _saveData();
                           // final user = FirebaseAuth.instance.currentUser;
-                          const userId= 'AEHcUcxLJkhE2aQmVcfMLTYp9an2';
+                          final userId = FirebaseAuth.instance.currentUser?.uid;
+                          // final userRef = FirebaseFirestore.instance.collection('user').doc(userId);
+                          final QuerySnapshot userRef = await FirebaseFirestore
+                              .instance
+                              .collection('user')
+                              .where('userId', isEqualTo: userId)
+                              .get();
+                          final userReference = FirebaseFirestore.instance
+                              .collection('user')
+                              .doc(userRef.docs.first.id);
                           final capsuleId = generateUniqueId();
-                           if (_formKey.currentState!.validate()) {
-                              _formKey.currentState!.save();
-                          try{
-                            final docRef = await FirebaseFirestore.instance.collection('capsules').add({
-                              'userId': userId,
-                              // 'userId':user.uid,
-                              'capsuleId': capsuleId,
-                              'title': _titleController.text,
-                              'message': _messageController.text,
-                              'editBeforeDate': _editBeforeDate,
-                              'openDate': _openDate,
-                            });
-                             if (_imageBytes!= null) {
-            final coverPhotoRef = FirebaseStorage.instance.ref().child('capsule_covers/$capsuleId');
-            await coverPhotoRef.putData(_imageBytes!);
-            final coverPhotoUrl = await coverPhotoRef.getDownloadURL();
-            await docRef.update({'coverPhotoUrl': coverPhotoUrl});
-          }
+                          if (_formKey.currentState!.validate()) {
+                            _formKey.currentState!.save();
+                            try {
+                              final docRef = await FirebaseFirestore.instance
+                                  .collection('capsules')
+                                  .add({
+                                'userRef': userReference,
+                                'userId': userId,
+                                'capsuleId': capsuleId,
+                                'title': _titleController.text,
+                                'message': _messageController.text,
+                                'editBeforeDate': _editBeforeDate,
+                                'openDate': _openDate,
+                              });
+                              if (_imageBytes != null) {
+                                final coverPhotoRef = FirebaseStorage.instance
+                                    .ref()
+                                    .child('capsule_covers/$capsuleId');
+                                await coverPhotoRef.putData(_imageBytes!);
+                                final coverPhotoUrl =
+                                    await coverPhotoRef.getDownloadURL();
+                                await docRef
+                                    .update({'coverPhotoUrl': coverPhotoUrl});
+                              }
 
-      for (int i = 0; i < _imageBytesList.length; i++) {
-            final photoBytes = _imageBytesList[i];
-            if (photoBytes!= null) {
-              final photoRef = FirebaseStorage.instance.ref().child('capsule_photos/$capsuleId/photo_$i');
-              await photoRef.putData(photoBytes);
-              final photoUrl = await photoRef.getDownloadURL();
-              await docRef.update({'capsule_photourl$i': photoUrl});
-            }
-          }
-                            setState(() {
-                              _titleController.clear();
-                              _messageController.clear();
-                              _editBeforeDate = DateTime.now();
-                              _openDate = DateTime.now();
-                        
-                            });
-                            setState(() {
-    _imageBytes = null;
-    _imageBytesList = List<Uint8List?>.filled(10, null);
-  });
-                            setState(() {});
-                            // Clear the image bytes list
-    
+                              for (int i = 0; i < _imageBytesList.length; i++) {
+                                final photoBytes = _imageBytesList[i];
+                                if (photoBytes != null) {
+                                  final photoRef = FirebaseStorage.instance
+                                      .ref()
+                                      .child(
+                                          'capsule_photos/$capsuleId/photo_$i');
+                                  await photoRef.putData(photoBytes);
+                                  final photoUrl =
+                                      await photoRef.getDownloadURL();
+                                  await docRef
+                                      .update({'capsule_photourl$i': photoUrl});
+                                }
+                              }
+                              setState(() {
+                                _titleController.clear();
+                                _messageController.clear();
+                                _editBeforeDate = DateTime.now();
+                                _openDate = DateTime.now();
+                              });
+                              setState(() {
+                                _imageBytes = null;
+                                _imageBytesList =
+                                    List<Uint8List?>.filled(10, null);
+                              });
+                              setState(() {});
+                              // Clear the image bytes list
+                            } on FirebaseException catch (e) {
+                              setState(() {
+                                print(e.message);
+                                errorMessage = e.message!;
+                              });
+                            }
+                            Navigator.pushAndRemoveUntil(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => const HomeScreen()),
+                              (Route<dynamic> route) => false,
+                            );
                           }
-                          on FirebaseException catch (e){
-                            setState(() {
-                              print(e.message);
-                              errorMessage=e.message!;
-
-                            });
-                          }
-                           Navigator.pushAndRemoveUntil(
-    context,
-    MaterialPageRoute(builder: (context) =>const HomeScreen()),
-    (Route<dynamic> route) => false,
-  );
-                        }
-                        
                         },
                       ),
                     ),
@@ -757,4 +795,3 @@ class _CreateCapsuleState extends State<CreateCapsule> {
     );
   }
 }
-
