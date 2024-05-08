@@ -12,6 +12,7 @@ import 'dart:html';
 import 'dart:typed_data';
 import 'dart:math';
 import 'package:intl/intl.dart';
+import 'package:image_picker/image_picker.dart';
 class EditProfile extends StatefulWidget {
   const EditProfile({super.key});
 
@@ -169,57 +170,103 @@ class _EditProfileState extends State<EditProfile> {
 //       }
 //     }
 //   }
-void _selectAndUploadProfilePhoto() {
-  html.InputElement uploadInput = html.InputElement(type: 'file');
-  uploadInput.click();
-  uploadInput.onChange.listen((_) async {
-    final file = uploadInput.files!.first;
-    final reader = html.FileReader();
-    reader.readAsArrayBuffer(file);
-    reader.onLoadEnd.listen((_) async {
-      final Uint8List? profileImageBytes = reader.result as Uint8List?;
-      if (profileImageBytes != null) {
-        await _uploadProfilePhoto(profileImageBytes);
-      }
-    });
-  });
-}
+// void _selectAndUploadProfilePhoto() {
+//   html.InputElement uploadInput = html.InputElement(type: 'file');
+//   uploadInput.click();
+//   uploadInput.onChange.listen((_) async {
+//     final file = uploadInput.files!.first;
+//     final reader = html.FileReader();
+//     reader.readAsArrayBuffer(file);
+//     reader.onLoadEnd.listen((_) async {
+//       final Uint8List? profileImageBytes = reader.result as Uint8List?;
+//       if (profileImageBytes != null) {
+//         await _uploadProfilePhoto(profileImageBytes);
+//       }
+//     });
+//   });
+// }
 
-Future<void> _uploadProfilePhoto(Uint8List profileImageBytes) async {
-  User? user = FirebaseAuth.instance.currentUser;
-  if (user != null) {
-    try {
-      final userId = user.uid;
-      final userRef = await FirebaseFirestore.instance
-          .collection('user')
-          .where('userId', isEqualTo: userId)
-          .get();
-      final userDocId = userRef.docs.first.id;
+//mobile
+void _selectAndUploadProfilePhoto() async {
+    final picker = ImagePicker(); // Create an instance of ImagePicker
+    final pickedFile = await picker.pickImage(source: ImageSource.gallery); // Pick an image from the gallery
 
-      final photoRef = FirebaseStorage.instance
-          .ref()
-          .child('user_profiles/$userDocId/profile_photo');
-      await photoRef.putData(profileImageBytes);
-      final photoUrl = await photoRef.getDownloadURL();
-      // Update the profile photo URL in the user document
-      await FirebaseFirestore.instance
-          .collection('user')
-          .doc(userDocId)
-          .update({'profile_photo_url': photoUrl});
-      setState(() {
-        _profileImageBytes = profileImageBytes;
-      });
-    } catch (error) {
-      print('Error uploading profile photo: $error');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Failed to upload profile photo'),
-          backgroundColor: Colors.red,
-        ),
-      );
+    if (pickedFile != null) {
+      final bytes = await pickedFile.readAsBytes(); // Read the selected image as bytes
+      await _uploadProfilePhoto(bytes); // Upload the image
     }
   }
-}
+
+// Future<void> _uploadProfilePhoto(Uint8List profileImageBytes) async {
+//   User? user = FirebaseAuth.instance.currentUser;
+//   if (user != null) {
+//     try {
+//       final userId = user.uid;
+//       final userRef = await FirebaseFirestore.instance
+//           .collection('user')
+//           .where('userId', isEqualTo: userId)
+//           .get();
+//       final userDocId = userRef.docs.first.id;
+
+//       final photoRef = FirebaseStorage.instance
+//           .ref()
+//           .child('user_profiles/$userDocId/profile_photo');
+//       await photoRef.putData(profileImageBytes);
+//       final photoUrl = await photoRef.getDownloadURL();
+//       // Update the profile photo URL in the user document
+//       await FirebaseFirestore.instance
+//           .collection('user')
+//           .doc(userDocId)
+//           .update({'profile_photo_url': photoUrl});
+//       setState(() {
+//         _profileImageBytes = profileImageBytes;
+//       });
+//     } catch (error) {
+//       print('Error uploading profile photo: $error');
+//       ScaffoldMessenger.of(context).showSnackBar(
+//         SnackBar(
+//           content: Text('Failed to upload profile photo'),
+//           backgroundColor: Colors.red,
+//         ),
+//       );
+//     }
+//   }
+// }
+Future<void> _uploadProfilePhoto(Uint8List profileImageBytes) async {
+    User? user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      try {
+        final userId = user.uid;
+        final userRef = await FirebaseFirestore.instance
+            .collection('user')
+            .where('userId', isEqualTo: userId)
+            .get();
+        final userDocId = userRef.docs.first.id;
+
+        final photoRef = FirebaseStorage.instance
+            .ref()
+            .child('user_profiles/$userDocId/profile_photo');
+        await photoRef.putData(profileImageBytes);
+        final photoUrl = await photoRef.getDownloadURL();
+        // Update the profile photo URL in the user document
+        await FirebaseFirestore.instance
+            .collection('user')
+            .doc(userDocId)
+            .update({'profile_photo_url': photoUrl});
+        setState(() {
+          _profileImageBytes = profileImageBytes;
+        });
+      } catch (error) {
+        print('Error uploading profile photo: $error');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to upload profile photo'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
 
 void _updateUserProfile() async {
   String firstName = _firstNameController.text.trim();
