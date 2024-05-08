@@ -7,12 +7,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:retro/components/colors.dart';
 import 'dart:async';
-import 'dart:html' as html;
-import 'dart:html';
+// import 'dart:html' as html;
+// import 'dart:html';
 import 'dart:typed_data';
-import 'dart:math';
-import 'package:intl/intl.dart';
+// import 'dart:math';
+// import 'package:intl/intl.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:retro/pages/user_management/view_profile.dart';
 class EditProfile extends StatefulWidget {
   const EditProfile({super.key});
 
@@ -188,14 +189,18 @@ class _EditProfileState extends State<EditProfile> {
 
 //mobile
 void _selectAndUploadProfilePhoto() async {
-    final picker = ImagePicker(); // Create an instance of ImagePicker
-    final pickedFile = await picker.pickImage(source: ImageSource.gallery); // Pick an image from the gallery
+  final picker = ImagePicker(); // Create an instance of ImagePicker
+  final pickedFile = await picker.pickImage(source: ImageSource.gallery); // Pick an image from the gallery
 
-    if (pickedFile != null) {
-      final bytes = await pickedFile.readAsBytes(); // Read the selected image as bytes
-      await _uploadProfilePhoto(bytes); // Upload the image
-    }
+  if (pickedFile != null) {
+    final bytes = await pickedFile.readAsBytes(); // Read the selected image as bytes
+    setState(() {
+      _profileImageBytes = bytes; // Set the profile image bytes to display the preview
+    });
+    await _uploadProfilePhoto(bytes); // Upload the image
   }
+}
+
 
 // Future<void> _uploadProfilePhoto(Uint8List profileImageBytes) async {
 //   User? user = FirebaseAuth.instance.currentUser;
@@ -293,6 +298,11 @@ void _updateUserProfile() async {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Profile updated successfully!')),
       );
+      //  Navigator.pop(context);
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => const ProfileView()),
+      );
     } catch (error) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -330,28 +340,35 @@ void _updateUserProfile() async {
               children: [
                 CircleAvatar(
   backgroundColor: AppColors.primaryColor,
-  child: _profilePhotoUrl.isNotEmpty
-    ? Image.network(
-        _profilePhotoUrl,
-        fit: BoxFit.cover,
-        width: double.infinity,
-        height: double.infinity,
-        errorBuilder: (context, error, stackTrace) {
-          print("Error loading image: $error");
-          return Image.asset(
-            'image/splashlogo.png', 
-            fit: BoxFit.cover,
-            width: double.infinity,
-            height: double.infinity,
-          );
-        },
-      )
-    : Image.asset(
-        'image/splashlogo.png',
-        fit: BoxFit.cover,
-        width: double.infinity,
-        height: double.infinity,
-      ),
+  child: _profileImageBytes != null
+            ? Image.memory(
+                _profileImageBytes!,
+                fit: BoxFit.cover,
+                width: double.infinity,
+                height: double.infinity,
+              )
+            : (_profilePhotoUrl.isNotEmpty
+                ? Image.network(
+                    _profilePhotoUrl,
+                    fit: BoxFit.cover,
+                    width: double.infinity,
+                    height: double.infinity,
+                    errorBuilder: (context, error, stackTrace) {
+                      print("Error loading image: $error");
+                      return Image.asset(
+                        'image/splashlogo.png',
+                        fit: BoxFit.cover,
+                        width: double.infinity,
+                        height: double.infinity,
+                      );
+                    },
+                  )
+                : Image.asset(
+                    'image/splashlogo.png',
+                    fit: BoxFit.cover,
+                    width: double.infinity,
+                    height: double.infinity,
+                  )),
 ),
 
 
