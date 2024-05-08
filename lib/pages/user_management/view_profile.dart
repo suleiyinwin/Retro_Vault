@@ -1,29 +1,72 @@
-import 'package:flutter/cupertino.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:retro/components/colors.dart';
+import 'package:retro/pages/authentication/login.dart';
 import 'package:retro/pages/user_management/edit_profile.dart';
+import 'package:retro/pages/user_management/change_pwd.dart';
 
 class ProfileView extends StatefulWidget {
-  const ProfileView({super.key});
+  const ProfileView({Key? key}) : super(key: key);
 
   @override
   State<ProfileView> createState() => _ProfileViewState();
 }
 
 class _ProfileViewState extends State<ProfileView> {
+  late Stream<String> _usernameStream;
+
+  @override
+  void initState() {
+    super.initState();
+    _usernameStream = _getUserNameStream(FirebaseAuth.instance.currentUser!.uid);
+  }
+
+  Stream<String> _getUserNameStream(String userId) async* {
+    Map<String, String> simpleCache = <String, String>{};
+
+    while (true) {
+      if (simpleCache.containsKey(userId)) {
+        yield simpleCache[userId]!;
+      } else {
+        var snapshot = await FirebaseFirestore.instance
+            .collection('user')
+            .where('userId', isEqualTo: userId)
+            .get();
+
+        var username = await snapshot.docs[0].get('username');
+        simpleCache[userId] = username;
+        yield username;
+      }
+      await Future.delayed(Duration(seconds: 1)); // Adjust delay as needed
+    }
+  }
+
+  void signOut() async {
+    await FirebaseAuth.instance.signOut();
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => const LoginPage()),
+    );
+  }
+  void navigateToChangePassword(){
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context)=> const ChgPwd())
+    );
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: AppColors.backgroundColor,
-        //displays the back button if canPop returns true, indicating there's a previous route.
         leading: ModalRoute.of(context)?.canPop == true
-              ? IconButton(
-                  icon: const Icon(Icons.arrow_back),
-                  onPressed: () => Navigator.pop(context),
-                )
-              : null,
+            ? IconButton(
+                icon: const Icon(Icons.arrow_back),
+                onPressed: () => Navigator.pop(context),
+              )
+            : null,
       ),
       backgroundColor: AppColors.backgroundColor,
       body: SingleChildScrollView(
@@ -32,7 +75,7 @@ class _ProfileViewState extends State<ProfileView> {
           children: [
             Padding(
               padding: const EdgeInsets.all(20.0),
-              child: SizedBox(             //profile picture and username section
+              child: SizedBox(
                 child: Container(
                   padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
@@ -42,31 +85,65 @@ class _ProfileViewState extends State<ProfileView> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.start,
                     children: [
-                      CircleAvatar(
+                      const CircleAvatar(
                         radius: 50,
                         backgroundColor: AppColors.primaryColor,
                         backgroundImage: AssetImage('image/splashlogo.png'),
                       ),
-                      SizedBox(width: 16),
+                      const SizedBox(width: 16),
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('Username',
-                          style: TextStyle(
-                            fontSize: 15, 
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.textColor),),
-                          Text('Edit Profile',
-                          style: TextStyle(color: AppColors.textColor),),
-                        ]
+                          StreamBuilder<String>(
+                            stream: _usernameStream,
+                            builder: (context, snapshot) {
+                              if (snapshot.connectionState ==
+                                  ConnectionState.waiting) {
+                                return const Text(
+                                  'Loading...',
+                                  style: TextStyle(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.textColor,
+                                  ),
+                                );
+                              } else if (snapshot.hasError) {
+                                return Text(
+                                  'Error: ${snapshot.error}',
+                                  style: const TextStyle(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.textColor,
+                                  ),
+                                );
+                              } else {
+                                return Text(
+                                  snapshot.data ?? 'Username not found',
+                                  style: const TextStyle(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.textColor,
+                                  ),
+                                );
+                              }
+                            },
+                          ),
+                          const SizedBox(height: 8),
+                          const Text(
+                            'Edit Profile',
+                            style: TextStyle(color: AppColors.textColor),
+                          ),
+                        ],
                       ),
-                      SizedBox(width: 50),
+                      const SizedBox(width: 50),
                       IconButton(
-                        icon: Icon(Icons.chevron_right),
+                        icon: const Icon(Icons.chevron_right),
                         onPressed: () {
                           Navigator.push(
-                            context, // Pass the current context to the Navigator
-                            MaterialPageRoute(builder: (context) => const EditProfile()),
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const EditProfile(),
+                            ),
                           );
                         },
                       ),
@@ -77,27 +154,27 @@ class _ProfileViewState extends State<ProfileView> {
             ),
             Padding(
               padding: const EdgeInsets.only(left: 20, right: 20, bottom: 20),
-              child: SizedBox(  //settings section
+              child: SizedBox(
                 child: Container(
                   padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: const Column(
+                  child: Column(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
                       Row(
                         children: [
-                          Text('Change Password'),
+                          const Text('Change Password'),
                           IconButton(
-                            icon: Icon(Icons.chevron_right),
-                            onPressed: null,
+                            icon: const Icon(Icons.chevron_right),
+                            onPressed: navigateToChangePassword,
                           ),
                         ],
                       ),
-                      Divider(color: AppColors.primaryColor),
-                      Row(
+                      const Divider(color: AppColors.primaryColor),
+                      const Row(
                         children: [
                           Text('Delete My Account'),
                           IconButton(
@@ -106,13 +183,13 @@ class _ProfileViewState extends State<ProfileView> {
                           ),
                         ],
                       ),
-                      Divider(color: AppColors.primaryColor),
+                      const Divider(color: AppColors.primaryColor),
                       Row(
                         children: [
-                          Text('Log Out'),
+                          const Text('Log Out'),
                           IconButton(
-                            icon: Icon(Icons.chevron_right),
-                            onPressed: null,
+                            icon: const Icon(Icons.chevron_right),
+                            onPressed: signOut,
                           ),
                         ],
                       ),
