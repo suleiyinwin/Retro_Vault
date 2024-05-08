@@ -36,11 +36,12 @@ class _UserInformationState extends State<UserInformation> {
           ...snapshot.data!.docs.map((DocumentSnapshot document) {
             Map<String, dynamic> data =
                 document.data()! as Map<String, dynamic>;
+
             return CapsuleWidget(
-              title: data['title'],
-              author: getUserName(FirebaseAuth.instance.currentUser!.uid),
-              imageUrl: data['coverPhotoUrl'] ?? '',           
-            );
+                title: data['title'],
+                author: getUserName(FirebaseAuth.instance.currentUser!.uid),
+                imageUrl: data['coverPhotoUrl'] ?? '',
+                openDate: data['openDate']);
           }),
         ]);
       },
@@ -66,16 +67,32 @@ Future<String> getUserName(String userId) async {
   }
 }
 
+String parseDate(Timestamp timestamp) {
+  Duration duration = Duration(seconds: timestamp.seconds - Timestamp.now().seconds);
+
+  if (duration.inMinutes < 60) {
+    return '${duration.inMinutes} minutes left';
+  }
+
+  if (duration.inHours < 24) {
+    return '${duration.inHours} hours left';
+  }
+
+  return '${duration.inDays} days left';
+}
+
 class CapsuleWidget extends StatelessWidget {
   final String title;
   final Future<String> author;
   final String imageUrl;
+  final Timestamp openDate;
 
   const CapsuleWidget({
     super.key,
     required this.title,
     required this.author,
     required this.imageUrl,
+    required this.openDate,
   });
 
   @override
@@ -96,7 +113,10 @@ class CapsuleWidget extends StatelessWidget {
                   borderRadius: const BorderRadius.only(
                       topLeft: Radius.circular(150),
                       bottomLeft: Radius.circular(150)),
-                  child: imageUrl == '' ? Image.asset('image/defaultcapsult.png', fit: BoxFit.cover) : Image.network(imageUrl, fit: BoxFit.cover),
+                  child: imageUrl == ''
+                      ? Image.asset('image/defaultcapsult.png',
+                          fit: BoxFit.cover)
+                      : Image.network(imageUrl, fit: BoxFit.cover),
                 ),
               ),
               Expanded(
@@ -104,8 +124,8 @@ class CapsuleWidget extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Padding(
-                      padding: const EdgeInsets.only(
-                          left: 16, right: 8, top: 48),
+                      padding:
+                          const EdgeInsets.only(left: 16, right: 8, top: 48),
                       child: Text(
                         title,
                         style: const TextStyle(
@@ -124,6 +144,16 @@ class CapsuleWidget extends StatelessWidget {
                             color: AppColors.primaryColor,
                           )),
                     ),
+                    Timestamp.now().seconds - openDate.seconds <= 0
+                        ? Padding(
+                            padding: const EdgeInsets.only(left: 16, right: 8),
+                            child: Text(parseDate(openDate),
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  color: AppColors.primaryColor,
+                                )),
+                          )
+                        : Container(),
                   ],
                 ),
               )
@@ -132,10 +162,6 @@ class CapsuleWidget extends StatelessWidget {
         });
   }
 }
-
-// class style {
-//   const style();
-// }
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -166,7 +192,6 @@ class HomeScreen extends StatelessWidget {
                 ],
               ),
             ),
-
             floatingActionButton: SizedBox(
               width: 80,
               height: 80,
