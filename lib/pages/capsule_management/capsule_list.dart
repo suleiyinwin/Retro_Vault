@@ -39,7 +39,7 @@ class _UserInformationState extends State<UserInformation> {
             return CapsuleWidget(
               title: data['title'],
               author: getUserName(FirebaseAuth.instance.currentUser!.uid),
-              imageUrl: data['coverPhotoUrl'],
+              imageUrl: data['coverPhotoUrl'] ?? '',           
             );
           }),
         ]);
@@ -64,20 +64,6 @@ Future<String> getUserName(String userId) async {
 
     return username;
   }
-}
-
-class Capsule {
-  final String title;
-  final String author;
-  final String image;
-  final bool locked;
-
-  Capsule({
-    required this.title,
-    required this.author,
-    required this.image,
-    required this.locked,
-  });
 }
 
 class CapsuleWidget extends StatelessWidget {
@@ -110,7 +96,7 @@ class CapsuleWidget extends StatelessWidget {
                   borderRadius: const BorderRadius.only(
                       topLeft: Radius.circular(150),
                       bottomLeft: Radius.circular(150)),
-                  child: Image.network(imageUrl, fit: BoxFit.cover),
+                  child: imageUrl == '' ? Image.asset('image/defaultcapsult.png', fit: BoxFit.cover) : Image.network(imageUrl, fit: BoxFit.cover),
                 ),
               ),
               Expanded(
