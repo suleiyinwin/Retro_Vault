@@ -2,14 +2,19 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/painting.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
-import 'package:retro/pages/capsule_management/create_capsule.dart';
+import 'package:retro/pages/capsule_management/fab.dart';
 import '../../components/colors.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:retro/firebase_options.dart';
 
 class UserInformation extends StatefulWidget {
+  const UserInformation({super.key});
+
   @override
+  // ignore: library_private_types_in_public_api
   _UserInformationState createState() => _UserInformationState();
 }
 
@@ -32,22 +37,29 @@ class _UserInformationState extends State<UserInformation> {
           return const Text("Loading");
         }
 
-        return Column(children: [
-          ...snapshot.data!.docs.map((DocumentSnapshot document) {
+        return ListView.separated(
+          padding: const EdgeInsets.all(8),
+          itemCount: snapshot.data!.docs.length,
+          itemBuilder: (BuildContext context, int index) {
             Map<String, dynamic> data =
-                document.data()! as Map<String, dynamic>;
+                snapshot.data!.docs[index].data()! as Map<String, dynamic>;
+
             return CapsuleWidget(
-              title: data['title'],
-              author: getUserName(FirebaseAuth.instance.currentUser!.uid),
-              imageUrl: data['coverPhotoUrl'],
-            );
-          }),
-        ]);
+                title: data['title'],
+                author: getUserName(FirebaseAuth.instance.currentUser!.uid),
+                imageUrl: data['coverPhotoUrl'] ?? '',
+                openDate: data['openDate']);
+          },
+          separatorBuilder: (context, index) => const Divider(
+            color: Colors.transparent,
+          ),
+        );
       },
     );
   }
 }
 
+//UserInformationState
 Future<String> getUserName(String userId) async {
   Map<String, String> simpleCache = <String, String>{};
 
@@ -66,30 +78,34 @@ Future<String> getUserName(String userId) async {
   }
 }
 
-class Capsule {
-  final String title;
-  final String author;
-  final String image;
-  final bool locked;
+//Timestamp
+String parseDate(Timestamp timestamp) {
+  Duration duration =
+      Duration(seconds: timestamp.seconds - Timestamp.now().seconds);
 
-  Capsule({
-    required this.title,
-    required this.author,
-    required this.image,
-    required this.locked,
-  });
+  if (duration.inMinutes < 60) {
+    return '${duration.inMinutes} minutes left';
+  }
+
+  if (duration.inHours < 24) {
+    return '${duration.inHours} hours left';
+  }
+
+  return '${duration.inDays} days left';
 }
 
 class CapsuleWidget extends StatelessWidget {
   final String title;
   final Future<String> author;
   final String imageUrl;
+  final Timestamp openDate;
 
   const CapsuleWidget({
     super.key,
     required this.title,
     required this.author,
     required this.imageUrl,
+    required this.openDate,
   });
 
   @override
@@ -98,66 +114,90 @@ class CapsuleWidget extends StatelessWidget {
         future: author,
         builder: (context, snapshot) {
           return Container(
-            margin: const EdgeInsets.all(10),
+            padding: const EdgeInsets.all(4),
             height: 150,
             decoration: BoxDecoration(
               border: Border.all(color: AppColors.primaryColor),
               borderRadius: BorderRadius.circular(150),
             ),
-            child: Row(children: [
-              Expanded(
-                child: ClipRRect(
-                  borderRadius: const BorderRadius.only(
-                      topLeft: Radius.circular(150),
-                      bottomLeft: Radius.circular(150)),
-                  child: Image.network(imageUrl, fit: BoxFit.cover),
+            child: Stack(children: [
+              Row(children: [
+                Expanded(
+                  child: ClipRRect(
+                    borderRadius: const BorderRadius.only(
+                        topLeft: Radius.circular(150),
+                        bottomLeft: Radius.circular(150)),
+                    child: imageUrl == ''
+                        ? Image.asset('image/defaultcapsult.png',
+                            fit: BoxFit.cover)
+                        : Image.network(imageUrl, fit: BoxFit.cover),
+                  ),
                 ),
-              ),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.only(
-                          left: 20.0, right: 10.0, top: 50.0),
-                      child: Text(
-                        title,
-                        style: const TextStyle(
-                          fontSize: 17,
-                          color: AppColors.primaryColor,
-                          fontWeight: FontWeight.bold,
+
+                //Title
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Padding(
+                        padding:
+                            const EdgeInsets.only(left: 32, right: 16, top: 48),
+                        child: Text(
+                          title,
+                          style: const TextStyle(
+                            fontSize: 17,
+                            color: AppColors.primaryColor,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.only(left: 20.0, right: 10.0),
-                      child: Text(
-                          'Shared by ${snapshot.connectionState == ConnectionState.waiting ? '…' : snapshot.data}',
-                          style: const TextStyle(
-                            fontSize: 12,
-                            color: AppColors.primaryColor,
-                          )),
-                    ),
-                  ],
-                ),
-              )
+
+                      //Author
+                      Padding(
+                        padding: const EdgeInsets.only(left: 32, right: 16),
+                        child: Text(
+                            'Shared by ${snapshot.connectionState == ConnectionState.waiting ? '…' : snapshot.data}',
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: AppColors.primaryColor,
+                            )),
+                      ),
+
+                      //Open Date
+                      Timestamp.now().seconds - openDate.seconds <= 0
+                          ? Padding(
+                              padding:
+                                  const EdgeInsets.only(left: 32, right: 8),
+                              child: Text(parseDate(openDate),
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    color: AppColors.primaryColor,
+                                  )),
+                            )
+                          : Container(),
+                    ],
+                  ),
+                )
+              ]),
+              Center(
+                  child: Image.asset(
+                      Timestamp.now().seconds - openDate.seconds <= 0
+                          ? 'image/locked.png'
+                          : 'image/unlocked.png',
+                      width: 150,
+                      height: 150)),
             ]),
           );
         });
   }
 }
 
-class style {
-  const style();
-}
-
 class HomeScreen extends StatelessWidget {
-  const HomeScreen({Key? key}) : super(key: key);
+  const HomeScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      // title: 'Flutter Demo',
       theme: ThemeData(
         scaffoldBackgroundColor: AppColors.backgroundColor,
       ),
@@ -169,37 +209,15 @@ class HomeScreen extends StatelessWidget {
                   bottom: BorderSide(color: AppColors.primaryColor)),
               backgroundColor: AppColors.backgroundColor,
               bottom: const TabBar(
-                indicator: UnderlineTabIndicator(
-                  borderSide: BorderSide(color: Colors.transparent),
-                ),
-                tabs: <Widget>[
-                  Tab(text: 'By Me'),
-                  Tab(
-                    text: 'By Others',
-                  )
-                ],
+                indicatorColor: AppColors.primaryColor,
+                indicatorSize: TabBarIndicatorSize.tab,
+                labelStyle: TextStyle(
+                    fontWeight: FontWeight.bold, color: AppColors.primaryColor),
+                tabs: <Widget>[Tab(text: 'By Me'), Tab(text: 'By Others')],
               ),
             ),
-            floatingActionButton: SizedBox(
-              width: 80,
-              height: 80,
-              child: FloatingActionButton(
-                  shape: const CircleBorder(),
-                  backgroundColor: AppColors.primaryColor,
-                  onPressed: () async {
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => const CreateCapsule()),
-                    );
-                  },
-                  child: const IconTheme(
-                    data: IconThemeData(
-                        color: AppColors.backgroundColor, size: 40),
-                    child: Icon(Icons.add),
-                  )),
-            ),
-            body: TabBarView(
+            floatingActionButton: const FAB(),
+            body: const TabBarView(
               children: <Widget>[
                 UserInformation(),
                 Column(
