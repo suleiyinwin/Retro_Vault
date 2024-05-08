@@ -37,18 +37,23 @@ class _UserInformationState extends State<UserInformation> {
           return const Text("Loading");
         }
 
-        return Column(children: [
-          ...snapshot.data!.docs.map((DocumentSnapshot document) {
+        return ListView.separated(
+          padding: const EdgeInsets.all(8),
+          itemCount: snapshot.data!.docs.length,
+          itemBuilder: (BuildContext context, int index) {
             Map<String, dynamic> data =
-                document.data()! as Map<String, dynamic>;
+                snapshot.data!.docs[index].data()! as Map<String, dynamic>;
 
             return CapsuleWidget(
                 title: data['title'],
                 author: getUserName(FirebaseAuth.instance.currentUser!.uid),
                 imageUrl: data['coverPhotoUrl'] ?? '',
                 openDate: data['openDate']);
-          }),
-        ]);
+          },
+          separatorBuilder: (context, index) => const Divider(
+            color: Colors.transparent,
+          ),
+        );
       },
     );
   }
@@ -108,9 +113,8 @@ class CapsuleWidget extends StatelessWidget {
     return FutureBuilder<Object>(
         future: author,
         builder: (context, snapshot) {
-          print(imageUrl);
           return Container(
-            margin: const EdgeInsets.all(8),
+            padding: const EdgeInsets.all(4),
             height: 150,
             decoration: BoxDecoration(
               border: Border.all(color: AppColors.primaryColor),
