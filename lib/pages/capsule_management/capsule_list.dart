@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/painting.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
+import 'package:retro/pages/capsule_management/create_capsule.dart';
 import 'package:retro/pages/capsule_management/fab.dart';
 import '../../components/colors.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -113,80 +114,86 @@ class CapsuleWidget extends StatelessWidget {
     return FutureBuilder<Object>(
         future: author,
         builder: (context, snapshot) {
-          return Container(
-            padding: const EdgeInsets.all(4),
-            height: 150,
-            decoration: BoxDecoration(
-              border: Border.all(color: AppColors.primaryColor),
-              borderRadius: BorderRadius.circular(150),
+          return GestureDetector(
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const CreateCapsule()),
             ),
-            child: Stack(children: [
-              Row(children: [
-                Expanded(
-                  child: ClipRRect(
-                    borderRadius: const BorderRadius.only(
-                        topLeft: Radius.circular(150),
-                        bottomLeft: Radius.circular(150)),
-                    child: imageUrl == ''
-                        ? Image.asset('image/defaultcapsult.png',
-                            fit: BoxFit.cover)
-                        : Image.network(imageUrl, fit: BoxFit.cover),
+            child: Container(
+              padding: const EdgeInsets.all(4),
+              height: 150,
+              decoration: BoxDecoration(
+                border: Border.all(color: AppColors.primaryColor),
+                borderRadius: BorderRadius.circular(150),
+              ),
+              child: Stack(children: [
+                Row(children: [
+                  Expanded(
+                    child: ClipRRect(
+                      borderRadius: const BorderRadius.only(
+                          topLeft: Radius.circular(150),
+                          bottomLeft: Radius.circular(150)),
+                      child: imageUrl == ''
+                          ? Image.asset('image/defaultcapsult.png',
+                              fit: BoxFit.cover)
+                          : Image.network(imageUrl, fit: BoxFit.cover),
+                    ),
                   ),
-                ),
 
-                //Title
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Padding(
-                        padding:
-                            const EdgeInsets.only(left: 32, right: 16, top: 48),
-                        child: Text(
-                          title,
-                          style: const TextStyle(
-                            fontSize: 17,
-                            color: AppColors.primaryColor,
-                            fontWeight: FontWeight.bold,
+                  //Title
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.only(
+                              left: 32, right: 16, top: 48),
+                          child: Text(
+                            title,
+                            style: const TextStyle(
+                              fontSize: 17,
+                              color: AppColors.primaryColor,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                         ),
-                      ),
 
-                      //Author
-                      Padding(
-                        padding: const EdgeInsets.only(left: 32, right: 16),
-                        child: Text(
-                            'Shared by ${snapshot.connectionState == ConnectionState.waiting ? '…' : snapshot.data}',
-                            style: const TextStyle(
-                              fontSize: 12,
-                              color: AppColors.primaryColor,
-                            )),
-                      ),
+                        //Author
+                        Padding(
+                          padding: const EdgeInsets.only(left: 32, right: 16),
+                          child: Text(
+                              'Shared by ${snapshot.connectionState == ConnectionState.waiting ? '…' : snapshot.data}',
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: AppColors.primaryColor,
+                              )),
+                        ),
 
-                      //Open Date
-                      Timestamp.now().seconds - openDate.seconds <= 0
-                          ? Padding(
-                              padding:
-                                  const EdgeInsets.only(left: 32, right: 8),
-                              child: Text(parseDate(openDate),
-                                  style: const TextStyle(
-                                    fontSize: 12,
-                                    color: AppColors.primaryColor,
-                                  )),
-                            )
-                          : Container(),
-                    ],
-                  ),
-                )
+                        //Open Date
+                        Timestamp.now().seconds - openDate.seconds <= 0
+                            ? Padding(
+                                padding:
+                                    const EdgeInsets.only(left: 32, right: 8),
+                                child: Text(parseDate(openDate),
+                                    style: const TextStyle(
+                                      fontSize: 12,
+                                      color: AppColors.primaryColor,
+                                    )),
+                              )
+                            : Container(),
+                      ],
+                    ),
+                  )
+                ]),
+                Center(
+                    child: Image.asset(
+                        Timestamp.now().seconds - openDate.seconds <= 0
+                            ? 'image/locked.png'
+                            : 'image/unlocked.png',
+                        width: 150,
+                        height: 150)),
               ]),
-              Center(
-                  child: Image.asset(
-                      Timestamp.now().seconds - openDate.seconds <= 0
-                          ? 'image/locked.png'
-                          : 'image/unlocked.png',
-                      width: 150,
-                      height: 150)),
-            ]),
+            ),
           );
         });
   }
