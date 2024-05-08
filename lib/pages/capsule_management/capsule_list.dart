@@ -38,7 +38,7 @@ class _UserInformationState extends State<UserInformation> {
         }
 
         return ListView.separated(
-          padding: const EdgeInsets.all(8),
+          padding: const EdgeInsets.fromLTRB(32, 16, 32, 16),
           itemCount: snapshot.data!.docs.length,
           itemBuilder: (BuildContext context, int index) {
             Map<String, dynamic> data =
