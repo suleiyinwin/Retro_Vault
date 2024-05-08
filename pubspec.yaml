@@ -75,6 +75,8 @@ flutter:
     - image/logo.png
     - image/splashlogo.png
     - image/defaultcapsult.png
+    - image/locked.png
+    - image/unlocked.png
   # To add assets to your application, add an assets section, like this:
   # assets:
   #   - images/a_dot_burr.jpeg

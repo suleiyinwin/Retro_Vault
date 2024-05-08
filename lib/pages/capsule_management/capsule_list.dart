@@ -68,7 +68,8 @@ Future<String> getUserName(String userId) async {
 }
 
 String parseDate(Timestamp timestamp) {
-  Duration duration = Duration(seconds: timestamp.seconds - Timestamp.now().seconds);
+  Duration duration =
+      Duration(seconds: timestamp.seconds - Timestamp.now().seconds);
 
   if (duration.inMinutes < 60) {
     return '${duration.inMinutes} minutes left';
@@ -107,56 +108,60 @@ class CapsuleWidget extends StatelessWidget {
               border: Border.all(color: AppColors.primaryColor),
               borderRadius: BorderRadius.circular(150),
             ),
-            child: Row(children: [
-              Expanded(
-                child: ClipRRect(
-                  borderRadius: const BorderRadius.only(
-                      topLeft: Radius.circular(150),
-                      bottomLeft: Radius.circular(150)),
-                  child: imageUrl == ''
-                      ? Image.asset('image/defaultcapsult.png',
-                          fit: BoxFit.cover)
-                      : Image.network(imageUrl, fit: BoxFit.cover),
+            child: Stack(children: [
+              Row(children: [
+                Expanded(
+                  child: ClipRRect(
+                    borderRadius: const BorderRadius.only(
+                        topLeft: Radius.circular(150),
+                        bottomLeft: Radius.circular(150)),
+                    child: imageUrl == ''
+                        ? Image.asset('image/defaultcapsult.png',
+                            fit: BoxFit.cover)
+                        : Image.network(imageUrl, fit: BoxFit.cover),
+                  ),
                 ),
-              ),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Padding(
-                      padding:
-                          const EdgeInsets.only(left: 16, right: 8, top: 48),
-                      child: Text(
-                        title,
-                        style: const TextStyle(
-                          fontSize: 17,
-                          color: AppColors.primaryColor,
-                          fontWeight: FontWeight.bold,
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Padding(
+                        padding:
+                            const EdgeInsets.only(left: 16, right: 8, top: 48),
+                        child: Text(
+                          title,
+                          style: const TextStyle(
+                            fontSize: 17,
+                            color: AppColors.primaryColor,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.only(left: 16, right: 8),
-                      child: Text(
-                          'Shared by ${snapshot.connectionState == ConnectionState.waiting ? '…' : snapshot.data}',
-                          style: const TextStyle(
-                            fontSize: 12,
-                            color: AppColors.primaryColor,
-                          )),
-                    ),
-                    Timestamp.now().seconds - openDate.seconds <= 0
-                        ? Padding(
-                            padding: const EdgeInsets.only(left: 16, right: 8),
-                            child: Text(parseDate(openDate),
-                                style: const TextStyle(
-                                  fontSize: 12,
-                                  color: AppColors.primaryColor,
-                                )),
-                          )
-                        : Container(),
-                  ],
-                ),
-              )
+                      Padding(
+                        padding: const EdgeInsets.only(left: 16, right: 8),
+                        child: Text(
+                            'Shared by ${snapshot.connectionState == ConnectionState.waiting ? '…' : snapshot.data}',
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: AppColors.primaryColor,
+                            )),
+                      ),
+                      Timestamp.now().seconds - openDate.seconds <= 0
+                          ? Padding(
+                              padding:
+                                  const EdgeInsets.only(left: 16, right: 8),
+                              child: Text(parseDate(openDate),
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    color: AppColors.primaryColor,
+                                  )),
+                            )
+                          : Container(),
+                    ],
+                  ),
+                )
+              ]),
+              Center(child: Image.asset(Timestamp.now().seconds - openDate.seconds <= 0 ? 'image/locked.png' : 'image/unlocked.png', width: 150, height: 150)),
             ]),
           );
         });
