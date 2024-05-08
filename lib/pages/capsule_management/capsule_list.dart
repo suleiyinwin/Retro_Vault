@@ -212,7 +212,9 @@ class HomeScreen extends StatelessWidget {
                 indicatorColor: AppColors.primaryColor,
                 indicatorSize: TabBarIndicatorSize.tab,
                 labelStyle: TextStyle(
-                    fontWeight: FontWeight.bold, color: AppColors.primaryColor),
+                    fontSize: 15,
+                    fontWeight: FontWeight.w400,
+                    color: AppColors.primaryColor),
                 tabs: <Widget>[Tab(text: 'By Me'), Tab(text: 'By Others')],
               ),
             ),
