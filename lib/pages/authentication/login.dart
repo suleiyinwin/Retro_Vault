@@ -1,7 +1,7 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:retro/firebase_options.dart';
 import 'package:retro/pages/authentication/forgot_pwd.dart';
@@ -56,11 +56,6 @@ class _LoginPageState extends State<LoginPage> {
       home: Scaffold(
         appBar: AppBar(
           backgroundColor: AppColors.backgroundColor,
-          // leading: const IconButton(
-          //   icon: Icon(Icons.arrow_back, color: AppColors.textColor),
-          //   tooltip: 'Navigation menu',
-          //   onPressed: null,
-          // ),
         ),
         body: Center(
           child: Column(
@@ -84,183 +79,189 @@ class _LoginPageState extends State<LoginPage> {
               ),
               const SizedBox(height: 10.0),
               // LoginForm widget definition within the same file
-              Form(
-                key: _formKey,
-                child: Column(
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.only(left: 15.0, right: 15.0),
-                      child: TextFormField(
-                        controller: _emailController,
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Email is required';
-                          } else if (!emailRegex.hasMatch(value)) {
-                            return 'Please enter a valid email address';
-                          } else if (errorEmail.isNotEmpty) {
-                            return errorEmail;
-                          }
-
-                          return null;
-                        },
-                        decoration: InputDecoration(
-                          labelText: 'Email',
-                          labelStyle: TextStyle(
-                              color: AppColors.primaryColor.withOpacity(0.5)),
-                          prefixIcon: Padding(
-                            padding:
-                                const EdgeInsets.only(left: 35.0, right: 15.0),
-                            child: Icon(Icons.email_outlined,
+              SingleChildScrollView(
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.only(left: 15.0, right: 15.0),
+                        child: TextFormField(
+                          controller: _emailController,
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Email is required';
+                            } else if (!emailRegex.hasMatch(value)) {
+                              return 'Please enter a valid email address';
+                            } else if (errorEmail.isNotEmpty) {
+                              return errorEmail;
+                            }
+                
+                            return null;
+                          },
+                          decoration: InputDecoration(
+                            labelText: 'Email',
+                            labelStyle: TextStyle(
                                 color: AppColors.primaryColor.withOpacity(0.5)),
-
-                            //AppColors.primaryColor.withOpacity(0.5)),
-                          ),
-                          fillColor: Colors.white,
-                          filled: true,
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(30.0),
-                            borderSide: BorderSide.none,
-                          ),
-                          errorBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(30.0),
-                            borderSide: const BorderSide(
-                                color: Colors
-                                    .red), // Custom border color for validation error
-                          ),
-                          floatingLabelBehavior: FloatingLabelBehavior
-                              .never, // Hide label when focused
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 5.0),
-                    Padding(
-                      padding: const EdgeInsets.only(
-                          left: 15.0, right: 15.0, top: 10.0),
-                      child: TextFormField(
-                        obscureText: passwordVisible,
-                        controller: _passwordController,
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Password is requried';
-                          } else if (errorMessage.isNotEmpty) {
-                            return errorMessage;
-                          } else if (!passwordRegex.hasMatch(value)) {
-                            return 'Password must contain at least 6 characters, including:\n'
-                                '• Uppercase\n'
-                                '• Lowercase\n'
-                                '• Numbers and special characters';
-                          }
-                          return null;
-                        },
-                        decoration: InputDecoration(
-                          labelText: 'Password',
-                          labelStyle: TextStyle(
-                              color: AppColors.primaryColor.withOpacity(0.5)),
-                          prefixIcon: Padding(
-                            padding:
-                                const EdgeInsets.only(left: 35.0, right: 15.0),
-                            child: Icon(Icons.lock_outline,
-                                color: AppColors.primaryColor.withOpacity(0.5)),
-                            // AppColors.primaryColor.withOpacity(0.5)),
-                          ),
-                          suffixIcon: Padding(
-                            padding: const EdgeInsets.only(right: 15.0),
-                            child: IconButton(
-                                icon: Icon(
-                                  passwordVisible
-                                      ? Icons.visibility_off_outlined
-                                      : Icons.visibility_outlined,
-                                  color: AppColors.primaryColor,
-                                ),
-                                onPressed: () {
-                                  setState(() {
-                                    passwordVisible = !passwordVisible;
-                                  });
-                                }),
-                          ),
-                          fillColor: Colors.white,
-                          filled: true,
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(30.0),
-                            borderSide: BorderSide.none,
-                          ),
-                          errorBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(30.0),
-                            borderSide: const BorderSide(
-                                color: Colors
-                                    .red), // Custom border color for validation error
-                          ),
-                          floatingLabelBehavior: FloatingLabelBehavior
-                              .never, // Hide label when focused
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 2.0),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        Padding(
-                          padding:
-                              const EdgeInsets.only(left: 15.0, right: 15.0),
-                          child: TextButton(
-                            style: ButtonStyle(
-                              overlayColor:
-                                  MaterialStateProperty.resolveWith<Color?>(
-                                (Set<MaterialState> states) {
-                                  if (states.contains(MaterialState.hovered)) {
-                                    return Colors.transparent;
-                                  }
-                                  if (states.contains(MaterialState.focused) ||
-                                      states.contains(MaterialState.pressed)) {
-                                    return Colors.transparent;
-                                  }
-                                  return null; // Defer to the widget's default.
-                                },
-                              ),
+                            prefixIcon: Padding(
+                              padding:
+                                  const EdgeInsets.only(left: 35.0, right: 15.0),
+                              child: Icon(Icons.email_outlined,
+                                  color: AppColors.primaryColor.withOpacity(0.5)),
+                
+                              //AppColors.primaryColor.withOpacity(0.5)),
                             ),
-                            onPressed: () {
-                              // Handle forgot password logic
-                              showModalBottomSheet(context: context, builder: (context) => const ForgotPwd());
-                              print('Forgot password button pressed');
-                            },
-                            child: const Text('Forgot password?',
-                                style:
-                                    TextStyle(color: AppColors.primaryColor)),
+                            fillColor: Colors.white,
+                            filled: true,
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(30.0),
+                              borderSide: BorderSide.none,
+                            ),
+                            errorBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(30.0),
+                              borderSide: const BorderSide(
+                                  color: Colors
+                                      .red), // Custom border color for validation error
+                            ),
+                            floatingLabelBehavior: FloatingLabelBehavior
+                                .never, // Hide label when focused
                           ),
                         ),
-                      ],
-                    ),
-                    const SizedBox(height: 20.0),
-                    SizedBox(
-                      width: 160.0,
-                      height: 50.0,
-                      child: OutlinedButton(
-                          style: OutlinedButton.styleFrom(
-                            side: const BorderSide(
-                                color: AppColors.primaryColor, width: 1.0),
+                      ),
+                      const SizedBox(height: 5.0),
+                      Padding(
+                        padding: const EdgeInsets.only(
+                            left: 15.0, right: 15.0, top: 10.0),
+                        child: TextFormField(
+                          obscureText: passwordVisible,
+                          controller: _passwordController,
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Password is requried';
+                            } else if (errorMessage.isNotEmpty) {
+                              return errorMessage;
+                            } else if (!passwordRegex.hasMatch(value)) {
+                              return 'Password must contain at least 6 characters, including:\n'
+                                  '• Uppercase\n'
+                                  '• Lowercase\n'
+                                  '• Numbers and special characters';
+                            }
+                            errorMessage = '';
+                            return null;
+                          },
+                          onChanged: (value) => setState(() {
+                            errorMessage = '';
+                          }),
+                          decoration: InputDecoration(
+                            labelText: 'Password',
+                            labelStyle: TextStyle(
+                                color: AppColors.primaryColor.withOpacity(0.5)),
+                            prefixIcon: Padding(
+                              padding:
+                                  const EdgeInsets.only(left: 35.0, right: 15.0),
+                              child: Icon(Icons.lock_outline,
+                                  color: AppColors.primaryColor.withOpacity(0.5)),
+                              // AppColors.primaryColor.withOpacity(0.5)),
+                            ),
+                            suffixIcon: Padding(
+                              padding: const EdgeInsets.only(right: 15.0),
+                              child: IconButton(
+                                  icon: Icon(
+                                    passwordVisible
+                                        ? Icons.visibility_off_outlined
+                                        : Icons.visibility_outlined,
+                                    color: AppColors.primaryColor,
+                                  ),
+                                  onPressed: () {
+                                    setState(() {
+                                      passwordVisible = !passwordVisible;
+                                    });
+                                  }),
+                            ),
+                            fillColor: Colors.white,
+                            filled: true,
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(30.0),
+                              borderSide: BorderSide.none,
+                            ),
+                            errorBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(30.0),
+                              borderSide: const BorderSide(
+                                  color: Colors
+                                      .red), // Custom border color for validation error
+                            ),
+                            floatingLabelBehavior: FloatingLabelBehavior
+                                .never, // Hide label when focused
                           ),
-                          onPressed: () async {
-                            // Validate the form
-                            if (_formKey.currentState!.validate()) {
-                              _formKey.currentState!.save();
-                              var collection =
-                                  FirebaseFirestore.instance.collection('user');
-                              var querySnapshot = await collection.get();
-                              for (var queryDocumentSnapshot
-                                  in querySnapshot.docs) {
-                                Map<String, dynamic> data =
-                                    queryDocumentSnapshot.data();
-                                var email = data['email'];
-                                var password = data['password'];
-                                var controllereamil = _emailController.text;
-                                var controllerpassword =
-                                    _passwordController.text;
-                                print(
-                                    'Email: $email,contrller eamil -> $controllereamil, passwordcontroller -> $controllerpassword, Password: $password');
-                                //check codintion
-                                //when email and password are the same
-                                if (email == _emailController.text &&
-                                    password == _passwordController.text) {
+                        ),
+                      ),
+                      const SizedBox(height: 2.0),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          Padding(
+                            padding:
+                                const EdgeInsets.only(left: 15.0, right: 15.0),
+                            child: TextButton(
+                              style: ButtonStyle(
+                                overlayColor:
+                                    MaterialStateProperty.resolveWith<Color?>(
+                                  (Set<MaterialState> states) {
+                                    if (states.contains(MaterialState.hovered)) {
+                                      return Colors.transparent;
+                                    }
+                                    if (states.contains(MaterialState.focused) ||
+                                        states.contains(MaterialState.pressed)) {
+                                      return Colors.transparent;
+                                    }
+                                    return null; // Defer to the widget's default.
+                                  },
+                                ),
+                              ),
+                              onPressed: () {
+                                // Handle forgot password logic
+                                showModalBottomSheet(
+                                  context: context,
+                                  builder: (context) => Container(
+                                    decoration: const BoxDecoration(
+                                      color: AppColors.backgroundColor,
+                                      borderRadius: BorderRadius.only(
+                                        topLeft: Radius.circular(20.0),
+                                        topRight: Radius.circular(20.0),
+                                      ),
+                                    ),
+                                    child: const ForgotPasswordModal(),
+                                  ),
+                                );
+                
+                                print('Forgot password button pressed');
+                              },
+                              child: const Text('Forgot password?',
+                                  style:
+                                      TextStyle(color: AppColors.primaryColor)),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 20.0),
+                      SizedBox(
+                        width: 160.0,
+                        height: 50.0,
+                        child: OutlinedButton(
+                            style: OutlinedButton.styleFrom(
+                              side: const BorderSide(
+                                  color: AppColors.primaryColor, width: 1.0),
+                            ),
+                            onPressed: () async {
+                              // Validate the form
+                              if (_formKey.currentState!.validate()) {
+                                try {
+                                  // Sign in with email and password
+                                  await FirebaseAuth.instance
+                                      .signInWithEmailAndPassword(
+                                    email: _emailController.text.trim(),
+                                    password: _passwordController.text.trim(),
+                                  );
                                   Fluttertoast.showToast(
                                       msg: "Account Login Successfully",
                                       toastLength: Toast.LENGTH_SHORT,
@@ -272,38 +273,39 @@ class _LoginPageState extends State<LoginPage> {
                                   setState(() {
                                     errorMessage = '';
                                   });
+                                  // If sign-in is successful, navigate to the home screen
                                   Navigator.pushReplacement(
                                     context,
                                     MaterialPageRoute(
                                         builder: (context) => const HomeScreen()),
                                   );
-                                  break;
+                                } on FirebaseAuthException catch (e) {
+                                  // Handle specific errors
+                                  if (e.code == 'user-not-found') {
+                                      errorMessage = 'User not found';
+                                  } else if (e.code == 'wrong-password') {
+                                      errorMessage = 'Incorrect password';
+                                   
+                                  } else {
+                                      errorMessage = 'Error: ${e.message}';
+                                  }
+                                } catch (e) {
+                                  // Handle generic errors
+                                    errorMessage = 'Error: $e';
                                 }
-                                //email same , password are not same
-                                 else if(email == _emailController.text && password != _passwordController.text){
-                                  errorMessage = 'Incorrect Password';
-                                  break;
-                                }
-                                //email diff , password  same
-                                 else if(email != _emailController.text && password == _passwordController.text){
-                                  errorMessage = 'Incorrect Email';
-                                  break;
-                                }
-                                print('Email: $email, Password: $password');
                               }
-                            }
-                            // Handle sign up logic
-                            print('Sign up button pressed');
-                          },
-                          child: const Text(
-                            'Login',
-                            style: TextStyle(
-                                color: AppColors.primaryColor,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16.0),
-                          )),
-                    ),
-                  ],
+                              _formKey.currentState!.validate();
+                            },
+                            child: const Text(
+                              'Login',
+                              style: TextStyle(
+                                  color: AppColors.primaryColor,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16.0),
+                            )),
+                      ),
+                    ],
+                  ),
                 ),
               ),
               Expanded(
@@ -340,7 +342,7 @@ class _LoginPageState extends State<LoginPage> {
                             Navigator.pushReplacement(
                               context,
                               MaterialPageRoute(
-                                  builder: (context) => const Signup() ),
+                                  builder: (context) => const Signup()),
                             );
                             // Handle sign up logic
                             print('Sign up button pressed');
@@ -364,39 +366,3 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 }
-
-// class ForgotPasswordModal extends StatelessWidget {
-//   const ForgotPasswordModal({super.key});
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return Center(
-//       child: ElevatedButton(
-//         child: const Text('showModalBottomSheet'),
-//         onPressed: () {
-//           showModalBottomSheet<void>(
-//             context: context,
-//             builder: (BuildContext context) {
-//               return SizedBox(
-//                 height: 200,
-//                 child: Center(
-//                   child: Column(
-//                     mainAxisAlignment: MainAxisAlignment.center,
-//                     mainAxisSize: MainAxisSize.min,
-//                     children: <Widget>[
-//                       const Text('Modal BottomSheet'),
-//                       ElevatedButton(
-//                         child: const Text('Close BottomSheet'),
-//                         onPressed: () => Navigator.pop(context),
-//                       ),
-//                     ],
-//                   ),
-//                 ),
-//               );
-//             },
-//           );
-//         },
-//       ),
-//     );
-//   }
-// }

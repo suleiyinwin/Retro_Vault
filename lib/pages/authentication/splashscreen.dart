@@ -22,26 +22,28 @@ class _SplashScreenState extends State<SplashScreen> {
     return Scaffold(
       backgroundColor: AppColors.primaryColor,
       body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            // Handle potential image loading errors
-            Image.asset(
-              'image/splashlogo.png', 
-              errorBuilder: (context, error, stackTrace) {
-                return const Text('Error loading splash image'); // Placeholder
-              },
-            ),
-            const SizedBox(height: 20.0), // Add space between image and loading indicator
-            const SizedBox(
-              width: 30.0, // overall width and height for circular loading indicator
-              height: 30.0,
-              child: CircularProgressIndicator(
-                strokeWidth: 1.0, //line thickness
-                color: AppColors.systemGreay04Light,
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              // Handle potential image loading errors
+              Image.asset(
+                'image/splashlogo.png', 
+                errorBuilder: (context, error, stackTrace) {
+                  return const Text('Error loading splash image'); // Placeholder
+                },
               ),
-            ), 
-          ],
+              const SizedBox(height: 20.0), // Add space between image and loading indicator
+              const SizedBox(
+                width: 30.0, // overall width and height for circular loading indicator
+                height: 30.0,
+                child: CircularProgressIndicator(
+                  strokeWidth: 1.0, //line thickness
+                  color: AppColors.systemGreay04Light,
+                ),
+              ), 
+            ],
+          ),
         ),
       ),
     );
