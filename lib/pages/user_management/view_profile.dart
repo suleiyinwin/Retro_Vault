@@ -39,7 +39,7 @@ class _ProfileViewState extends State<ProfileView> {
         simpleCache[userId] = username;
         yield username;
       }
-      await Future.delayed(Duration(seconds: 1)); // Adjust delay as needed
+      await Future.delayed(Duration(milliseconds: 5)); // Adjust delay as needed
     }
   }
 
@@ -56,6 +56,109 @@ class _ProfileViewState extends State<ProfileView> {
       MaterialPageRoute(builder: (context)=> const ChgPwd())
     );
   }
+
+  void _showDeleteAccountDialog() {
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20.0),
+        ),
+        backgroundColor: AppColors.backgroundColor,
+        content: Text(
+          "Are you sure you want to delete your account?",
+          style: TextStyle(
+            color: AppColors.textColor,
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        actions: [
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    child: Text(
+                      "Cancel",
+                      style: TextStyle(
+                        color: AppColors.textColor,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  style: OutlinedButton.styleFrom(
+                    side: BorderSide(color: AppColors.primaryColor),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30.0),
+                    ),
+                    backgroundColor: AppColors.backgroundColor,
+                  ),
+                ),
+              ),
+              SizedBox(width: 10),
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: () async {
+                    // Ensure there is a current user
+                    final currentUser = FirebaseAuth.instance.currentUser;
+                    if (currentUser != null) {
+                      try {
+                        // Delete user account from Firebase
+                        await currentUser.delete();
+
+                        // Verify if the account was deleted successfully
+                        final user = await FirebaseAuth.instance.currentUser;
+                        if (user == null) {
+                          // Navigate to login page if deletion was successful
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(builder: (context) => const LoginPage()),
+                          );
+                        } else {
+                          print("User account deletion failed.");
+                        }
+                      } catch (e) {
+                        print("Failed to delete account: $e");
+                      }
+                    } else {
+                      print("No current user found.");
+                    }
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical:12),
+                    child: Text(
+                      "Delete",
+                      style: TextStyle(
+                        color: AppColors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  style: OutlinedButton.styleFrom(
+                    side: BorderSide(color: AppColors.primaryColor),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30.0),
+                    ),
+                    backgroundColor: AppColors.primaryColor,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      );
+    },
+  );
+}
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -174,12 +277,12 @@ class _ProfileViewState extends State<ProfileView> {
                         ],
                       ),
                       const Divider(color: AppColors.primaryColor),
-                      const Row(
+                      Row(
                         children: [
-                          Text('Delete My Account'),
+                          const Text('Delete My Account'),
                           IconButton(
-                            icon: Icon(Icons.chevron_right),
-                            onPressed: null,
+                            icon: const Icon(Icons.chevron_right),
+                            onPressed: _showDeleteAccountDialog,
                           ),
                         ],
                       ),
