@@ -678,7 +678,12 @@ class _CreateCapsuleState extends State<CreateCapsule> {
                           style: TextStyle(color: AppColors.textColor),
                         ),
                         onPressed: () {
-                          // Implement cancel logic
+                          Navigator.pushAndRemoveUntil(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => const HomeScreen()),
+                            (Route<dynamic> route) => false,
+                          );
                         },
                       ),
                     ),
