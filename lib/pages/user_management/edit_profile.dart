@@ -344,15 +344,11 @@ void _updateUserProfile() async {
             ? Image.memory(
                 _profileImageBytes!,
                 fit: BoxFit.cover,
-                width: double.infinity,
-                height: double.infinity,
               )
             : (_profilePhotoUrl.isNotEmpty
                 ? Image.network(
                     _profilePhotoUrl,
                     fit: BoxFit.cover,
-                    width: double.infinity,
-                    height: double.infinity,
                     errorBuilder: (context, error, stackTrace) {
                       print("Error loading image: $error");
                       return Image.asset(
@@ -366,8 +362,6 @@ void _updateUserProfile() async {
                 : Image.asset(
                     'image/splashlogo.png',
                     fit: BoxFit.cover,
-                    width: double.infinity,
-                    height: double.infinity,
                   )),
 ),
 

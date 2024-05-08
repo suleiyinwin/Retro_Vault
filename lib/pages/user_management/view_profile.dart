@@ -214,9 +214,13 @@ class _ProfileViewState extends State<ProfileView> {
                      CircleAvatar(
                         radius: 50,
                         backgroundColor: AppColors.primaryColor,
-                        child: _profilePhotoUrl.isNotEmpty
-                            ? Image.network(_profilePhotoUrl) // Load profile photo from URL
-                            : Image.asset('image/splashlogo.png'), // Fallback image if URL is empty
+                        child: SizedBox(
+                          width: 100,
+                          height: 100,
+                          child: _profilePhotoUrl.isNotEmpty
+                              ? Image.network(_profilePhotoUrl,fit: BoxFit.cover,) // Load profile photo from URL
+                              : Image.asset('image/splashlogo.png',fit: BoxFit.cover,),
+                        ), // Fallback image if URL is empty
                       ),
                       const SizedBox(width: 16),
                       Column(
