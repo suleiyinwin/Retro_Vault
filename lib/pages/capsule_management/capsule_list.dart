@@ -2,6 +2,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/painting.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 import 'package:retro/pages/capsule_management/fab.dart';
 import '../../components/colors.dart';
@@ -9,7 +11,10 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:retro/firebase_options.dart';
 
 class UserInformation extends StatefulWidget {
+  const UserInformation({super.key});
+
   @override
+  // ignore: library_private_types_in_public_api
   _UserInformationState createState() => _UserInformationState();
 }
 
@@ -49,6 +54,7 @@ class _UserInformationState extends State<UserInformation> {
   }
 }
 
+//UserInformationState
 Future<String> getUserName(String userId) async {
   Map<String, String> simpleCache = <String, String>{};
 
@@ -67,6 +73,7 @@ Future<String> getUserName(String userId) async {
   }
 }
 
+//Timestamp
 String parseDate(Timestamp timestamp) {
   Duration duration =
       Duration(seconds: timestamp.seconds - Timestamp.now().seconds);
@@ -101,6 +108,7 @@ class CapsuleWidget extends StatelessWidget {
     return FutureBuilder<Object>(
         future: author,
         builder: (context, snapshot) {
+          print(imageUrl);
           return Container(
             margin: const EdgeInsets.all(8),
             height: 150,
@@ -121,13 +129,15 @@ class CapsuleWidget extends StatelessWidget {
                         : Image.network(imageUrl, fit: BoxFit.cover),
                   ),
                 ),
+
+                //Title
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Padding(
                         padding:
-                            const EdgeInsets.only(left: 16, right: 8, top: 48),
+                            const EdgeInsets.only(left: 32, right: 16, top: 48),
                         child: Text(
                           title,
                           style: const TextStyle(
@@ -137,8 +147,10 @@ class CapsuleWidget extends StatelessWidget {
                           ),
                         ),
                       ),
+
+                      //Author
                       Padding(
-                        padding: const EdgeInsets.only(left: 16, right: 8),
+                        padding: const EdgeInsets.only(left: 32, right: 16),
                         child: Text(
                             'Shared by ${snapshot.connectionState == ConnectionState.waiting ? '…' : snapshot.data}',
                             style: const TextStyle(
@@ -146,10 +158,12 @@ class CapsuleWidget extends StatelessWidget {
                               color: AppColors.primaryColor,
                             )),
                       ),
+
+                      //Open Date
                       Timestamp.now().seconds - openDate.seconds <= 0
                           ? Padding(
                               padding:
-                                  const EdgeInsets.only(left: 16, right: 8),
+                                  const EdgeInsets.only(left: 32, right: 8),
                               child: Text(parseDate(openDate),
                                   style: const TextStyle(
                                     fontSize: 12,
@@ -161,7 +175,13 @@ class CapsuleWidget extends StatelessWidget {
                   ),
                 )
               ]),
-              Center(child: Image.asset(Timestamp.now().seconds - openDate.seconds <= 0 ? 'image/locked.png' : 'image/unlocked.png', width: 150, height: 150)),
+              Center(
+                  child: Image.asset(
+                      Timestamp.now().seconds - openDate.seconds <= 0
+                          ? 'image/locked.png'
+                          : 'image/unlocked.png',
+                      width: 150,
+                      height: 150)),
             ]),
           );
         });
@@ -169,12 +189,11 @@ class CapsuleWidget extends StatelessWidget {
 }
 
 class HomeScreen extends StatelessWidget {
-  const HomeScreen({Key? key}) : super(key: key);
+  const HomeScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      // title: 'Flutter Demo',
       theme: ThemeData(
         scaffoldBackgroundColor: AppColors.backgroundColor,
       ),
@@ -186,22 +205,18 @@ class HomeScreen extends StatelessWidget {
                   bottom: BorderSide(color: AppColors.primaryColor)),
               backgroundColor: AppColors.backgroundColor,
               bottom: const TabBar(
-                indicator: UnderlineTabIndicator(
-                  borderSide: BorderSide(color: Colors.transparent),
-                ),
-                tabs: <Widget>[
-                  Tab(text: 'By Me'),
-                  Tab(
-                    text: 'By Others',
-                  )
-                ],
+                indicatorColor: AppColors.primaryColor,
+                indicatorSize: TabBarIndicatorSize.tab,
+                labelStyle: TextStyle(
+                    fontWeight: FontWeight.bold, color: AppColors.primaryColor),
+                tabs: <Widget>[Tab(text: 'By Me'), Tab(text: 'By Others')],
               ),
             ),
             floatingActionButton: const FAB(),
-            body: TabBarView(
+            body: const TabBarView(
               children: <Widget>[
                 UserInformation(),
-                const Column(
+                Column(
                   children: [],
                 ),
               ],
