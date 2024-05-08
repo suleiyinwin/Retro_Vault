@@ -3,7 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
-import 'package:retro/pages/capsule_management/create_capsule.dart';
+import 'package:retro/pages/capsule_management/fab.dart';
 import '../../components/colors.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:retro/firebase_options.dart';
@@ -192,25 +192,7 @@ class HomeScreen extends StatelessWidget {
                 ],
               ),
             ),
-            floatingActionButton: SizedBox(
-              width: 80,
-              height: 80,
-              child: FloatingActionButton(
-                  shape: const CircleBorder(),
-                  backgroundColor: AppColors.primaryColor,
-                  onPressed: () async {
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => const CreateCapsule()),
-                    );
-                  },
-                  child: const IconTheme(
-                    data: IconThemeData(
-                        color: AppColors.backgroundColor, size: 40),
-                    child: Icon(Icons.add),
-                  )),
-            ),
+            floatingActionButton: const FAB(),
             body: TabBarView(
               children: <Widget>[
                 UserInformation(),
