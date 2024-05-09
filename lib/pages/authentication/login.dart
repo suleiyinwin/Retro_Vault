@@ -3,6 +3,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:retro/components/bottomNavigation.dart';
 import 'package:retro/firebase_options.dart';
 import 'package:retro/pages/authentication/forgot_pwd.dart';
 import 'package:retro/pages/authentication/signup.dart';
@@ -255,6 +256,7 @@ class _LoginPageState extends State<LoginPage> {
                             onPressed: () async {
                               // Validate the form
                               if (_formKey.currentState!.validate()) {
+                                  _formKey.currentState!.save();
                                 try {
                                   // Sign in with email and password
                                   await FirebaseAuth.instance
@@ -277,7 +279,7 @@ class _LoginPageState extends State<LoginPage> {
                                   Navigator.pushReplacement(
                                     context,
                                     MaterialPageRoute(
-                                        builder: (context) => const HomeScreen()),
+                                        builder: (context) => const BottomNav()),
                                   );
                                 } on FirebaseAuthException catch (e) {
                                   // Handle specific errors
@@ -286,14 +288,23 @@ class _LoginPageState extends State<LoginPage> {
                                   } else if (e.code == 'wrong-password') {
                                       errorMessage = 'Incorrect password';
                                    
-                                  } else {
+                                  }else if(e.code == 'invalid-credential'){
+                                    errorMessage = 'Invalid Credential';
+                                  }
+                                  else {
+                                    print('out $e');
                                       errorMessage = 'Error: ${e.message}';
                                   }
+
                                 } catch (e) {
                                   // Handle generic errors
+                                  print('catch $e');
                                     errorMessage = 'Error: $e';
+
                                 }
+                                
                               }
+                              
                               _formKey.currentState!.validate();
                             },
                             child: const Text(

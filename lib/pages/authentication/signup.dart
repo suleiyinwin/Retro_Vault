@@ -332,7 +332,7 @@ class _SignupState extends State<Signup> {
                                       'username': _usernameController.text.trim(),
                                       'email': _emailController.text.trim(),
                                       'password': _passwordController.text.trim(),
-                                      'userId': user.uid.trim(),
+                                      'userId': user.uid,
                                     }
                                     );
                                     setState(() {
@@ -364,6 +364,7 @@ class _SignupState extends State<Signup> {
                                         textColor: AppColors.primaryColor,
                                         fontSize: 16.0);
                                   }
+                                  
                                 } catch (e) {
                                   setState(() {
                                     errorMessage = e.toString();
