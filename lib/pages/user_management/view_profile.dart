@@ -8,7 +8,7 @@ import 'package:retro/pages/user_management/edit_profile.dart';
 import 'package:retro/pages/user_management/change_pwd.dart';
 
 class ProfileView extends StatefulWidget {
-  const ProfileView({Key? key}) : super(key: key);
+  const ProfileView({super.key});
 
   @override
   State<ProfileView> createState() => _ProfileViewState();
@@ -68,8 +68,8 @@ class _ProfileViewState extends State<ProfileView> {
 
   void signOut() async {
     await FirebaseAuth.instance.signOut();
-    Navigator.pushReplacement(
-      context,
+    Navigator.of(
+      context,rootNavigator: true).pushReplacement(
       MaterialPageRoute(builder: (context) => const LoginPage()),
     );
   }
@@ -89,7 +89,7 @@ class _ProfileViewState extends State<ProfileView> {
           borderRadius: BorderRadius.circular(20.0),
         ),
         backgroundColor: AppColors.backgroundColor,
-        content: Text(
+        content:const Text(
           "Are you sure you want to delete your account?",
           style: TextStyle(
             color: AppColors.textColor,
