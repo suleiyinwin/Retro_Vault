@@ -14,7 +14,7 @@ class FAB extends StatelessWidget {
           shape: const CircleBorder(),
           backgroundColor: AppColors.primaryColor,
           onPressed: () async {
-            Navigator.pushReplacement(
+            Navigator.push(
               context,
               MaterialPageRoute(builder: (context) => const CreateCapsule()),
             );

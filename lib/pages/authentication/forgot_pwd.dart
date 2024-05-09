@@ -14,7 +14,6 @@ class ForgotPasswordModal extends StatefulWidget {
 }
 
 class _ForgotPasswordModalState extends State<ForgotPasswordModal> {
-  final FirebaseAuth auth = FirebaseAuth.instance;
   final _formKey = GlobalKey<FormState>();
   bool showEmailField = true; // Flag to control email field visibility
   bool showResetFields = false; // Flag to control password reset fields
@@ -51,12 +50,6 @@ class _ForgotPasswordModalState extends State<ForgotPasswordModal> {
     // Simulate sending email with OTP code (replace with actual logic)
     setState(() {
       showEmailField = false;
-    });
-  }
-
-  void _handleVerifyOtp() {
-    // Simulate OTP verification (replace with actual logic)
-    setState(() {
       showResetFields = true;
     });
   }
@@ -66,390 +59,408 @@ class _ForgotPasswordModalState extends State<ForgotPasswordModal> {
     Navigator.pop(context); // Close the modal after successful reset
   }
 
+// Future passwordReset() async {
+//   try{
+//     print('object');
+//       await FirebaseAuth.instance.sendPasswordResetEmail(email: _emailController.text.trim());
+//   } on FirebaseAuthException catch (e){
+//     print(e);
+//   }
+// }
+
   @override
   Widget build(BuildContext context) {
-    return Form(
-      key: _formKey,
-      child: Container(
-        padding: const EdgeInsets.only(top: 10, bottom: 10, left: 8, right: 8),
-        margin: const EdgeInsets.only(top: 10, bottom: 10, left: 5, right: 5),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: <Widget>[
-            Align(
-              alignment: Alignment.topRight,
-              child: IconButton(
-                onPressed: () => Navigator.pop(context),
-                icon:
-                    const Icon(Icons.cancel, color: AppColors.systemGreayLight),
+    return SingleChildScrollView(
+      child: Form(
+        key: _formKey,
+        child: Container(
+          padding:
+              const EdgeInsets.only(top: 10, bottom: 10, left: 8, right: 8),
+          margin: const EdgeInsets.only(top: 10, bottom: 10, left: 5, right: 5),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              Align(
+                alignment: Alignment.topRight,
+                child: IconButton(
+                  onPressed: () => Navigator.pop(context),
+                  icon: const Icon(Icons.cancel,
+                      color: AppColors.systemGreayLight),
+                ),
               ),
-            ),
-            Text(
-              showEmailField
-                  ? 'Forgot Password'
-                  : (showResetFields
-                      ? 'Reset Password'
-                      : 'Forgot Password'), // Change title dynamically based on state
-              style: const TextStyle(
-                fontSize: 30,
-                fontWeight: FontWeight.bold,
-                color: AppColors.textColor,
+              Text(
+                showEmailField
+                    ? 'Forgot Password'
+                    : 'Reset Password', // Change title dynamically based on state
+                style: const TextStyle(
+                  fontSize: 30,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textColor,
+                ),
               ),
-            ),
-            const SizedBox(height: 10),
-            Visibility(
-              visible: showEmailField, // Show email section if flag is true
-              child: Column(
-                children: [
-                  const Text(
-                    'We will send 4-digit code to your email for verification process.',
-                    style: TextStyle(
-                      fontSize: 17,
-                      color: AppColors.textColor,
+              const SizedBox(height: 10),
+              Visibility(
+                visible: showEmailField, // Show email section if flag is true
+                child: Column(
+                  children: [
+                    const Text(
+                      'Write your email to reset the password',
+                      style: TextStyle(
+                        fontSize: 17,
+                        color: AppColors.textColor,
+                      ),
+                      textAlign: TextAlign.center,
                     ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 10),
-                  const Padding(
-                    padding: EdgeInsets.only(left: 25, bottom: 5),
-                    child: Align(
-                      alignment: Alignment.topLeft,
-                      child: Text(
-                        'Email',
-                        style: TextStyle(
-                          fontSize: 17,
-                          color: AppColors.textColor,
+                    const SizedBox(height: 10),
+                    const Padding(
+                      padding: EdgeInsets.only(left: 25, bottom: 5),
+                      child: Align(
+                        alignment: Alignment.topLeft,
+                        child: Text(
+                          'Email',
+                          style: TextStyle(
+                            fontSize: 17,
+                            color: AppColors.textColor,
+                          ),
+                          textAlign: TextAlign.left,
                         ),
-                        textAlign: TextAlign.left,
                       ),
                     ),
-                  ),
-                  Padding(
-                    padding:
-                        const EdgeInsets.only(left: 15, right: 15, bottom: 5),
-                    child: TextFormField(
-                      controller: _emailController,
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please Enter an email address';
-                        } else if (errorMessage.isNotEmpty) {
-                          return errorMessage;
-                        }
-                        return null;
-                      },
-                      onChanged: (value) {
-                        setState(() {
-                          errorMessage = '';
-                        });
-                      },
-                      decoration: InputDecoration(
-                        labelStyle: TextStyle(
-                            color: AppColors.primaryColor.withOpacity(0.5)),
-                        fillColor: Colors.white,
-                        filled: true,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(20.0),
-                          borderSide: BorderSide.none,
-                        ),
-                        errorBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(20.0),
-                          borderSide: const BorderSide(
-                              color: Colors
-                                  .red), // Custom border color for validation error
-                        ),
-                        floatingLabelBehavior: FloatingLabelBehavior.never,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 15),
-                  SizedBox(
-                    width: 160,
-                    height: 50,
-                    child: ElevatedButton(
-                      onPressed: () async {
-                        print('hello');
-                        if (_formKey.currentState!.validate()) {
-                          _formKey.currentState!.save();
-                          try {
-                            final collection = FirebaseFirestore.instance
-                                .collection(
-                                    'user'); // Replace with your collection name
-                            final snapshot = await collection
-                                .where('email',
-                                    isEqualTo: _emailController.text.trim())
-                                .get();
-                            if (snapshot.docs.isEmpty) {
-                              errorMessage = 'No user found for that email.';
-                              _formKey.currentState!
-                                  .validate(); // This might not be necessary here
-                              return;
-                            }
-                            else{
-                              print('user found');
-                              Fluttertoast.showToast(
-                                    msg: "Email sent successfully! \n Check your email for the code.",
-                                    toastLength: Toast.LENGTH_SHORT,
-                                    gravity: ToastGravity.BOTTOM,
-                                    webPosition: "center",
-                                    webBgColor: '#D1D1D6',
-                                    textColor: AppColors.primaryColor,
-                                    fontSize: 16.0);
-                            }
-                            _formKey.currentState!
-                                .validate(); // This might not be necessary here
-
-                            _handleSendEmail();
-
-                            _formKey.currentState!
-                                .validate(); // This might not be necessary here
-                          } on FirebaseAuthException catch (e) {
-                            if (e.code == 'user-not-found') {
-                              errorMessage = 'No user found for that email.';
-                            } else if (e.code == 'invalid-email') {
-                              errorMessage = 'Invalid email address.';
-                            } else {
-                              print("error: $e");
-                              errorMessage =
-                                  e.code; // Set error message to error code
-                              print("error1: $errorMessage");
-                              _formKey.currentState!
-                                  .validate(); // This might not be necessary here
-                            }
+                    Padding(
+                      padding:
+                          const EdgeInsets.only(left: 15, right: 15, bottom: 5),
+                      child: TextFormField(
+                        controller: _emailController,
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Please Enter an email address';
+                          } else if (errorMessage.isNotEmpty) {
+                            return errorMessage;
                           }
-                          _formKey.currentState!
-                                  .validate(); 
-                        }
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primaryColor,
-                      ),
-                      child: const Text(
-                        'Next',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 17.0,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Visibility(
-              visible: !showEmailField &&
-                  !showResetFields, // Show OTP section if flag is false
-              child: Column(
-                children: [
-                  const Text(
-                    'Enter the 4-digit code that you received on your email',
-                    style: TextStyle(
-                      fontSize: 17,
-                      color: AppColors.textColor,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 10),
-                  const Padding(
-                    padding: EdgeInsets.only(left: 25, bottom: 5),
-                    child: Align(
-                      alignment: Alignment.topLeft,
-                      child: Text(
-                        'OTP Code',
-                        style: TextStyle(
-                          fontSize: 17,
-                          color: AppColors.textColor,
-                        ),
-                        textAlign: TextAlign.left,
-                      ),
-                    ),
-                  ),
-                  Padding(
-                    padding:
-                        const EdgeInsets.only(left: 15, right: 15, bottom: 5),
-                    child: TextFormField(
-                      decoration: InputDecoration(
-                        labelStyle: TextStyle(
-                            color: AppColors.primaryColor.withOpacity(0.5)),
-                        fillColor: Colors.white,
-                        filled: true,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(20.0),
-                          borderSide: BorderSide.none,
-                        ),
-                        floatingLabelBehavior: FloatingLabelBehavior.never,
-                        //labelText: 'OTP Code', // Set label for OTP field
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 15),
-                  SizedBox(
-                    width: 160,
-                    height: 50,
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primaryColor,
-                      ),
-                      onPressed:
-                          _handleVerifyOtp, // Call function to verify OTP
-                      child: const Text(
-                        'Next',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 17.0,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Visibility(
-              visible:
-                  showResetFields, // Show password reset fields if flag is true
-              child: Column(
-                children: [
-                  const Text(
-                    'Set the new password', // Change text after OTP verification
-                    style: TextStyle(
-                      fontSize: 17,
-                      color: AppColors.textColor,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 15),
-                  Padding(
-                    padding:
-                        const EdgeInsets.only(left: 15, right: 15, bottom: 5),
-                    child: TextFormField(
-                      obscureText: passwordVisibleOne, // Password field
-                      controller: _passwordController,
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please Enter a password';
-                        } else if (!passwordRegex.hasMatch(value)) {
-                          return 'Password must contain at least 6 characters, including:\n'
-                              '• Uppercase\n'
-                              '• Lowercase\n'
-                              '• Numbers and special characters';
-                        }
-                        return null;
-                      },
-                      decoration: InputDecoration(
-                        labelStyle: TextStyle(
-                            color: AppColors.primaryColor.withOpacity(0.5)),
-                        prefixIcon: Padding(
-                          padding:
-                              const EdgeInsets.only(left: 35.0, right: 15.0),
-                          child: Icon(Icons.lock_outline,
+                          return null;
+                        },
+                        onChanged: (value) {
+                          setState(() {
+                            errorMessage = '';
+                          });
+                        },
+                        decoration: InputDecoration(
+                          labelStyle: TextStyle(
                               color: AppColors.primaryColor.withOpacity(0.5)),
+                          fillColor: Colors.white,
+                          filled: true,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(20.0),
+                            borderSide: BorderSide.none,
+                          ),
+                          errorBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(20.0),
+                            borderSide: const BorderSide(
+                                color: Colors
+                                    .red), // Custom border color for validation error
+                          ),
+                          floatingLabelBehavior: FloatingLabelBehavior.never,
                         ),
-                        suffixIcon: Padding(
-                          padding: const EdgeInsets.only(right: 15.0),
-                          child: IconButton(
-                              icon: Icon(
-                                passwordVisibleOne
-                                    ? Icons.visibility_off_outlined
-                                    : Icons.visibility_outlined,
-                                color: AppColors.primaryColor,
-                              ),
-                              onPressed: () {
-                                setState(() {
-                                  passwordVisibleOne = !passwordVisibleOne;
-                                });
-                              }),
-                        ),
-                        fillColor: Colors.white,
-                        filled: true,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(20.0),
-                          borderSide: BorderSide.none,
-                        ),
-                        floatingLabelBehavior: FloatingLabelBehavior.never,
-                        labelText: 'Password',
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 15),
-                  Padding(
-                    padding:
-                        const EdgeInsets.only(left: 15, right: 15, bottom: 5),
-                    child: TextFormField(
-                      obscureText: passwordVisibleTwo, // Confirm password field
-                      controller: _confirmPasswordController,
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please Enter a password';
-                        } else if (value != _passwordController.text) {
-                          return 'Password does not match';
-                        }
-                        return null;
-                      },
-                      decoration: InputDecoration(
-                        labelStyle: TextStyle(
-                            color: AppColors.primaryColor.withOpacity(0.5)),
-                        prefixIcon: Padding(
-                          padding:
-                              const EdgeInsets.only(left: 35.0, right: 15.0),
-                          child: Icon(Icons.lock_outline,
-                              color: AppColors.primaryColor.withOpacity(0.5)),
+                    const SizedBox(height: 15),
+                    SizedBox(
+                      width: 160,
+                      height: 50,
+                      child: ElevatedButton(
+                        onPressed: () async {
+                          if (_formKey.currentState!.validate()) {
+                            _formKey.currentState!.save();
+                            try {
+                              final collection = FirebaseFirestore.instance
+                                  .collection(
+                                      'user'); // Replace with your collection name
+                              final snapshot = await collection
+                                  .where('email',
+                                      isEqualTo: _emailController.text.trim())
+                                  .get();
+                              if (snapshot.docs.isEmpty) {
+                                errorMessage = 'No user found for that email.';
+                                _formKey.currentState!
+                                    .validate(); // This might not be necessary here
+                                return;
+                              }
+                              //when user found in collection
+                              else {
+                                print('user found');
+                                try {
+                                  print('object');
+                                  var email = _emailController.text.trim();
+                                  print(email);
+                                  await FirebaseAuth.instance
+                                      .sendPasswordResetEmail(
+                                          email: _emailController.text.trim());
+
+                                } on FirebaseAuthException catch (e) {
+                                  print(e);
+                                }
+                                _handleResetPassword();
+                                // _handleSendEmail();
+                              }
+
+                              _formKey.currentState!
+                                  .validate(); // This might not be necessary here
+
+                              // _handleSendEmail();
+
+                              _formKey.currentState!
+                                  .validate(); // This might not be necessary here
+                            } on FirebaseAuthException catch (e) {
+                              if (e.code == 'user-not-found') {
+                                errorMessage = 'No user found for that email.';
+                              } else if (e.code == 'invalid-email') {
+                                errorMessage = 'Invalid email address.';
+                              } else {
+                                print("error: $e");
+                                errorMessage =
+                                    e.code; // Set error message to error code
+                                print("error1: $errorMessage");
+                                _formKey.currentState!
+                                    .validate(); // This might not be necessary here
+                              }
+                            }
+                            _formKey.currentState!.validate();
+                          }
+                          //_resetPassword(context);
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primaryColor,
                         ),
-                        suffixIcon: Padding(
-                          padding: const EdgeInsets.only(right: 15.0),
-                          child: IconButton(
-                              icon: Icon(
-                                passwordVisibleTwo
-                                    ? Icons.visibility_off_outlined
-                                    : Icons.visibility_outlined,
-                                color: AppColors.primaryColor,
-                              ),
-                              onPressed: () {
-                                setState(() {
-                                  passwordVisibleTwo = !passwordVisibleTwo;
-                                });
-                              }),
-                        ),
-                        fillColor: Colors.white,
-                        filled: true,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(20.0),
-                          borderSide: BorderSide.none,
-                        ),
-                        errorBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(30.0),
-                          borderSide: const BorderSide(
-                              color: Colors
-                                  .red), // Custom border color for validation error
-                        ),
-                        floatingLabelBehavior: FloatingLabelBehavior.never,
-                        labelText: 'Confirm Password',
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 15),
-                  SizedBox(
-                    width: 160,
-                    height: 50,
-                    child: ElevatedButton(
-                      onPressed:
-                          _handleResetPassword, // Call function to reset password
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primaryColor,
-                      ),
-                      child: const Text(
-                        'Reset',
-                        style: TextStyle(
+                        child: const Text(
+                          'Next',
+                          style: TextStyle(
                             color: Colors.white,
                             fontWeight: FontWeight.bold,
-                            fontSize: 17.0),
+                            fontSize: 17.0,
+                          ),
+                        ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-          ],
+              Visibility(
+                visible: false, // Show OTP section if flag is false
+                child: Column(
+                  children: [
+                    const Text(
+                      'Enter the 4-digit code that you received on your email',
+                      style: TextStyle(
+                        fontSize: 17,
+                        color: AppColors.textColor,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 10),
+                    const Padding(
+                      padding: EdgeInsets.only(left: 25, bottom: 5),
+                      child: Align(
+                        alignment: Alignment.topLeft,
+                        child: Text(
+                          'OTP Code',
+                          style: TextStyle(
+                            fontSize: 17,
+                            color: AppColors.textColor,
+                          ),
+                          textAlign: TextAlign.left,
+                        ),
+                      ),
+                    ),
+                    Padding(
+                      padding:
+                          const EdgeInsets.only(left: 15, right: 15, bottom: 5),
+                      child: TextFormField(
+                        decoration: InputDecoration(
+                          labelStyle: TextStyle(
+                              color: AppColors.primaryColor.withOpacity(0.5)),
+                          fillColor: Colors.white,
+                          filled: true,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(20.0),
+                            borderSide: BorderSide.none,
+                          ),
+                          floatingLabelBehavior: FloatingLabelBehavior.never,
+                          //labelText: 'OTP Code', // Set label for OTP field
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 15),
+                    SizedBox(
+                      width: 160,
+                      height: 50,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primaryColor,
+                        ),
+                        onPressed: null,
+                        // _handleVerifyOtp, // Call function to verify OTP
+                        child: const Text(
+                          'Next',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 17.0,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Visibility(
+                visible: false, // Show password reset fields if flag is true
+                child: Column(
+                  children: [
+                    const Text(
+                      'Set the new password', // Change text after OTP verification
+                      style: TextStyle(
+                        fontSize: 17,
+                        color: AppColors.textColor,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 15),
+                    Padding(
+                      padding:
+                          const EdgeInsets.only(left: 15, right: 15, bottom: 5),
+                      child: TextFormField(
+                        obscureText: passwordVisibleOne, // Password field
+                        controller: _passwordController,
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Please Enter a password';
+                          } else if (!passwordRegex.hasMatch(value)) {
+                            return 'Password must contain at least 6 characters, including:\n'
+                                '• Uppercase\n'
+                                '• Lowercase\n'
+                                '• Numbers and special characters';
+                          }
+                          return null;
+                        },
+                        decoration: InputDecoration(
+                          labelStyle: TextStyle(
+                              color: AppColors.primaryColor.withOpacity(0.5)),
+                          prefixIcon: Padding(
+                            padding:
+                                const EdgeInsets.only(left: 35.0, right: 15.0),
+                            child: Icon(Icons.lock_outline,
+                                color: AppColors.primaryColor.withOpacity(0.5)),
+                          ),
+                          suffixIcon: Padding(
+                            padding: const EdgeInsets.only(right: 15.0),
+                            child: IconButton(
+                                icon: Icon(
+                                  passwordVisibleOne
+                                      ? Icons.visibility_off_outlined
+                                      : Icons.visibility_outlined,
+                                  color: AppColors.primaryColor,
+                                ),
+                                onPressed: () {
+                                  setState(() {
+                                    passwordVisibleOne = !passwordVisibleOne;
+                                  });
+                                }),
+                          ),
+                          fillColor: Colors.white,
+                          filled: true,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(20.0),
+                            borderSide: BorderSide.none,
+                          ),
+                          floatingLabelBehavior: FloatingLabelBehavior.never,
+                          labelText: 'Password',
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 15),
+                    Padding(
+                      padding:
+                          const EdgeInsets.only(left: 15, right: 15, bottom: 5),
+                      child: TextFormField(
+                        obscureText:
+                            passwordVisibleTwo, // Confirm password field
+                        controller: _confirmPasswordController,
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Please Enter a password';
+                          } else if (value != _passwordController.text) {
+                            return 'Password does not match';
+                          }
+                          return null;
+                        },
+                        decoration: InputDecoration(
+                          labelStyle: TextStyle(
+                              color: AppColors.primaryColor.withOpacity(0.5)),
+                          prefixIcon: Padding(
+                            padding:
+                                const EdgeInsets.only(left: 35.0, right: 15.0),
+                            child: Icon(Icons.lock_outline,
+                                color: AppColors.primaryColor.withOpacity(0.5)),
+                          ),
+                          suffixIcon: Padding(
+                            padding: const EdgeInsets.only(right: 15.0),
+                            child: IconButton(
+                                icon: Icon(
+                                  passwordVisibleTwo
+                                      ? Icons.visibility_off_outlined
+                                      : Icons.visibility_outlined,
+                                  color: AppColors.primaryColor,
+                                ),
+                                onPressed: () {
+                                  setState(() {
+                                    passwordVisibleTwo = !passwordVisibleTwo;
+                                  });
+                                  if (_formKey.currentState!.validate()) {
+                                    _formKey.currentState!.save();
+                                  }
+                                }),
+                          ),
+                          fillColor: Colors.white,
+                          filled: true,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(20.0),
+                            borderSide: BorderSide.none,
+                          ),
+                          errorBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(30.0),
+                            borderSide: const BorderSide(
+                                color: Colors
+                                    .red), // Custom border color for validation error
+                          ),
+                          floatingLabelBehavior: FloatingLabelBehavior.never,
+                          labelText: 'Confirm Password',
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 15),
+                    SizedBox(
+                      width: 160,
+                      height: 50,
+                      child: ElevatedButton(
+                        onPressed:
+                            _handleResetPassword, // Call function to reset password
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primaryColor,
+                        ),
+                        child: const Text(
+                          'Reset',
+                          style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 17.0),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
