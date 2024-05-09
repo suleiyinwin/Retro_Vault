@@ -1,14 +1,18 @@
 // ignore: avoid_web_libraries_in_flutter
 import 'dart:async';
-import 'dart:html' as html;
-import 'dart:html';
+// import 'dart:html';
+// import 'dart:html' as html;
+// import 'dart:html';
 // import 'dart:io';
-import 'dart:typed_data';
+// import 'dart:typed_data';
+import 'package:flutter/foundation.dart' show kIsWeb;
+// Use uni_html resources instead of dart:html
 import 'dart:math';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-// import 'package:image_picker/image_picker.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:retro/pages/capsule_management/capsule_list.dart';
 import 'package:uuid/uuid.dart';
@@ -43,82 +47,92 @@ class _CreateCapsuleState extends State<CreateCapsule> {
       options: DefaultFirebaseOptions.currentPlatform,
     );
   }
-// .then((_) {
-//       firestore = FirebaseFirestore.instance;
-//       storage = firebase_storage.FirebaseStorage.instance;
-//     })
 
-  Future<String?> getUserId() async {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user != null) {
-      return user.uid;
-    } else {
-      return 'AEHcUcxLJkhE2aQmVcfMLTYp9an2';
-    }
-  }
+
 
   String generateUniqueId() {
     const uuid = Uuid();
     return uuid.v4(); // Generate a Version 4 (random) UUID
   }
 
-  // Future<void> _saveData() async {
-  //   // if (_formKey.currentState!.validate()) {
-  //     const userId = 'AEHcUcxLJkhE2aQmVcfMLTYp9an2';
-  //     // if (userId == null) {
-  //     //   // Handle case where user ID is not available
-  //     //   print ('User ID is not available');
-  //     //   return;
-  //     // }
-
-  //     final docRef = await firestore.collection('capsules').add({
-  //       'title': _titleController.text,
-  //       'message': _messageController.text,
-  //       'editBeforeDate': _editBeforeDate,
-  //       'openDate': _openDate,
-  //     });
-
-  //     if (_imageBytes != null) {
-  //       final coverPhotoRef = storage.ref().child('capsule_covers/${docRef.id}');
-  //       await coverPhotoRef.putData(_imageBytes!);
-  //       final coverPhotoUrl = await coverPhotoRef.getDownloadURL();
-  //       await docRef.update({'coverPhotoUrl': coverPhotoUrl});
-  //     }
-
-  //     for (int i = 0; i < _imageBytesList.length; i++) {
-  //       final photoBytes = _imageBytesList[i];
-  //       if (photoBytes != null) {
-  //         final photoRef = storage.ref().child('capsule_photos/${docRef.id}/photo_$i');
-  //         await photoRef.putData(photoBytes);
-  //         final photoUrl = await photoRef.getDownloadURL();
-  //         await docRef.collection('photos').add({'url': photoUrl});
-  //       }
-  //     }
-  //   // }
+ 
+  // Future<void> _selectFile() async {
+    
   // }
-  Future<void> _selectFile() async {
-    final input = InputElement(type: 'file');
-    input.onChange.listen((_) async {
-      final file = input.files!.first;
-      final reader = FileReader();
-      reader.onError.listen((_) {
-        print('Error reading file');
-      });
-      reader.onLoad.listen((_) {
-        setState(() {
-          for (int i = 0; i < 10; i++) {
-            if (_imageBytesList[i] == null) {
-              _imageBytesList[i] = reader.result as Uint8List;
-              break;
-            }
-          }
-        });
-      });
-      reader.readAsArrayBuffer(file);
-    });
-    input.click();
-  }
 
+  final ImagePicker _imagePicker = ImagePicker();
+
+  Future<void> _selectFile() async {
+  if (kIsWeb) {
+    // Web platform
+  //  final input = InputElement(type: 'file');
+  //   input.onChange.listen((_) async {
+  //     final file = input.files!.first;
+  //     final reader = FileReader();
+  //     reader.onError.listen((_) {
+  //       print('Error reading file');
+  //     });
+  //     reader.onLoad.listen((_) {
+  //       setState(() {
+  //         for (int i = 0; i < 10; i++) {
+  //           if (_imageBytesList[i] == null) {
+  //             _imageBytesList[i] = reader.result as Uint8List;
+  //             break;
+  //           }
+  //         }
+  //       });
+  //     });
+  //     reader.readAsArrayBuffer(file);
+  //   });
+  //   input.click();
+  } else {
+    // Mobile platform
+    final ImagePicker _imagePicker = ImagePicker();
+    final pickedFile = await _imagePicker.pickImage(source: ImageSource.gallery);
+    if (pickedFile != null) {
+      final bytes = await pickedFile.readAsBytes();
+      setState(() {
+        for (int i = 0; i < 10; i++) {
+          if (_imageBytesList[i] == null) {
+            _imageBytesList[i] = bytes.buffer.asUint8List();
+            break;
+          }
+        }
+      });
+    }
+  }
+}
+Future<void> _selectCoverPhoto() async {
+  if (kIsWeb) {
+    // Web platform
+    // final input = InputElement(type: 'file');
+    // input.onChange.listen((_) async {
+    //   final file = input.files!.first;
+    //   final reader =FileReader();
+    //   reader.onError.listen((_) {
+    //     print('Error reading file');
+    //   });
+    //   reader.onLoad.listen((_) {
+    //     setState(() {
+    //       final bytes = reader.result as Uint8List;
+    //       _imageBytes = bytes;
+    //     });
+    //   });
+    //   reader.readAsArrayBuffer(file);
+    // });
+    // input.click();
+  } else {
+    // Mobile platform
+    final ImagePicker _imagePicker = ImagePicker();
+    final pickedFile = await _imagePicker.pickImage(source: ImageSource.gallery);
+    if (pickedFile != null) {
+      final bytes = await pickedFile.readAsBytes();
+      setState(() {
+        _imageBytes = bytes.buffer.asUint8List();
+      });
+    }
+  }
+}
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -131,7 +145,12 @@ class _CreateCapsuleState extends State<CreateCapsule> {
             color: AppColors.backArrow,
           ),
           onPressed: () {
-            Navigator.pop(context);
+             Navigator.pushAndRemoveUntil(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => const HomeScreen()),
+                            (Route<dynamic> route) => false,
+                          );
           },
         ),
       ),
@@ -420,46 +439,15 @@ class _CreateCapsuleState extends State<CreateCapsule> {
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    const SizedBox(width: 10),
-                    //Image Picker for native Platform
-                    // IconButton(
-                    //   icon: const Icon(Icons.image),
-                    //   onPressed: () async {
-                    //     final ImagePicker picker = ImagePicker();
-                    //     final XFile? image =
-                    //         await picker.pickImage(source: ImageSource.gallery);
-                    //     setState(() {
-                    //       if (image != null) {
-                    //         _image = File(image.path);
-                    //       } else {
-                    //         _image = null;
-                    //       }
-                    //     });
-                    //   },
-                    // ),
-
-                    //Image Picker for Web Platform
+                    const SizedBox(width: 5),
+        
                     Container(
                       decoration: BoxDecoration(
                         color: AppColors.primaryColor,
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: InkWell(
-                        onTap: () {
-                          html.InputElement uploadInput =
-                              html.InputElement(type: 'file');
-                          uploadInput.click();
-                          uploadInput.onChange.listen((_) {
-                            final file = uploadInput.files!.first;
-                            final reader = html.FileReader();
-                            reader.readAsArrayBuffer(file);
-                            reader.onLoadEnd.listen((_) {
-                              setState(() {
-                                _imageBytes = reader.result as Uint8List;
-                              });
-                            });
-                          });
-                        },
+                        onTap: _selectCoverPhoto,
                         child: Row(
                           children: [
                             Transform.rotate(
@@ -563,7 +551,7 @@ class _CreateCapsuleState extends State<CreateCapsule> {
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    const SizedBox(width: 10),
+                    const SizedBox(width: 5),
                     Container(
                       decoration: BoxDecoration(
                         color: AppColors.primaryColor,
@@ -795,3 +783,4 @@ class _CreateCapsuleState extends State<CreateCapsule> {
     );
   }
 }
+
