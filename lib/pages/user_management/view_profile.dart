@@ -29,7 +29,7 @@ class _ProfileViewState extends State<ProfileView> {
   }
 
 // Function to load profile photo URL
-  void _loadProfilePhoto() async {
+   void _loadProfilePhoto() async {
     User? currentUser = FirebaseAuth.instance.currentUser;
     if (currentUser != null) {
       try {
@@ -40,12 +40,9 @@ class _ProfileViewState extends State<ProfileView> {
             .get();
         if (userRef.docs.isNotEmpty) {
           final userData = userRef.docs.first.data();
-          final profilePhotoBytes = userData[
-              'profile_photo_bytes']; // Assuming the field name is 'profile_photo_bytes'
+          final profilePhotoUrl = userData['profile_photo_url'];
           setState(() {
-            _profileImageBytes = profilePhotoBytes != null
-                ? Uint8List.fromList(profilePhotoBytes)
-                : null; // Set profile photo bytes
+            _profilePhotoUrl = profilePhotoUrl ?? ''; // Set profile photo URL
           });
         }
       } catch (error) {
@@ -53,7 +50,6 @@ class _ProfileViewState extends State<ProfileView> {
       }
     }
   }
-
   Stream<String> _getUserNameStream(String userId) async* {
     Map<String, String> simpleCache = <String, String>{};
 
@@ -236,35 +232,10 @@ class _ProfileViewState extends State<ProfileView> {
                               shape: BoxShape.circle,
                               color: AppColors.primaryColor,
                             ),
-                            child: _profileImageBytes != null
-                                ? Image.memory(
-                                    _profileImageBytes!,
-                                    width: 100,
-                                    height: 100,
-                                    fit: BoxFit.cover,
-                                  )
-                                : (_profilePhotoUrl.isNotEmpty
-                                    ? Image.network(
-                                        _profilePhotoUrl,
-                                        fit: BoxFit.cover,
-                                        errorBuilder:
-                                            (context, error, stackTrace) {
-                                          print("Error loading image: $error");
-                                          return Image.asset(
-                                            'image/splashlogo.png',
-                                            fit: BoxFit.cover,
-                                            width: double.infinity,
-                                            height: double.infinity,
-                                          );
-                                        },
-                                      )
-                                    : Image.asset(
-                                        'image/splashlogo.png',
-                                        width: 100,
-                                        height: 100,
-                                        fit: BoxFit.cover,
-                                      )),
-                          ), // Fallback image if URL is empty
+                           child: _profilePhotoUrl.isNotEmpty
+                            ? Image.network(_profilePhotoUrl) // Load profile photo from URL
+                            : Image.asset('image/splashlogo.png'), // Fallback image if URL is empty
+                      ),
                         ),
                       ),
                       const SizedBox(width: 16),
