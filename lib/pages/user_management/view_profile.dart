@@ -6,9 +6,10 @@ import 'package:retro/components/colors.dart';
 import 'package:retro/pages/authentication/login.dart';
 import 'package:retro/pages/user_management/edit_profile.dart';
 import 'package:retro/pages/user_management/change_pwd.dart';
+import 'dart:typed_data';
 
 class ProfileView extends StatefulWidget {
-  const ProfileView({Key? key}) : super(key: key);
+  const ProfileView({super.key});
 
   @override
   State<ProfileView> createState() => _ProfileViewState();
@@ -17,13 +18,16 @@ class ProfileView extends StatefulWidget {
 class _ProfileViewState extends State<ProfileView> {
   late Stream<String> _usernameStream;
   String _profilePhotoUrl = '';
+  Uint8List? _profileImageBytes;
 
   @override
   void initState() {
     super.initState();
     _loadProfilePhoto();
-    _usernameStream = _getUserNameStream(FirebaseAuth.instance.currentUser!.uid);
+    _usernameStream =
+        _getUserNameStream(FirebaseAuth.instance.currentUser!.uid);
   }
+
 // Function to load profile photo URL
   void _loadProfilePhoto() async {
     User? currentUser = FirebaseAuth.instance.currentUser;
@@ -36,9 +40,12 @@ class _ProfileViewState extends State<ProfileView> {
             .get();
         if (userRef.docs.isNotEmpty) {
           final userData = userRef.docs.first.data();
-          final profilePhotoUrl = userData['profile_photo_url'];
+          final profilePhotoBytes = userData[
+              'profile_photo_bytes']; // Assuming the field name is 'profile_photo_bytes'
           setState(() {
-            _profilePhotoUrl = profilePhotoUrl ?? ''; // Set profile photo URL
+            _profileImageBytes = profilePhotoBytes != null
+                ? Uint8List.fromList(profilePhotoBytes)
+                : null; // Set profile photo bytes
           });
         }
       } catch (error) {
@@ -46,6 +53,7 @@ class _ProfileViewState extends State<ProfileView> {
       }
     }
   }
+
   Stream<String> _getUserNameStream(String userId) async* {
     Map<String, String> simpleCache = <String, String>{};
 
@@ -62,125 +70,125 @@ class _ProfileViewState extends State<ProfileView> {
         simpleCache[userId] = username;
         yield username;
       }
-      await Future.delayed(Duration(milliseconds: 5)); // Adjust delay as needed
+      await Future.delayed(
+          const Duration(milliseconds: 5)); // Adjust delay as needed
     }
   }
 
   void signOut() async {
     await FirebaseAuth.instance.signOut();
-    Navigator.pushReplacement(
-      context,
+    Navigator.of(context, rootNavigator: true).pushReplacement(
       MaterialPageRoute(builder: (context) => const LoginPage()),
     );
   }
-  void navigateToChangePassword(){
+
+  void navigateToChangePassword() {
     Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context)=> const ChgPwd())
-    );
+        context, MaterialPageRoute(builder: (context) => const ChgPwd()));
   }
 
   void _showDeleteAccountDialog() {
-  showDialog(
-    context: context,
-    builder: (BuildContext context) {
-      return AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20.0),
-        ),
-        backgroundColor: AppColors.backgroundColor,
-        content: Text(
-          "Are you sure you want to delete your account?",
-          style: TextStyle(
-            color: AppColors.textColor,
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20.0),
           ),
-        ),
-        actions: [
-          Row(
-            children: [
-              Expanded(
-                child: OutlinedButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    child: Text(
-                      "Cancel",
-                      style: TextStyle(
-                        color: AppColors.textColor,
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
+          backgroundColor: AppColors.backgroundColor,
+          content: const Text(
+            "Are you sure you want to delete your account?",
+            style: TextStyle(
+              color: AppColors.textColor,
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          actions: [
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                    child: const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 12),
+                      child: Text(
+                        "Cancel",
+                        style: TextStyle(
+                          color: AppColors.textColor,
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
-                  ),
-                  style: OutlinedButton.styleFrom(
-                    side: BorderSide(color: AppColors.primaryColor),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(30.0),
+                    style: OutlinedButton.styleFrom(
+                      side: const BorderSide(color: AppColors.primaryColor),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(30.0),
+                      ),
+                      backgroundColor: AppColors.backgroundColor,
                     ),
-                    backgroundColor: AppColors.backgroundColor,
                   ),
                 ),
-              ),
-              SizedBox(width: 10),
-              Expanded(
-                child: OutlinedButton(
-                  onPressed: () async {
-                    // Ensure there is a current user
-                    final currentUser = FirebaseAuth.instance.currentUser;
-                    if (currentUser != null) {
-                      try {
-                        // Delete user account from Firebase
-                        await currentUser.delete();
+                const SizedBox(width: 10),
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: () async {
+                      // Ensure there is a current user
+                      final currentUser = FirebaseAuth.instance.currentUser;
+                      if (currentUser != null) {
+                        try {
+                          // Delete user account from Firebase
+                          await currentUser.delete();
 
-                        // Verify if the account was deleted successfully
-                        final user = await FirebaseAuth.instance.currentUser;
-                        if (user == null) {
-                          // Navigate to login page if deletion was successful
-                          Navigator.pushReplacement(
-                            context,
-                            MaterialPageRoute(builder: (context) => const LoginPage()),
-                          );
-                        } else {
-                          print("User account deletion failed.");
+                          // Verify if the account was deleted successfully
+                          final user = await FirebaseAuth.instance.currentUser;
+                          if (user == null) {
+                            // Navigate to login page if deletion was successful
+                            Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => const LoginPage()),
+                            );
+                          } else {
+                            print("User account deletion failed.");
+                          }
+                        } catch (e) {
+                          print("Failed to delete account: $e");
                         }
-                      } catch (e) {
-                        print("Failed to delete account: $e");
+                      } else {
+                        print("No current user found.");
                       }
-                    } else {
-                      print("No current user found.");
-                    }
-                  },
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical:12),
-                    child: Text(
-                      "Delete",
-                      style: TextStyle(
-                        color: AppColors.white,
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
+                    },
+                    child: const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 12),
+                      child: Text(
+                        "Delete",
+                        style: TextStyle(
+                          color: AppColors.white,
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
-                  ),
-                  style: OutlinedButton.styleFrom(
-                    side: BorderSide(color: AppColors.primaryColor),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(30.0),
+                    style: OutlinedButton.styleFrom(
+                      side: const BorderSide(color: AppColors.primaryColor),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(30.0),
+                      ),
+                      backgroundColor: AppColors.primaryColor,
                     ),
-                    backgroundColor: AppColors.primaryColor,
                   ),
                 ),
-              ),
-            ],
-          ),
-        ],
-      );
-    },
-  );
-}
+              ],
+            ),
+          ],
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -211,16 +219,53 @@ class _ProfileViewState extends State<ProfileView> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.start,
                     children: [
-                     CircleAvatar(
-                        radius: 50,
-                        backgroundColor: AppColors.primaryColor,
-                        child: SizedBox(
-                          width: 100,
-                          height: 100,
-                          child: _profilePhotoUrl.isNotEmpty
-                              ? Image.network(_profilePhotoUrl,fit: BoxFit.cover,) // Load profile photo from URL
-                              : Image.asset('image/splashlogo.png',fit: BoxFit.cover,),
-                        ), // Fallback image if URL is empty
+                      Container(
+                        width: 100,
+                        height: 100,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: AppColors.primaryColor,
+                        ),
+                        child: ClipOval(
+                          // radius: 50,
+                          // backgroundColor: AppColors.primaryColor,
+                          child: Container(
+                            width: 100,
+                            height: 100,
+                            decoration: const BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: AppColors.primaryColor,
+                            ),
+                            child: _profileImageBytes != null
+                                ? Image.memory(
+                                    _profileImageBytes!,
+                                    width: 100,
+                                    height: 100,
+                                    fit: BoxFit.cover,
+                                  )
+                                : (_profilePhotoUrl.isNotEmpty
+                                    ? Image.network(
+                                        _profilePhotoUrl,
+                                        fit: BoxFit.cover,
+                                        errorBuilder:
+                                            (context, error, stackTrace) {
+                                          print("Error loading image: $error");
+                                          return Image.asset(
+                                            'image/splashlogo.png',
+                                            fit: BoxFit.cover,
+                                            width: double.infinity,
+                                            height: double.infinity,
+                                          );
+                                        },
+                                      )
+                                    : Image.asset(
+                                        'image/splashlogo.png',
+                                        width: 100,
+                                        height: 100,
+                                        fit: BoxFit.cover,
+                                      )),
+                          ), // Fallback image if URL is empty
+                        ),
                       ),
                       const SizedBox(width: 16),
                       Column(

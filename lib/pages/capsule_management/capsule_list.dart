@@ -115,10 +115,10 @@ class CapsuleWidget extends StatelessWidget {
         future: author,
         builder: (context, snapshot) {
           return GestureDetector(
-            onTap: () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const CreateCapsule()),
-            ),
+            // onTap: () => Navigator.push(
+            //   context,
+            //   MaterialPageRoute(builder: (context) => const CreateCapsule()),
+            // ),
             child: Container(
               padding: const EdgeInsets.all(4),
               height: 150,
