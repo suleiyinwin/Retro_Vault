@@ -10,10 +10,10 @@ class ChgPwd extends StatefulWidget {
   const ChgPwd({super.key});
 
   @override
-  State <ChgPwd> createState() =>  ChgPwdState();
+  State<ChgPwd> createState() => ChgPwdState();
 }
 
-class  ChgPwdState extends State <ChgPwd> {
+class ChgPwdState extends State<ChgPwd> {
   // late Stream<String> _passwordStream;
   final _formKey = GlobalKey<FormState>();
   String errorMessage = '';
@@ -77,7 +77,10 @@ class  ChgPwdState extends State <ChgPwd> {
         await authResult.user!.updatePassword(newPassword);
 
         // Update password in Firestore
-        await FirebaseFirestore.instance.collection('user').doc(userDocId).update({
+        await FirebaseFirestore.instance
+            .collection('user')
+            .doc(userDocId)
+            .update({
           'password': newPassword,
         });
 
@@ -96,7 +99,7 @@ class  ChgPwdState extends State <ChgPwd> {
         Navigator.pop(context);
       } else {
         setState(() {
-         errorMessage = 'wrong current password. try again';
+          errorMessage = 'wrong current password. try again';
         });
       }
     } catch (e) {
@@ -109,76 +112,78 @@ class  ChgPwdState extends State <ChgPwd> {
   @override
   Widget build(BuildContext context) {
     const appTitle = "Change Password";
-  return MaterialApp(
-    title: appTitle,
-    theme: ThemeData(
-      scaffoldBackgroundColor: AppColors.backgroundColor,
-    ),
-    home: Scaffold(
-      appBar: AppBar(
-        backgroundColor: AppColors.backgroundColor,
-        leading: ModalRoute.of(context)?.canPop == true
-            ? IconButton(
-                icon: const Icon(Icons.arrow_back),
-                onPressed: () => Navigator.pop(context),
-              )
-            : null,
+    return MaterialApp(
+      title: appTitle,
+      theme: ThemeData(
+        scaffoldBackgroundColor: AppColors.backgroundColor,
       ),
-      body: Column(
-        children: [
-          Expanded(
-            child: SingleChildScrollView(
-              child: Column(
-                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                   Padding(
-            padding: const EdgeInsets.only(left: 20.0, right: 15.0, top: 10.0),
-            child: Text(
-              'Current Password',
-              style: TextStyle(
-                color: AppColors.textColor,
-                fontSize: 16,
-              ),
-            ),
-                ),
-                 
-                  Form(
-                    key: _formKey,
-                    child: Column(
-                      children: [
-                        
-                        Padding( padding: const EdgeInsets.symmetric(horizontal: 15.0, vertical: 5.0),
-                        child: TextFormField(
-                          obscureText: passwordVisibleOne,
-                          controller: _currentPasswordController,
-                          validator: (value){
-                            if(value == null || value.isEmpty){
-                              return 'Please Enter your password';
-                            }
-                            else if(errorMessage.isNotEmpty){
-                              return errorMessage;
-                            }
-                            errorMessage = '';
-                            return null;
-                          },
-                          onChanged: (value) => setState(() {
-                            errorMessage = '';
-                          }),
-                          decoration: InputDecoration(
-                              suffixIcon: Padding(
-                                padding: EdgeInsets.only(right: 15.0) ,
-                                child: IconButton(
-                                  icon: Icon(
-                                    passwordVisibleOne
-                                    ? Icons.visibility_off_outlined
-                                    : Icons.visibility_outlined,
-                                    color: AppColors.primaryColor,
+      home: Scaffold(
+        appBar: AppBar(
+          backgroundColor: AppColors.backgroundColor,
+          leading: ModalRoute.of(context)?.canPop == true
+              ? IconButton(
+                  icon: const Icon(Icons.arrow_back),
+                  onPressed: () => Navigator.pop(context),
+                )
+              : null,
+        ),
+        body: Column(
+          children: [
+            Expanded(
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Padding(
+                      padding:
+                          EdgeInsets.only(left: 20.0, right: 15.0, top: 10.0),
+                      child: Text(
+                        'Current Password',
+                        style: TextStyle(
+                          color: AppColors.textColor,
+                          fontSize: 16,
+                        ),
+                      ),
+                    ),
+                    Form(
+                      key: _formKey,
+                      child: Column(
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 15.0, vertical: 5.0),
+                            child: TextFormField(
+                              obscureText: passwordVisibleOne,
+                              controller: _currentPasswordController,
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  return 'Please Enter your password';
+                                } else if (errorMessage.isNotEmpty) {
+                                  return errorMessage;
+                                }
+                                errorMessage = '';
+                                return null;
+                              },
+                              onChanged: (value) => setState(() {
+                                errorMessage = '';
+                              }),
+                              decoration: InputDecoration(
+                                suffixIcon: Padding(
+                                  padding: const EdgeInsets.only(right: 15.0),
+                                  child: IconButton(
+                                    icon: Icon(
+                                      passwordVisibleOne
+                                          ? Icons.visibility_off_outlined
+                                          : Icons.visibility_outlined,
+                                      color: AppColors.primaryColor,
+                                    ),
+                                    onPressed: () {
+                                      setState(() {
+                                        passwordVisibleOne =
+                                            !passwordVisibleOne;
+                                      });
+                                    },
                                   ),
-                                  onPressed: (){
-                                    setState(() {
-                                      passwordVisibleOne = !passwordVisibleOne;
-                                    });
-                                  },),
                                 ),
                                 fillColor: Colors.white,
                                 filled: true,
@@ -188,182 +193,197 @@ class  ChgPwdState extends State <ChgPwd> {
                                 ),
                                 errorBorder: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(20.0),
-                                  borderSide: const BorderSide(
-                                    color: Colors.red
-                                  ),
+                                  borderSide:
+                                      const BorderSide(color: Colors.red),
                                 ),
                                 // floatingLabelBehavior: FloatingLabelBehavior.always,
-                          ),
-                        ),),
-                        Align(
-                          alignment: Alignment.centerLeft,
-                          child: Padding(
-                            padding: const EdgeInsets.only(left: 20.0, right: 15.0, top: 10.0),
-                            child: Text(
-                              'New Password',
-                              style: TextStyle(
-                                color: AppColors.textColor,
-                                fontSize: 16,
                               ),
                             ),
                           ),
-                        ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 15.0, vertical: 5.0),
-              child: TextFormField(
-                obscureText: passwordVisibleTwo,
-                controller: _newPasswordController,
-                validator: (value) {
-            if (value == null || value.isEmpty) {
-              return 'Please Enter a password';
-            } else if (!passwordRegex.hasMatch(value)) {
-              return 'Password must contain at least 6 characters, including:\n'
-                  '• Uppercase\n'
-                  '• Lowercase\n'
-                  '• Numbers and special characters';
-            }
-            return null;
-                },
-                decoration: InputDecoration(
-            suffixIcon: Padding(
-              padding: EdgeInsets.only(right: 15.0),
-              child: IconButton(
-                icon: Icon(
-                  passwordVisibleTwo
-                  ? Icons.visibility_off_outlined
-                  : Icons.visibility_outlined,
-                  color: AppColors.primaryColor,
-                ),
-                onPressed: () {
-                  setState(() {
-                    passwordVisibleTwo = !passwordVisibleTwo;
-                  });
-                },
-              ),
-            ),
-            fillColor: Colors.white,
-            filled: true,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(20.0),
-              borderSide: BorderSide.none,
-            ),
-            errorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(20.0),
-              borderSide: const BorderSide(color: Colors.red),
-            ),
-            // floatingLabelBehavior: FloatingLabelBehavior.always,
+                          const Align(
+                            alignment: Alignment.centerLeft,
+                            child: Padding(
+                              padding: EdgeInsets.only(
+                                  left: 20.0, right: 15.0, top: 10.0),
+                              child: const Text(
+                                'New Password',
+                                style: TextStyle(
+                                  color: AppColors.textColor,
+                                  fontSize: 16,
+                                ),
+                              ),
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 15.0, vertical: 5.0),
+                            child: TextFormField(
+                              obscureText: passwordVisibleTwo,
+                              controller: _newPasswordController,
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  return 'Please Enter a password';
+                                } else if (!passwordRegex.hasMatch(value)) {
+                                  return 'Password must contain at least 6 characters, including:\n'
+                                      '• Uppercase\n'
+                                      '• Lowercase\n'
+                                      '• Numbers and special characters';
+                                }
+                                return null;
+                              },
+                              decoration: InputDecoration(
+                                suffixIcon: Padding(
+                                  padding: const EdgeInsets.only(right: 15.0),
+                                  child: IconButton(
+                                    icon: Icon(
+                                      passwordVisibleTwo
+                                          ? Icons.visibility_off_outlined
+                                          : Icons.visibility_outlined,
+                                      color: AppColors.primaryColor,
+                                    ),
+                                    onPressed: () {
+                                      setState(() {
+                                        passwordVisibleTwo =
+                                            !passwordVisibleTwo;
+                                      });
+                                    },
+                                  ),
+                                ),
+                                fillColor: Colors.white,
+                                filled: true,
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(20.0),
+                                  borderSide: BorderSide.none,
+                                ),
+                                errorBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(20.0),
+                                  borderSide:
+                                      const BorderSide(color: Colors.red),
+                                ),
+                                // floatingLabelBehavior: FloatingLabelBehavior.always,
+                              ),
+                            ),
+                          ),
+                          const Align(
+                            alignment: Alignment.centerLeft,
+                            child: Padding(
+                              padding: EdgeInsets.only(left: 30.0),
+                              child: Text(
+                                'Password must contain \n'
+                                '• At least 8 characters\n'
+                                '• At least one numeric character (0-9)\n'
+                                '• At least one special character',
+                                style: TextStyle(
+                                  color: AppColors.textColor,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ),
+                          ),
+                          const Align(
+                            alignment: Alignment.centerLeft,
+                            child: Padding(
+                              padding: EdgeInsets.only(
+                                  left: 20.0, right: 15.0, top: 10.0),
+                              child: Text(
+                                'Confirm New Password',
+                                style: TextStyle(
+                                  color: AppColors.textColor,
+                                  fontSize: 16,
+                                ),
+                              ),
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 15.0, vertical: 5.0),
+                            child: TextFormField(
+                              obscureText: passwordVisibleThree,
+                              controller: _confirmNewPasswordController,
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  return 'Please Enter Your Password Again';
+                                } else if (value !=
+                                    _newPasswordController.text) {
+                                  return 'Password does Not Match';
+                                }
+                                return null;
+                              },
+                              decoration: InputDecoration(
+                                suffixIcon: Padding(
+                                  padding: const EdgeInsets.only(right: 15.0),
+                                  child: IconButton(
+                                    icon: Icon(
+                                      passwordVisibleThree
+                                          ? Icons.visibility_off_outlined
+                                          : Icons.visibility_outlined,
+                                      color: AppColors.primaryColor,
+                                    ),
+                                    onPressed: () {
+                                      setState(() {
+                                        passwordVisibleThree =
+                                            !passwordVisibleThree;
+                                      });
+                                    },
+                                  ),
+                                ),
+                                fillColor: Colors.white,
+                                filled: true,
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(20.0),
+                                  borderSide: BorderSide.none,
+                                ),
+                                errorBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(20.0),
+                                  borderSide:
+                                      const BorderSide(color: Colors.red),
+                                ),
+                                // floatingLabelBehavior: FloatingLabelBehavior.always,
+                              ),
+                            ),
+                          ),
+                        
+                          
+                        ],
+                      ),
+                    )
+                  ],
                 ),
               ),
             ),
             Align(
-              alignment: Alignment.centerLeft,
-              child: Padding(
-            padding: const EdgeInsets.only(left: 30.0),
-            child: Text(
-              'Password must contain \n'
-                    '• At least 8 characters\n'
-                    '• At least one numeric character (0-9)\n'
-                    '• At least one special character',
-                    style: TextStyle(
-                      color: AppColors.textColor,
-                      fontSize: 12,
-                    ),
-            ),
-                ),
-            ),
-            Align(
-              alignment: Alignment.centerLeft,
-              child: Padding(
-                padding: const EdgeInsets.only(left: 20.0, right: 15.0, top: 10.0),
-                child: Text(
-            'Confirm New Password',
-            style: TextStyle(
-              color: AppColors.textColor,
-              fontSize: 16,
-            ),
-                ),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 15.0, vertical: 5.0),
-              child: TextFormField(
-                obscureText: passwordVisibleThree,
-                controller: _confirmNewPasswordController,
-                validator: (value) {
-            if (value == null || value.isEmpty) {
-              return 'Please Enter Your Password Again';
-            } else if (value != _newPasswordController.text) {
-              return 'Password does Not Match';
-            }
-            return null;
-                },
-                decoration: InputDecoration(
-            suffixIcon: Padding(
-              padding: const EdgeInsets.only(right: 15.0),
-              child: IconButton(
-                icon: Icon(
-                  passwordVisibleThree
-                  ? Icons.visibility_off_outlined
-                  : Icons.visibility_outlined,
-                  color: AppColors.primaryColor,
-                ),
-                onPressed: () {
-                  setState(() {
-                    passwordVisibleThree = !passwordVisibleThree;
-                  });
-                },
-              ),
-            ),
-            fillColor: Colors.white,
-            filled: true,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(20.0),
-              borderSide: BorderSide.none,
-            ),
-            errorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(20.0),
-              borderSide: const BorderSide(color: Colors.red),
-            ),
-            // floatingLabelBehavior: FloatingLabelBehavior.always,
-                ),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(15.0),
-              child: SizedBox(
-                width: 160.0,
-                height: 50.0,
-                child: OutlinedButton(
-            style: OutlinedButton.styleFrom(
-              side: const BorderSide(
-                color: AppColors.primaryColor, width: 1.0),
-              ),
-              onPressed:() {
-  if (_formKey.currentState!.validate()) {
-    _updatePassword(_newPasswordController.text);
-  }
-},
-              child: const Text(
-                'Update',
-                style: TextStyle(
-                  color: AppColors.primaryColor,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16.0
-                ),
-              ),
-            ),
-                ),
-            ),
-            
-                      ],),
-                  )
-                ],
-              ),
-            ),
-          ),
-        ],
+                            alignment: Alignment.bottomCenter,
+                            child: Padding(
+                              padding: const EdgeInsets.only(bottom:20.0),
+                              child: SizedBox(
+                                width: 160,
+                                height: 50,
+                                child: OutlinedButton(
+                                  style: OutlinedButton.styleFrom(
+                                    side: const BorderSide(
+                                        color: AppColors.primaryColor,
+                                        width: 1.0),
+                                  ),
+                                  onPressed: () {
+                                    if (_formKey.currentState!.validate()) {
+                                      _updatePassword(
+                                          _newPasswordController.text);
+                                    }
+                                  },
+                                  child: const Text(
+                                    'Update',
+                                    style: TextStyle(
+                                        color: AppColors.primaryColor,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 16.0),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+          ],
+        ),
       ),
-    ),
-      );
+    );
   }
 }

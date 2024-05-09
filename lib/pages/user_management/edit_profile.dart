@@ -264,7 +264,7 @@ Future<void> _uploadProfilePhoto(Uint8List profileImageBytes) async {
       } catch (error) {
         print('Error uploading profile photo: $error');
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
+          const SnackBar(
             content: Text('Failed to upload profile photo'),
             backgroundColor: Colors.red,
           ),
@@ -296,7 +296,7 @@ void _updateUserProfile() async {
       });
 
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Profile updated successfully!')),
+        const SnackBar(content: Text('Profile updated successfully!')),
       );
       //  Navigator.pop(context);
       Navigator.push(
@@ -331,18 +331,24 @@ void _updateUserProfile() async {
       body: Column(
         children: [
           //Profile Picture
-          SizedBox(
-            height: 200,
+          Container(
             width: 200,
+            height: 200,
+            decoration: const BoxDecoration(
+            shape: BoxShape.circle,
+            color: AppColors.primaryColor,
+  ),
             child: Stack(
               fit: StackFit.expand,
               clipBehavior: Clip.none,
               children: [
-                CircleAvatar(
-  backgroundColor: AppColors.primaryColor,
+                ClipOval(
+  // backgroundColor: AppColors.primaryColor,
   child: _profileImageBytes != null
             ? Image.memory(
                 _profileImageBytes!,
+                width: 200,
+            height: 200,
                 fit: BoxFit.cover,
               )
             : (_profilePhotoUrl.isNotEmpty
@@ -361,6 +367,8 @@ void _updateUserProfile() async {
                   )
                 : Image.asset(
                     'image/splashlogo.png',
+                    width: 200,
+            height: 200,
                     fit: BoxFit.cover,
                   )),
 ),
@@ -400,8 +408,8 @@ void _updateUserProfile() async {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('First Name', 
-              style: const TextStyle(                  
+            const Text('First Name', 
+              style: TextStyle(                  
                 fontSize: 16,
                 color: AppColors.textColor,
               ),
@@ -427,8 +435,8 @@ void _updateUserProfile() async {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Last Name', 
-              style: const TextStyle(                  
+            const Text('Last Name', 
+              style: TextStyle(                  
                 fontSize: 16,
                 color: AppColors.textColor,
               ),
@@ -471,22 +479,25 @@ void _updateUserProfile() async {
           //Save Button
           Align(
             alignment: Alignment.bottomCenter,
-            child: SizedBox(
-              width: 160,
-              height: 50,
-              child: OutlinedButton(
-                style: OutlinedButton.styleFrom(
-                  side: const BorderSide(
-                    color: AppColors.primaryColor, width: 1.0),
+            child: Padding(
+              padding: const EdgeInsets.only(bottom:20.0),
+              child: SizedBox(
+                width: 160,
+                height: 50,
+                child: OutlinedButton(
+                  style: OutlinedButton.styleFrom(
+                    side: const BorderSide(
+                      color: AppColors.primaryColor, width: 1.0),
+                  ),
+                  onPressed: _updateUserProfile,
+                  child: const Text('Update',
+                    style: TextStyle(
+                      color: AppColors.primaryColor,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16.0,
+                      ),
+                  )
                 ),
-                onPressed: _updateUserProfile,
-                child: const Text('Update',
-                  style: TextStyle(
-                    color: AppColors.primaryColor,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16.0,
-                    ),
-                )
               ),
             ),
           ),
