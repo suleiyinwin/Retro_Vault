@@ -233,8 +233,8 @@ class _ProfileViewState extends State<ProfileView> {
                               color: AppColors.primaryColor,
                             ),
                            child: _profilePhotoUrl.isNotEmpty
-                            ? Image.network(_profilePhotoUrl,width: 100, height: 100,) // Load profile photo from URL
-                            : Image.asset('image/splashlogo.png', width: 100, height: 100,), // Fallback image if URL is empty
+                            ? Image.network(_profilePhotoUrl,width: 100, height: 100,fit: BoxFit.cover,) // Load profile photo from URL
+                            : Image.asset('image/splashlogo.png', width: 100, height: 100,fit: BoxFit.cover,), // Fallback image if URL is empty
                       ),
                         ),
                       ),
