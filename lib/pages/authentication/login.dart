@@ -70,7 +70,7 @@ class _LoginPageState extends State<LoginPage> {
               ),
               const SizedBox(
                 child: Text(
-                  'Welcome back!',
+                  'RetroVault',
                   style: TextStyle(
                     fontSize: 25,
                     fontWeight: FontWeight.bold,
