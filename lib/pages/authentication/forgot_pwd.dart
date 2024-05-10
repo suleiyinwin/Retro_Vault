@@ -59,14 +59,6 @@ class _ForgotPasswordModalState extends State<ForgotPasswordModal> {
     Navigator.pop(context); // Close the modal after successful reset
   }
 
-// Future passwordReset() async {
-//   try{
-//     print('object');
-//       await FirebaseAuth.instance.sendPasswordResetEmail(email: _emailController.text.trim());
-//   } on FirebaseAuthException catch (e){
-//     print(e);
-//   }
-// }
 
   @override
   Widget build(BuildContext context) {
@@ -195,9 +187,29 @@ class _ForgotPasswordModalState extends State<ForgotPasswordModal> {
                                   await FirebaseAuth.instance
                                       .sendPasswordResetEmail(
                                           email: _emailController.text.trim());
+                                        
+                                  Fluttertoast.showToast(
+                                      msg: "Password reset link successfully sent to $email",
+                                      toastLength: Toast.LENGTH_SHORT,
+                                      gravity: ToastGravity.BOTTOM,
+                                      webPosition: "center",
+                                      webBgColor: '#D1D1D6',
+                                      textColor: AppColors.primaryColor,
+                                      fontSize: 16.0);
 
                                 } on FirebaseAuthException catch (e) {
-                                  print(e);
+                                   if (e.code == 'user-not-found') {
+                                     errorMessage = 'No user found for that email.';
+                                   } else if (e.code == 'invalid-email') {
+                                     errorMessage = 'Invalid email address.';
+                                   } else {
+                                     print("error: $e");
+                                     errorMessage = e.code; // Set error message to error code
+                                     print("error1: $errorMessage");
+                                     _formKey.currentState!
+                                         .validate(); // This might not be necessary here
+                                     
+                                   }
                                 }
                                 _handleResetPassword();
                                 // _handleSendEmail();
@@ -238,221 +250,6 @@ class _ForgotPasswordModalState extends State<ForgotPasswordModal> {
                             fontWeight: FontWeight.bold,
                             fontSize: 17.0,
                           ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Visibility(
-                visible: false, // Show OTP section if flag is false
-                child: Column(
-                  children: [
-                    const Text(
-                      'Enter the 4-digit code that you received on your email',
-                      style: TextStyle(
-                        fontSize: 17,
-                        color: AppColors.textColor,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 10),
-                    const Padding(
-                      padding: EdgeInsets.only(left: 25, bottom: 5),
-                      child: Align(
-                        alignment: Alignment.topLeft,
-                        child: Text(
-                          'OTP Code',
-                          style: TextStyle(
-                            fontSize: 17,
-                            color: AppColors.textColor,
-                          ),
-                          textAlign: TextAlign.left,
-                        ),
-                      ),
-                    ),
-                    Padding(
-                      padding:
-                          const EdgeInsets.only(left: 15, right: 15, bottom: 5),
-                      child: TextFormField(
-                        decoration: InputDecoration(
-                          labelStyle: TextStyle(
-                              color: AppColors.primaryColor.withOpacity(0.5)),
-                          fillColor: Colors.white,
-                          filled: true,
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(20.0),
-                            borderSide: BorderSide.none,
-                          ),
-                          floatingLabelBehavior: FloatingLabelBehavior.never,
-                          //labelText: 'OTP Code', // Set label for OTP field
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 15),
-                    SizedBox(
-                      width: 160,
-                      height: 50,
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.primaryColor,
-                        ),
-                        onPressed: null,
-                        // _handleVerifyOtp, // Call function to verify OTP
-                        child: const Text(
-                          'Next',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 17.0,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Visibility(
-                visible: false, // Show password reset fields if flag is true
-                child: Column(
-                  children: [
-                    const Text(
-                      'Set the new password', // Change text after OTP verification
-                      style: TextStyle(
-                        fontSize: 17,
-                        color: AppColors.textColor,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 15),
-                    Padding(
-                      padding:
-                          const EdgeInsets.only(left: 15, right: 15, bottom: 5),
-                      child: TextFormField(
-                        obscureText: passwordVisibleOne, // Password field
-                        controller: _passwordController,
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Please Enter a password';
-                          } else if (!passwordRegex.hasMatch(value)) {
-                            return 'Password must contain at least 6 characters, including:\n'
-                                '• Uppercase\n'
-                                '• Lowercase\n'
-                                '• Numbers and special characters';
-                          }
-                          return null;
-                        },
-                        decoration: InputDecoration(
-                          labelStyle: TextStyle(
-                              color: AppColors.primaryColor.withOpacity(0.5)),
-                          prefixIcon: Padding(
-                            padding:
-                                const EdgeInsets.only(left: 35.0, right: 15.0),
-                            child: Icon(Icons.lock_outline,
-                                color: AppColors.primaryColor.withOpacity(0.5)),
-                          ),
-                          suffixIcon: Padding(
-                            padding: const EdgeInsets.only(right: 15.0),
-                            child: IconButton(
-                                icon: Icon(
-                                  passwordVisibleOne
-                                      ? Icons.visibility_off_outlined
-                                      : Icons.visibility_outlined,
-                                  color: AppColors.primaryColor,
-                                ),
-                                onPressed: () {
-                                  setState(() {
-                                    passwordVisibleOne = !passwordVisibleOne;
-                                  });
-                                }),
-                          ),
-                          fillColor: Colors.white,
-                          filled: true,
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(20.0),
-                            borderSide: BorderSide.none,
-                          ),
-                          floatingLabelBehavior: FloatingLabelBehavior.never,
-                          labelText: 'Password',
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 15),
-                    Padding(
-                      padding:
-                          const EdgeInsets.only(left: 15, right: 15, bottom: 5),
-                      child: TextFormField(
-                        obscureText:
-                            passwordVisibleTwo, // Confirm password field
-                        controller: _confirmPasswordController,
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Please Enter a password';
-                          } else if (value != _passwordController.text) {
-                            return 'Password does not match';
-                          }
-                          return null;
-                        },
-                        decoration: InputDecoration(
-                          labelStyle: TextStyle(
-                              color: AppColors.primaryColor.withOpacity(0.5)),
-                          prefixIcon: Padding(
-                            padding:
-                                const EdgeInsets.only(left: 35.0, right: 15.0),
-                            child: Icon(Icons.lock_outline,
-                                color: AppColors.primaryColor.withOpacity(0.5)),
-                          ),
-                          suffixIcon: Padding(
-                            padding: const EdgeInsets.only(right: 15.0),
-                            child: IconButton(
-                                icon: Icon(
-                                  passwordVisibleTwo
-                                      ? Icons.visibility_off_outlined
-                                      : Icons.visibility_outlined,
-                                  color: AppColors.primaryColor,
-                                ),
-                                onPressed: () {
-                                  setState(() {
-                                    passwordVisibleTwo = !passwordVisibleTwo;
-                                  });
-                                  if (_formKey.currentState!.validate()) {
-                                    _formKey.currentState!.save();
-                                  }
-                                }),
-                          ),
-                          fillColor: Colors.white,
-                          filled: true,
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(20.0),
-                            borderSide: BorderSide.none,
-                          ),
-                          errorBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(30.0),
-                            borderSide: const BorderSide(
-                                color: Colors
-                                    .red), // Custom border color for validation error
-                          ),
-                          floatingLabelBehavior: FloatingLabelBehavior.never,
-                          labelText: 'Confirm Password',
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 15),
-                    SizedBox(
-                      width: 160,
-                      height: 50,
-                      child: ElevatedButton(
-                        onPressed:
-                            _handleResetPassword, // Call function to reset password
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.primaryColor,
-                        ),
-                        child: const Text(
-                          'Reset',
-                          style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 17.0),
                         ),
                       ),
                     ),
