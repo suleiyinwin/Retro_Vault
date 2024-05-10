@@ -18,7 +18,7 @@ class ProfileView extends StatefulWidget {
 class _ProfileViewState extends State<ProfileView> {
   late Stream<String> _usernameStream;
   String _profilePhotoUrl = '';
-  Uint8List? _profileImageBytes;
+  
 
   @override
   void initState() {
@@ -132,31 +132,34 @@ class _ProfileViewState extends State<ProfileView> {
                 Expanded(
                   child: OutlinedButton(
                     onPressed: () async {
-                      // Ensure there is a current user
-                      final currentUser = FirebaseAuth.instance.currentUser;
-                      if (currentUser != null) {
-                        try {
-                          // Delete user account from Firebase
-                          await currentUser.delete();
+                      final userId = FirebaseAuth.instance.currentUser!.uid;
+try {
+  final userRef = await FirebaseFirestore.instance
+      .collection('user')
+      .where('userId', isEqualTo: userId)
+      .get();
 
-                          // Verify if the account was deleted successfully
-                          final user = await FirebaseAuth.instance.currentUser;
-                          if (user == null) {
-                            // Navigate to login page if deletion was successful
-                            Navigator.pushReplacement(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) => const LoginPage()),
-                            );
-                          } else {
-                            print("User account deletion failed.");
-                          }
-                        } catch (e) {
-                          print("Failed to delete account: $e");
-                        }
-                      } else {
-                        print("No current user found.");
-                      }
+  if (userRef.docs.isNotEmpty) {
+    final userDocId = userRef.docs.first.id;
+
+    // Delete the user document
+    await FirebaseFirestore.instance.collection('user').doc(userDocId).delete();
+
+    // Delete the user account from Firebase Authentication
+    await FirebaseAuth.instance.currentUser!.delete();
+
+    // Navigate to the login page after successful deletion
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => const LoginPage()),
+    );
+  } else {
+    print('User document not found');
+  }
+} catch (error) {
+  print('Error deleting user: $error');
+}
+
                     },
                     child: const Padding(
                       padding: EdgeInsets.symmetric(vertical: 12),
@@ -218,7 +221,7 @@ class _ProfileViewState extends State<ProfileView> {
                       Container(
                         width: 100,
                         height: 100,
-                        decoration: BoxDecoration(
+                        decoration: const BoxDecoration(
                           shape: BoxShape.circle,
                           color: AppColors.primaryColor,
                         ),
@@ -277,23 +280,34 @@ class _ProfileViewState extends State<ProfileView> {
                             },
                           ),
                           const SizedBox(height: 8),
-                          const Text(
-                            'Edit Profile',
-                            style: TextStyle(color: AppColors.textColor),
+                          Row(
+                            children: [
+                              const Text(
+                                'Edit Profile',
+                                style: TextStyle(color: AppColors.textColor),
+                              ),
+                            ],
                           ),
                         ],
                       ),
                       const SizedBox(width: 50),
-                      IconButton(
-                        icon: const Icon(Icons.chevron_right),
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const EditProfile(),
+                      Expanded(
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            IconButton(
+                              icon: const Icon(Icons.chevron_right),
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => const EditProfile(),
+                                  ),
+                                );
+                              },
                             ),
-                          );
-                        },
+                          ],
+                        ),
                       ),
                     ],
                   ),
@@ -315,9 +329,16 @@ class _ProfileViewState extends State<ProfileView> {
                       Row(
                         children: [
                           const Text('Change Password'),
-                          IconButton(
-                            icon: const Icon(Icons.chevron_right),
-                            onPressed: navigateToChangePassword,
+                          Expanded(
+                            child: Row(
+                               mainAxisAlignment: MainAxisAlignment.end,
+                              children: [
+                                IconButton(
+                                  icon: const Icon(Icons.chevron_right),
+                                  onPressed: navigateToChangePassword,
+                                ),
+                              ],
+                            ),
                           ),
                         ],
                       ),
@@ -325,9 +346,16 @@ class _ProfileViewState extends State<ProfileView> {
                       Row(
                         children: [
                           const Text('Delete My Account'),
-                          IconButton(
-                            icon: const Icon(Icons.chevron_right),
-                            onPressed: _showDeleteAccountDialog,
+                          Expanded(
+                            child: Row(
+                               mainAxisAlignment: MainAxisAlignment.end,
+                              children: [
+                                IconButton(
+                                  icon: const Icon(Icons.chevron_right),
+                                  onPressed: _showDeleteAccountDialog,
+                                ),
+                              ],
+                            ),
                           ),
                         ],
                       ),
@@ -335,9 +363,16 @@ class _ProfileViewState extends State<ProfileView> {
                       Row(
                         children: [
                           const Text('Log Out'),
-                          IconButton(
-                            icon: const Icon(Icons.chevron_right),
-                            onPressed: signOut,
+                          Expanded(
+                            child: Row(
+                               mainAxisAlignment: MainAxisAlignment.end,
+                              children: [
+                                IconButton(
+                                  icon: const Icon(Icons.chevron_right),
+                                  onPressed: signOut,
+                                ),
+                              ],
+                            ),
                           ),
                         ],
                       ),

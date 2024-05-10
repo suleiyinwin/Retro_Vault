@@ -27,6 +27,7 @@ class _EditProfileState extends State<EditProfile> {
    final TextEditingController _firstNameController = TextEditingController();
   final TextEditingController _lastNameController = TextEditingController();
   final TextEditingController _usernameController = TextEditingController();
+  
   String _profilePhotoUrl ='';
    @override
   void initState() {
@@ -328,186 +329,191 @@ void _updateUserProfile() async {
               : null,
       ),
       backgroundColor: AppColors.backgroundColor,
-      body: Column(
-        children: [
-          //Profile Picture
-          Container(
-            width: 200,
-            height: 200,
-            decoration: const BoxDecoration(
-            shape: BoxShape.circle,
-            color: AppColors.primaryColor,
-  ),
-            child: Stack(
-              fit: StackFit.expand,
-              clipBehavior: Clip.none,
-              children: [
-                ClipOval(
-  // backgroundColor: AppColors.primaryColor,
-  child: _profileImageBytes != null
-            ? Image.memory(
-                _profileImageBytes!,
+      body: SingleChildScrollView(
+        child: Container(
+          height: MediaQuery.of(context).size.height,
+          child: Column(
+            children: [
+              //Profile Picture
+              Container(
                 width: 200,
-            height: 200,
-                fit: BoxFit.cover,
-              )
-            : (_profilePhotoUrl.isNotEmpty
-                ? Image.network(
-                    _profilePhotoUrl,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) {
-                      print("Error loading image: $error");
-                      return Image.asset(
-                        'image/splashlogo.png',
-                        fit: BoxFit.cover,
-                        width: double.infinity,
-                        height: double.infinity,
-                      );
-                    },
-                  )
-                : Image.asset(
-                    'image/splashlogo.png',
+                height: 200,
+                decoration: const BoxDecoration(
+                shape: BoxShape.circle,
+                color: AppColors.primaryColor,
+            ),
+                child: Stack(
+                  fit: StackFit.expand,
+                  clipBehavior: Clip.none,
+                  children: [
+                    ClipOval(
+            // backgroundColor: AppColors.primaryColor,
+            child: _profileImageBytes != null
+                ? Image.memory(
+                    _profileImageBytes!,
                     width: 200,
-            height: 200,
+                height: 200,
                     fit: BoxFit.cover,
-                  )),
-),
-
-
-
-                Positioned(
-                  right: 12,
-                  bottom: 3,
-                  child: SizedBox(
-                    height: 40,
-                    width: 40,
-                    child: TextButton(
-                      style: TextButton.styleFrom(
-                        padding: EdgeInsets.zero,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(50),
-                          side: const BorderSide(color: AppColors.black),
+                  )
+                : (_profilePhotoUrl.isNotEmpty
+                    ? Image.network(
+                        _profilePhotoUrl,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) {
+                          print("Error loading image: $error");
+                          return Image.asset(
+                            'image/splashlogo.png',
+                            fit: BoxFit.cover,
+                            width: double.infinity,
+                            height: double.infinity,
+                          );
+                        },
+                      )
+                    : Image.asset(
+                        'image/splashlogo.png',
+                        width: 200,
+                height: 200,
+                        fit: BoxFit.cover,
+                      )),
+          ),
+          
+          
+          
+                    Positioned(
+                      right: 12,
+                      bottom: 3,
+                      child: SizedBox(
+                        height: 40,
+                        width: 40,
+                        child: TextButton(
+                          style: TextButton.styleFrom(
+                            padding: EdgeInsets.zero,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(50),
+                              side: const BorderSide(color: AppColors.black),
+                            ),
+                            backgroundColor: AppColors.systemGreay06Light,
+                          ),
+                          onPressed: _selectAndUploadProfilePhoto,
+                          child: const Icon(Icons.photo_camera),
                         ),
-                        backgroundColor: AppColors.systemGreay06Light,
                       ),
-                      onPressed: _selectAndUploadProfilePhoto,
-                      child: const Icon(Icons.photo_camera),
+                    )
+                  ],
+                ),
+              ),
+               const SizedBox(height: 20),
+              //First/Last Name
+             Row(
+            children: [
+              Flexible(
+          child: Padding(
+            padding: const EdgeInsets.all(10.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text('First Name', 
+                  style: TextStyle(                  
+                    fontSize: 16,
+                    color: AppColors.textColor,
+                  ),
+                ),
+                TextField(
+                  controller: _firstNameController,
+                  decoration: InputDecoration(
+                    fillColor: Colors.white,
+                    filled: true,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(20.0),
+                      borderSide: BorderSide.none,
                     ),
                   ),
-                )
+                ),
               ],
             ),
           ),
-           const SizedBox(height: 20),
-          //First/Last Name
-         Row(
-  children: [
-    Expanded(
-      child: Padding(
-        padding: const EdgeInsets.all(10.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text('First Name', 
-              style: TextStyle(                  
-                fontSize: 16,
-                color: AppColors.textColor,
               ),
-            ),
-            TextField(
-              controller: _firstNameController,
-              decoration: InputDecoration(
-                fillColor: Colors.white,
-                filled: true,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(20.0),
-                  borderSide: BorderSide.none,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    ),
-    Expanded(
-      child: Padding(
-        padding: const EdgeInsets.all(10.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text('Last Name', 
-              style: TextStyle(                  
-                fontSize: 16,
-                color: AppColors.textColor,
-              ),
-            ),
-            TextField(
-               controller: _lastNameController,
-              decoration: InputDecoration(
-                fillColor: Colors.white,
-                filled: true,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(20.0),
-                  borderSide: BorderSide.none,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    ),
-  ],
-),
-          // const Padding(
-          //   padding: EdgeInsets.all(20.0),
-          //   child: Row(
-          //     mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          //     children: [
-          //       TextFieldWithTitle(title: 'First Name'),
-          //       TextFieldWithTitle(title: 'Last Name'),
-          //     ],
-          //   ),
-          // ),
-          //Username
-          TextFieldWithTitle(title: 'Username',
-          controller: _usernameController,),
-          //Email
-          TextFieldWithTitle(title: 'Email',
-          controller: _emailController,
-          enabled: false,),
-          const Spacer(),
-          //Save Button
-          Align(
-            alignment: Alignment.bottomCenter,
-            child: Padding(
-              padding: const EdgeInsets.only(bottom:20.0),
-              child: SizedBox(
-                width: 160,
-                height: 50,
-                child: OutlinedButton(
-                  style: OutlinedButton.styleFrom(
-                    side: const BorderSide(
-                      color: AppColors.primaryColor, width: 1.0),
+              Flexible(
+          child: Padding(
+            padding: const EdgeInsets.all(10.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text('Last Name', 
+                  style: TextStyle(                  
+                    fontSize: 16,
+                    color: AppColors.textColor,
                   ),
-                  onPressed: _updateUserProfile,
-                  child: const Text('Update',
-                    style: TextStyle(
-                      color: AppColors.primaryColor,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16.0,
-                      ),
-                  )
                 ),
-              ),
+                TextField(
+                   controller: _lastNameController,
+                  decoration: InputDecoration(
+                    fillColor: Colors.white,
+                    filled: true,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(20.0),
+                      borderSide: BorderSide.none,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
-        ]
+              ),
+            ],
+          ),
+              // const Padding(
+              //   padding: EdgeInsets.all(20.0),
+              //   child: Row(
+              //     mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              //     children: [
+              //       TextFieldWithTitle(title: 'First Name'),
+              //       TextFieldWithTitle(title: 'Last Name'),
+              //     ],
+              //   ),
+              // ),
+              //Username
+              TextFieldWithTitle(title: 'Username',
+              controller: _usernameController,),
+              //Email
+              TextFieldWithTitle(title: 'Email',
+              controller: _emailController,
+              enabled: false,),
+              const Spacer(),
+              //Save Button
+              Align(
+                alignment: Alignment.bottomCenter,
+                child: Padding(
+                  padding: const EdgeInsets.only(bottom:20.0),
+                  child: SizedBox(
+                    width: 160,
+                    height: 50,
+                    child: OutlinedButton(
+                      style: OutlinedButton.styleFrom(
+                        side: const BorderSide(
+                          color: AppColors.primaryColor, width: 1.0),
+                      ),
+                      onPressed: _updateUserProfile,
+                      child: const Text('Update',
+                        style: TextStyle(
+                          color: AppColors.primaryColor,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16.0,
+                          ),
+                      )
+                    ),
+                  ),
+                ),
+              ),
+            ]
+          ),
+        ),
       ),
     );
   }
 }
 
-class TextFieldWithTitle extends StatelessWidget {
+class TextFieldWithTitle extends StatefulWidget {
   final String title;
   final TextEditingController? controller;
   final bool enabled;
@@ -520,20 +526,27 @@ class TextFieldWithTitle extends StatelessWidget {
   });
 
   @override
+  _TextFieldWithTitleState createState() => _TextFieldWithTitleState();
+}
+class _TextFieldWithTitleState extends State<TextFieldWithTitle> {
+  String? _errorText;
+
+  @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.all(10.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(title, 
+          Text(
+            widget.title, 
             style: const TextStyle(                  
               fontSize: 16,
               color: AppColors.textColor,
             ),),
           TextField(
-            controller: controller,
-            enabled: enabled && controller != null,
+            controller: widget.controller,
+            enabled: widget.enabled && widget.controller != null,
             decoration: InputDecoration(
               fillColor: Colors.white,
               filled: true,
@@ -541,10 +554,40 @@ class TextFieldWithTitle extends StatelessWidget {
                 borderRadius: BorderRadius.circular(20.0),
                 borderSide: BorderSide.none,
               ),
+              errorText: _errorText,
             ),
+            onChanged: (value) {
+              // Check username availability here
+              _checkUsernameAvailability(value);
+            },
           ),
         ],
       ),
     );
   }
+  void _checkUsernameAvailability(String username) async {
+    if (username.isNotEmpty) {
+      try {
+        final userQuery = await FirebaseFirestore.instance
+            .collection('user')
+            .where('username', isEqualTo: username)
+            .limit(1)
+            .get();
+
+        if (userQuery.docs.isNotEmpty) {
+          setState(() {
+            _errorText = 'Unavailable username. Try again.';
+          });
+        } else {
+          setState(() {
+            _errorText = null;
+          });
+        }
+      } catch (error) {
+        print('Error checking username availability: $error');
+        // Handle error
+      }
+    }
+  }
 }
+
