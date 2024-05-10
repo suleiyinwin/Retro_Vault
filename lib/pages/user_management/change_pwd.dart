@@ -205,7 +205,7 @@ class ChgPwdState extends State<ChgPwd> {
                             child: Padding(
                               padding: EdgeInsets.only(
                                   left: 20.0, right: 15.0, top: 10.0),
-                              child: const Text(
+                              child: Text(
                                 'New Password',
                                 style: TextStyle(
                                   color: AppColors.textColor,
