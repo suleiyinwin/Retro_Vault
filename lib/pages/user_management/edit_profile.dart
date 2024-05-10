@@ -27,6 +27,7 @@ class _EditProfileState extends State<EditProfile> {
    final TextEditingController _firstNameController = TextEditingController();
   final TextEditingController _lastNameController = TextEditingController();
   final TextEditingController _usernameController = TextEditingController();
+  
   String _profilePhotoUrl ='';
    @override
   void initState() {
@@ -512,7 +513,7 @@ void _updateUserProfile() async {
   }
 }
 
-class TextFieldWithTitle extends StatelessWidget {
+class TextFieldWithTitle extends StatefulWidget {
   final String title;
   final TextEditingController? controller;
   final bool enabled;
@@ -525,20 +526,27 @@ class TextFieldWithTitle extends StatelessWidget {
   });
 
   @override
+  _TextFieldWithTitleState createState() => _TextFieldWithTitleState();
+}
+class _TextFieldWithTitleState extends State<TextFieldWithTitle> {
+  String? _errorText;
+
+  @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.all(10.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(title, 
+          Text(
+            widget.title, 
             style: const TextStyle(                  
               fontSize: 16,
               color: AppColors.textColor,
             ),),
           TextField(
-            controller: controller,
-            enabled: enabled && controller != null,
+            controller: widget.controller,
+            enabled: widget.enabled && widget.controller != null,
             decoration: InputDecoration(
               fillColor: Colors.white,
               filled: true,
@@ -546,10 +554,40 @@ class TextFieldWithTitle extends StatelessWidget {
                 borderRadius: BorderRadius.circular(20.0),
                 borderSide: BorderSide.none,
               ),
+              errorText: _errorText,
             ),
+            onChanged: (value) {
+              // Check username availability here
+              _checkUsernameAvailability(value);
+            },
           ),
         ],
       ),
     );
   }
+  void _checkUsernameAvailability(String username) async {
+    if (username.isNotEmpty) {
+      try {
+        final userQuery = await FirebaseFirestore.instance
+            .collection('user')
+            .where('username', isEqualTo: username)
+            .limit(1)
+            .get();
+
+        if (userQuery.docs.isNotEmpty) {
+          setState(() {
+            _errorText = 'Unavailable username. Try again.';
+          });
+        } else {
+          setState(() {
+            _errorText = null;
+          });
+        }
+      } catch (error) {
+        print('Error checking username availability: $error');
+        // Handle error
+      }
+    }
+  }
 }
+
