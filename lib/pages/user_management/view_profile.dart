@@ -280,9 +280,9 @@ try {
                             },
                           ),
                           const SizedBox(height: 8),
-                          Row(
+                          const Row(
                             children: [
-                              const Text(
+                              Text(
                                 'Edit Profile',
                                 style: TextStyle(color: AppColors.textColor),
                               ),
