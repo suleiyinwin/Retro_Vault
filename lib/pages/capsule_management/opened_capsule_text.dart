@@ -5,7 +5,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:retro/components/colors.dart';
 
 class OpenedCapsuleText extends StatelessWidget {
-  const OpenedCapsuleText({Key? key, required this.capsuleId}) : super(key: key);
+  const OpenedCapsuleText({Key? key, required this.capsuleId})
+      : super(key: key);
   final String capsuleId;
 
   @override
@@ -16,8 +17,12 @@ class OpenedCapsuleText extends StatelessWidget {
       ),
       backgroundColor: AppColors.backgroundColor,
       body: StreamBuilder<DocumentSnapshot>(
-        stream: FirebaseFirestore.instance.collection('capsules').doc(capsuleId).snapshots(),
-        builder: (BuildContext context, AsyncSnapshot<DocumentSnapshot> snapshot) {
+        stream: FirebaseFirestore.instance
+            .collection('capsules')
+            .doc(capsuleId)
+            .snapshots(),
+        builder:
+            (BuildContext context, AsyncSnapshot<DocumentSnapshot> snapshot) {
           if (snapshot.hasError) {
             return Center(
               child: Text("Error: ${snapshot.error}"),
@@ -91,14 +96,18 @@ class OpenedCapsuleText extends StatelessWidget {
                     height: 50,
                     child: OutlinedButton(
                       style: OutlinedButton.styleFrom(
-                        side: const BorderSide(color: AppColors.primaryColor, width: 1.0),
+                        side: const BorderSide(
+                            color: AppColors.primaryColor, width: 1.0),
                       ),
-                      onPressed: (){
+                      onPressed: () {
                         Navigator.pop(context);
                       },
                       child: const Text(
                         'Done',
-                        style: TextStyle(color: AppColors.primaryColor, fontWeight: FontWeight.bold, fontSize:16.0),
+                        style: TextStyle(
+                            color: AppColors.primaryColor,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16.0),
                       ),
                     ),
                   ),

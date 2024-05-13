@@ -7,6 +7,8 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 import 'package:retro/pages/capsule_management/create_capsule.dart';
 import 'package:retro/pages/capsule_management/fab.dart';
+import 'package:retro/pages/capsule_management/opened_capsule.dart';
+import 'package:retro/pages/capsule_management/opened_capsule_text.dart';
 import '../../components/colors.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:retro/firebase_options.dart';
@@ -46,10 +48,12 @@ class _UserInformationState extends State<UserInformation> {
                 snapshot.data!.docs[index].data()! as Map<String, dynamic>;
 
             return CapsuleWidget(
-                title: data['title'],
-                author: getUserName(FirebaseAuth.instance.currentUser!.uid),
-                imageUrl: data['coverPhotoUrl'] ?? '',
-                openDate: data['openDate']);
+              title: data['title'],
+              author: getUserName(FirebaseAuth.instance.currentUser!.uid),
+              imageUrl: data['coverPhotoUrl'] ?? '',
+              openDate: data['openDate'],
+              capsuleId: snapshot.data!.docs[index].id,
+            );
           },
           separatorBuilder: (context, index) => const Divider(
             color: Colors.transparent,
@@ -100,6 +104,7 @@ class CapsuleWidget extends StatelessWidget {
   final Future<String> author;
   final String imageUrl;
   final Timestamp openDate;
+  final String capsuleId;
 
   const CapsuleWidget({
     super.key,
@@ -107,6 +112,7 @@ class CapsuleWidget extends StatelessWidget {
     required this.author,
     required this.imageUrl,
     required this.openDate,
+    required this.capsuleId,
   });
 
   @override
@@ -115,10 +121,45 @@ class CapsuleWidget extends StatelessWidget {
         future: author,
         builder: (context, snapshot) {
           return GestureDetector(
-            // onTap: () => Navigator.push(
-            //   context,
-            //   MaterialPageRoute(builder: (context) => const CreateCapsule()),
-            // ),
+            onTap: () {
+              FirebaseFirestore.instance
+                  .collection('capsules')
+                  .doc(capsuleId)
+                  .get()
+                  .then((DocumentSnapshot snapshot) {
+                Map<String, dynamic>? capsuleData =
+                    snapshot.data() as Map<String, dynamic>?;
+
+                bool hasPhotoUrls = false;
+
+                for (int i = 0; i < 10; i++) {
+                  final key = 'capsule_photourl$i';
+                  if (capsuleData != null &&
+                      capsuleData.containsKey(key) &&
+                      capsuleData[key] != null) {
+                    hasPhotoUrls = true;
+                    break;
+                  }
+                }
+
+                if (hasPhotoUrls) {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => OpenedCapsule(capsuleId: capsuleId),
+                    ),
+                  );
+                } else {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) =>
+                          OpenedCapsuleText(capsuleId: capsuleId),
+                    ),
+                  );
+                }
+              });
+            },
             child: Container(
               padding: const EdgeInsets.all(4),
               height: 150,
