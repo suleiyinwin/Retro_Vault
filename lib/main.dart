@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart'; // new
 import 'package:provider/provider.dart';
 import 'pages/authentication/splashscreen.dart'; // new
+import 'package:get/get.dart'; // new
 
 void main() {
   runApp(const MyApp());
@@ -39,10 +40,7 @@ class MyApp extends StatelessWidget {
       // home: const Placeholder(
       //   fallbackHeight: 200,
       //   fallbackWidth: 200,)
-      home: const Placeholder(
-        fallbackHeight: 200,
-        fallbackWidth: 200,
-      )
+      home: const SplashScreen(),
     );
   }
 }
