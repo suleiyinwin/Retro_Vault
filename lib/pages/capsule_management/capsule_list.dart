@@ -5,11 +5,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/painting.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
+import 'package:retro/pages/capsule_management/create_capsule.dart';
 import 'package:retro/pages/capsule_management/fab.dart';
 import 'package:retro/pages/capsule_management/opened_capsule.dart';
 import 'package:retro/pages/capsule_management/opened_capsule_text.dart';
 import '../../components/colors.dart';
-import 'edit_capsule.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:retro/firebase_options.dart';
 
 class UserInformation extends StatefulWidget {
   const UserInformation({super.key});
@@ -46,12 +48,11 @@ class _UserInformationState extends State<UserInformation> {
                 snapshot.data!.docs[index].data()! as Map<String, dynamic>;
 
             return CapsuleWidget(
-              capsuleId: data['capsuleId'],
               title: data['title'],
               author: getUserName(FirebaseAuth.instance.currentUser!.uid),
               imageUrl: data['coverPhotoUrl'] ?? '',
               openDate: data['openDate'],
-              editBeforeDate: data['editBeforeDate'],
+              capsuleId: snapshot.data!.docs[index].id,
             );
           },
           separatorBuilder: (context, index) => const Divider(
@@ -99,21 +100,19 @@ String parseDate(Timestamp timestamp) {
 }
 
 class CapsuleWidget extends StatelessWidget {
-  final String capsuleId;
   final String title;
   final Future<String> author;
   final String imageUrl;
   final Timestamp openDate;
-  final Timestamp editBeforeDate;
+  final String capsuleId;
 
   const CapsuleWidget({
     super.key,
-    required this.capsuleId,
     required this.title,
     required this.author,
     required this.imageUrl,
     required this.openDate,
-    required this.editBeforeDate,
+    required this.capsuleId,
   });
 
   @override
@@ -123,47 +122,42 @@ class CapsuleWidget extends StatelessWidget {
         builder: (context, snapshot) {
           return GestureDetector(
             onTap: () {
-              // Navigator.push(
-              //     context,
-              //     MaterialPageRoute(
-              //         builder: (context) => EditCapsule(
-              //             id: capsuleId,
-              //             od: DateTime.parse(openDate.toDate().toString())
-              //                 .toLocal(),
-              //             ebd:
-              //                 DateTime.parse(editBeforeDate.toDate().toString())
-              //                     .toLocal())));
-
               FirebaseFirestore.instance
                   .collection('capsules')
-                  .where('capsuleId', isEqualTo: capsuleId)
+                  .doc(capsuleId)
                   .get()
-                  .then((value) {
-                if (value.docs.isEmpty) {
-                  return;
-                }
-
-                final String id = value.docs![0].id;
-                final data = value.docs![0].data();
+                  .then((DocumentSnapshot snapshot) {
+                Map<String, dynamic>? capsuleData =
+                    snapshot.data() as Map<String, dynamic>?;
 
                 bool hasPhotoUrls = false;
 
-                for (int i = 0; i < 10; ++i) {
+                for (int i = 0; i < 10; i++) {
                   final key = 'capsule_photourl$i';
-                  if (data.containsKey(key) && data[key] != null) {
+                  if (capsuleData != null &&
+                      capsuleData.containsKey(key) &&
+                      capsuleData[key] != null) {
                     hasPhotoUrls = true;
                     break;
                   }
                 }
 
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => hasPhotoUrls
-                        ? OpenedCapsule(capsuleId: id)
-                        : OpenedCapsuleText(capsuleId: id),
-                  ),
-                );
+                if (hasPhotoUrls) {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => OpenedCapsule(capsuleId: capsuleId),
+                    ),
+                  );
+                } else {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) =>
+                          OpenedCapsuleText(capsuleId: capsuleId),
+                    ),
+                  );
+                }
               });
             },
             child: Container(
@@ -182,12 +176,8 @@ class CapsuleWidget extends StatelessWidget {
                           bottomLeft: Radius.circular(150)),
                       child: imageUrl == ''
                           ? Image.asset('image/defaultcapsult.png',
-                              fit: BoxFit.cover, height: double.infinity)
-                          : Image.network(
-                              imageUrl,
-                              fit: BoxFit.cover,
-                              height: double.infinity,
-                            ),
+                              fit: BoxFit.cover)
+                          : Image.network(imageUrl, fit: BoxFit.cover),
                     ),
                   ),
 
@@ -201,7 +191,6 @@ class CapsuleWidget extends StatelessWidget {
                               left: 32, right: 16, top: 48),
                           child: Text(
                             title,
-                            overflow: TextOverflow.ellipsis,
                             style: const TextStyle(
                               fontSize: 17,
                               color: AppColors.primaryColor,
@@ -215,7 +204,6 @@ class CapsuleWidget extends StatelessWidget {
                           padding: const EdgeInsets.only(left: 32, right: 16),
                           child: Text(
                               'Shared by ${snapshot.connectionState == ConnectionState.waiting ? '…' : snapshot.data}',
-                              overflow: TextOverflow.ellipsis,
                               style: const TextStyle(
                                 fontSize: 12,
                                 color: AppColors.primaryColor,
