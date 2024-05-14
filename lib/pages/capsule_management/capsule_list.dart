@@ -6,6 +6,8 @@ import 'package:flutter/painting.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 import 'package:retro/pages/capsule_management/fab.dart';
+import 'package:retro/pages/capsule_management/opened_capsule.dart';
+import 'package:retro/pages/capsule_management/opened_capsule_text.dart';
 import '../../components/colors.dart';
 import 'edit_capsule.dart';
 
@@ -44,12 +46,13 @@ class _UserInformationState extends State<UserInformation> {
                 snapshot.data!.docs[index].data()! as Map<String, dynamic>;
 
             return CapsuleWidget(
-                capsuleId: data['capsuleId'],
-                title: data['title'],
-                author: getUserName(FirebaseAuth.instance.currentUser!.uid),
-                imageUrl: data['coverPhotoUrl'] ?? '',
-                openDate: data['openDate'],
-                editBeforeDate: data['editBeforeDate']);
+              capsuleId: data['capsuleId'],
+              title: data['title'],
+              author: getUserName(FirebaseAuth.instance.currentUser!.uid),
+              imageUrl: data['coverPhotoUrl'] ?? '',
+              openDate: data['openDate'],
+              editBeforeDate: data['editBeforeDate'],
+            );
           },
           separatorBuilder: (context, index) => const Divider(
             color: Colors.transparent,
@@ -119,16 +122,50 @@ class CapsuleWidget extends StatelessWidget {
         future: author,
         builder: (context, snapshot) {
           return GestureDetector(
-            onTap: () => Navigator.push(
-              context,
-              MaterialPageRoute(
-                  builder: (context) => EditCapsule(
-                      id: capsuleId,
-                      od: DateTime.parse(openDate.toDate().toString())
-                          .toLocal(),
-                      ebd: DateTime.parse(editBeforeDate.toDate().toString())
-                          .toLocal())),
-            ),
+            onTap: () {
+              // Navigator.push(
+              //     context,
+              //     MaterialPageRoute(
+              //         builder: (context) => EditCapsule(
+              //             id: capsuleId,
+              //             od: DateTime.parse(openDate.toDate().toString())
+              //                 .toLocal(),
+              //             ebd:
+              //                 DateTime.parse(editBeforeDate.toDate().toString())
+              //                     .toLocal())));
+
+              FirebaseFirestore.instance
+                  .collection('capsules')
+                  .where('capsuleId', isEqualTo: capsuleId)
+                  .get()
+                  .then((value) {
+                if (value.docs.isEmpty) {
+                  return;
+                }
+
+                final String id = value.docs![0].id;
+                final data = value.docs![0].data();
+
+                bool hasPhotoUrls = false;
+
+                for (int i = 0; i < 10; ++i) {
+                  final key = 'capsule_photourl$i';
+                  if (data.containsKey(key) && data[key] != null) {
+                    hasPhotoUrls = true;
+                    break;
+                  }
+                }
+
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => hasPhotoUrls
+                        ? OpenedCapsule(capsuleId: id)
+                        : OpenedCapsuleText(capsuleId: id),
+                  ),
+                );
+              });
+            },
             child: Container(
               padding: const EdgeInsets.all(4),
               height: 150,
@@ -146,7 +183,11 @@ class CapsuleWidget extends StatelessWidget {
                       child: imageUrl == ''
                           ? Image.asset('image/defaultcapsult.png',
                               fit: BoxFit.cover, height: double.infinity)
-                          : Image.network(imageUrl, fit: BoxFit.cover, height: double.infinity,),
+                          : Image.network(
+                              imageUrl,
+                              fit: BoxFit.cover,
+                              height: double.infinity,
+                            ),
                     ),
                   ),
 
