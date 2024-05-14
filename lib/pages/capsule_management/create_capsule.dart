@@ -3,6 +3,7 @@ import 'dart:async';
 import 'dart:math';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -575,17 +576,25 @@ class _CreateCapsuleState extends State<CreateCapsule> {
                 ),
                 const SizedBox(height: 20),
                 //Upload Capsule Cover Photo
-                Row(
+
+                const Row(
                   children: [
-                    const Text(
+                    Text(
                       'Upload Capsule Cover Photo',
+                      textAlign: TextAlign.left,
                       style: TextStyle(
                         color: AppColors.textColor,
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    const SizedBox(width: 5),
+                    Spacer()
+                  ],
+                ),
+                const SizedBox(height: 5),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
                     Container(
                       decoration: BoxDecoration(
                         color: AppColors.primaryColor,
@@ -614,7 +623,7 @@ class _CreateCapsuleState extends State<CreateCapsule> {
                           ],
                         ),
                       ),
-                    )
+                    ),
                   ],
                 ),
                 //Capsule Cover Photo Preview
@@ -674,11 +683,13 @@ class _CreateCapsuleState extends State<CreateCapsule> {
                       // Add your other widgets here
                     ],
                   ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 15),
                 //Upload Capsule Photos
-                Row(
+
+                const Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
                   children: [
-                    const Text(
+                    Text(
                       'Upload up to 10 photos',
                       style: TextStyle(
                         color: AppColors.textColor,
@@ -686,7 +697,12 @@ class _CreateCapsuleState extends State<CreateCapsule> {
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    const SizedBox(width: 5),
+                  ],
+                ),
+                const SizedBox(height: 5),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
                     Container(
                       decoration: BoxDecoration(
                         color: AppColors.primaryColor,
@@ -700,7 +716,7 @@ class _CreateCapsuleState extends State<CreateCapsule> {
                               angle: 45 * pi / 180, // 45 degrees in radians
                               child: const IconButton(
                                 icon: Icon(Icons.attach_file,
-                                    color: Colors.white),
+                                    color: AppColors.white),
                                 onPressed:
                                     null, // Remove the onPressed callback
                               ),
@@ -708,7 +724,7 @@ class _CreateCapsuleState extends State<CreateCapsule> {
                             const Text(
                               "Attach Photo",
                               style: TextStyle(
-                                color: Colors.white,
+                                color: AppColors.white,
                               ),
                             ),
                             const SizedBox(width: 12),
@@ -718,6 +734,7 @@ class _CreateCapsuleState extends State<CreateCapsule> {
                     ),
                   ],
                 ),
+
                 //Capsule Photos Preview
                 Wrap(
                   direction: Axis.horizontal,
