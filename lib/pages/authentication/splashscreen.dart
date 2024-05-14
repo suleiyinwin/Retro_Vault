@@ -20,9 +20,7 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    Firebase.initializeApp(
-      options: DefaultFirebaseOptions.currentPlatform,
-    ).then((value) => Timer(const Duration(seconds: 1), () => navigateToLogin(context)));
+    Timer(const Duration(seconds: 1), () => navigateToLogin(context));
   }
 
   @override
@@ -106,7 +104,7 @@ class _SplashScreenState extends State<SplashScreen> {
   void navigateToLogin(BuildContext context) {
     Navigator.pushReplacement(
       context,
-      MaterialPageRoute(builder: (context) => FirebaseAuth.instance.currentUser == null ? const LoginPage() : const HomeScreen()),
+      MaterialPageRoute(builder: (context) => const LoginPage()),
     );
   }
 }
