@@ -5,9 +5,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/painting.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
+import 'package:retro/pages/capsule_management/capsule_image_widget.dart';
 import 'package:retro/pages/capsule_management/fab.dart';
+import 'package:retro/pages/capsule_management/lock_icon_widget.dart';
 import 'package:retro/pages/capsule_management/opened_capsule.dart';
 import 'package:retro/pages/capsule_management/opened_capsule_text.dart';
+import 'package:retro/pages/capsule_management/utilities.dart';
 import '../../components/colors.dart';
 import 'edit_capsule.dart';
 
@@ -177,18 +180,10 @@ class CapsuleWidget extends StatelessWidget {
                 Row(children: [
                   Expanded(
                     child: ClipRRect(
-                      borderRadius: const BorderRadius.only(
-                          topLeft: Radius.circular(150),
-                          bottomLeft: Radius.circular(150)),
-                      child: imageUrl == ''
-                          ? Image.asset('image/defaultcapsult.png',
-                              fit: BoxFit.cover, height: double.infinity)
-                          : Image.network(
-                              imageUrl,
-                              fit: BoxFit.cover,
-                              height: double.infinity,
-                            ),
-                    ),
+                        borderRadius: const BorderRadius.only(
+                            topLeft: Radius.circular(150),
+                            bottomLeft: Radius.circular(150)),
+                        child: CapsuleImageWidget(imageUrl: imageUrl)),
                   ),
 
                   //Title
@@ -223,7 +218,7 @@ class CapsuleWidget extends StatelessWidget {
                         ),
 
                         //Open Date
-                        Timestamp.now().seconds - openDate.seconds <= 0
+                        isLocked(openDate)
                             ? Padding(
                                 padding:
                                     const EdgeInsets.only(left: 32, right: 8),
@@ -238,13 +233,7 @@ class CapsuleWidget extends StatelessWidget {
                     ),
                   )
                 ]),
-                Center(
-                    child: Image.asset(
-                        Timestamp.now().seconds - openDate.seconds <= 0
-                            ? 'image/locked.png'
-                            : 'image/unlocked.png',
-                        width: 150,
-                        height: 150)),
+                Center(child: LockIconWidget(openDate: openDate)),
               ]),
             ),
           );
