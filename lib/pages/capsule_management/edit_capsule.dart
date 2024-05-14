@@ -655,36 +655,42 @@ class _CapsuleState extends State<EditCapsule> {
                               ),
                             ),
                             const SizedBox(width: 5),
-                            Container(
-                              decoration: BoxDecoration(
-                                color: AppColors.primaryColor,
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                              child: InkWell(
-                                onTap: _selectFile,
-                                child: Row(
-                                  children: [
-                                    Transform.rotate(
-                                      angle: 45 * pi / 180,
-                                      // 45 degrees in radians
-                                      child: const IconButton(
-                                        icon: Icon(Icons.attach_file,
-                                            color: Colors.white),
-                                        onPressed:
-                                            null, // Remove the onPressed callback
+                            Consumer<CapsuleImages>(
+                                builder: (context, capsuleImages, child) =>
+                                    Container(
+                                      decoration: BoxDecoration(
+                                        color: AppColors.primaryColor,
+                                        borderRadius: BorderRadius.circular(20),
                                       ),
-                                    ),
-                                    const Text(
-                                      "Attach Photo",
-                                      style: TextStyle(
-                                        color: Colors.white,
+                                      child: InkWell(
+                                        onTap: () {
+                                          if (capsuleImages.freeCount() >= 1) {
+                                            _selectFile();
+                                          }
+                                        },
+                                        child: Row(
+                                          children: [
+                                            Transform.rotate(
+                                              angle: 45 * pi / 180,
+                                              // 45 degrees in radians
+                                              child: const IconButton(
+                                                icon: Icon(Icons.attach_file,
+                                                    color: Colors.white),
+                                                onPressed:
+                                                    null, // Remove the onPressed callback
+                                              ),
+                                            ),
+                                            const Text(
+                                              "Attach Photo",
+                                              style: TextStyle(
+                                                color: Colors.white,
+                                              ),
+                                            ),
+                                            const SizedBox(width: 12),
+                                          ],
+                                        ),
                                       ),
-                                    ),
-                                    const SizedBox(width: 12),
-                                  ],
-                                ),
-                              ),
-                            ),
+                                    )),
                           ],
                         ),
                         Consumer<CapsuleImages>(
