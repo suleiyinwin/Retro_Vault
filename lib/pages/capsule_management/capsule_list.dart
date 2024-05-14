@@ -5,11 +5,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/painting.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
-import 'package:retro/pages/capsule_management/create_capsule.dart';
 import 'package:retro/pages/capsule_management/fab.dart';
 import '../../components/colors.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'package:retro/firebase_options.dart';
+import 'edit_capsule.dart';
 
 class UserInformation extends StatefulWidget {
   const UserInformation({super.key});
@@ -46,10 +44,12 @@ class _UserInformationState extends State<UserInformation> {
                 snapshot.data!.docs[index].data()! as Map<String, dynamic>;
 
             return CapsuleWidget(
+                capsuleId: data['capsuleId'],
                 title: data['title'],
                 author: getUserName(FirebaseAuth.instance.currentUser!.uid),
                 imageUrl: data['coverPhotoUrl'] ?? '',
-                openDate: data['openDate']);
+                openDate: data['openDate'],
+                editBeforeDate: data['editBeforeDate']);
           },
           separatorBuilder: (context, index) => const Divider(
             color: Colors.transparent,
@@ -96,17 +96,21 @@ String parseDate(Timestamp timestamp) {
 }
 
 class CapsuleWidget extends StatelessWidget {
+  final String capsuleId;
   final String title;
   final Future<String> author;
   final String imageUrl;
   final Timestamp openDate;
+  final Timestamp editBeforeDate;
 
   const CapsuleWidget({
     super.key,
+    required this.capsuleId,
     required this.title,
     required this.author,
     required this.imageUrl,
     required this.openDate,
+    required this.editBeforeDate,
   });
 
   @override
@@ -117,7 +121,13 @@ class CapsuleWidget extends StatelessWidget {
           return GestureDetector(
             onTap: () => Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => const CreateCapsule()),
+              MaterialPageRoute(
+                  builder: (context) => EditCapsule(
+                      id: capsuleId,
+                      od: DateTime.parse(openDate.toDate().toString())
+                          .toLocal(),
+                      ebd: DateTime.parse(editBeforeDate.toDate().toString())
+                          .toLocal())),
             ),
             child: Container(
               padding: const EdgeInsets.all(4),
@@ -135,8 +145,8 @@ class CapsuleWidget extends StatelessWidget {
                           bottomLeft: Radius.circular(150)),
                       child: imageUrl == ''
                           ? Image.asset('image/defaultcapsult.png',
-                              fit: BoxFit.cover)
-                          : Image.network(imageUrl, fit: BoxFit.cover),
+                              fit: BoxFit.cover, height: double.infinity)
+                          : Image.network(imageUrl, fit: BoxFit.cover, height: double.infinity,),
                     ),
                   ),
 
@@ -150,6 +160,7 @@ class CapsuleWidget extends StatelessWidget {
                               left: 32, right: 16, top: 48),
                           child: Text(
                             title,
+                            overflow: TextOverflow.ellipsis,
                             style: const TextStyle(
                               fontSize: 17,
                               color: AppColors.primaryColor,
@@ -163,6 +174,7 @@ class CapsuleWidget extends StatelessWidget {
                           padding: const EdgeInsets.only(left: 32, right: 16),
                           child: Text(
                               'Shared by ${snapshot.connectionState == ConnectionState.waiting ? '…' : snapshot.data}',
+                              overflow: TextOverflow.ellipsis,
                               style: const TextStyle(
                                 fontSize: 12,
                                 color: AppColors.primaryColor,
