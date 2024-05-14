@@ -1,12 +1,5 @@
 // ignore: avoid_web_libraries_in_flutter
 import 'dart:async';
-// import 'dart:html';
-// import 'dart:html' as html;
-// import 'dart:html';
-// import 'dart:io';
-// import 'dart:typed_data';
-import 'package:flutter/foundation.dart' show kIsWeb;
-// Use uni_html resources instead of dart:html
 import 'dart:math';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
@@ -34,10 +27,12 @@ class _CreateCapsuleState extends State<CreateCapsule> {
   String errorMessage = '';
   final _titleController = TextEditingController();
   final _messageController = TextEditingController();
+  final _sharedWithController = TextEditingController();
   Uint8List? _imageBytes;
   DateTime _editBeforeDate = DateTime.now();
   DateTime _openDate = DateTime.now();
   List<Uint8List?> _imageBytesList = List<Uint8List?>.filled(10, null);
+  List<QueryDocumentSnapshot> _selectedUsers = [];
   late FirebaseFirestore firestore;
   late firebase_storage.FirebaseStorage storage;
   @override
@@ -48,47 +43,15 @@ class _CreateCapsuleState extends State<CreateCapsule> {
     );
   }
 
-
-
   String generateUniqueId() {
     const uuid = Uuid();
     return uuid.v4(); // Generate a Version 4 (random) UUID
   }
 
- 
-  // Future<void> _selectFile() async {
-    
-  // }
-
-  final ImagePicker _imagePicker = ImagePicker();
-
   Future<void> _selectFile() async {
-  if (kIsWeb) {
-    // Web platform
-  //  final input = InputElement(type: 'file');
-  //   input.onChange.listen((_) async {
-  //     final file = input.files!.first;
-  //     final reader = FileReader();
-  //     reader.onError.listen((_) {
-  //       print('Error reading file');
-  //     });
-  //     reader.onLoad.listen((_) {
-  //       setState(() {
-  //         for (int i = 0; i < 10; i++) {
-  //           if (_imageBytesList[i] == null) {
-  //             _imageBytesList[i] = reader.result as Uint8List;
-  //             break;
-  //           }
-  //         }
-  //       });
-  //     });
-  //     reader.readAsArrayBuffer(file);
-  //   });
-  //   input.click();
-  } else {
     // Mobile platform
-    final ImagePicker _imagePicker = ImagePicker();
-    final pickedFile = await _imagePicker.pickImage(source: ImageSource.gallery);
+    final ImagePicker imagePicker = ImagePicker();
+    final pickedFile = await imagePicker.pickImage(source: ImageSource.gallery);
     if (pickedFile != null) {
       final bytes = await pickedFile.readAsBytes();
       setState(() {
@@ -101,30 +64,11 @@ class _CreateCapsuleState extends State<CreateCapsule> {
       });
     }
   }
-}
-Future<void> _selectCoverPhoto() async {
-  if (kIsWeb) {
-    // Web platform
-    // final input = InputElement(type: 'file');
-    // input.onChange.listen((_) async {
-    //   final file = input.files!.first;
-    //   final reader =FileReader();
-    //   reader.onError.listen((_) {
-    //     print('Error reading file');
-    //   });
-    //   reader.onLoad.listen((_) {
-    //     setState(() {
-    //       final bytes = reader.result as Uint8List;
-    //       _imageBytes = bytes;
-    //     });
-    //   });
-    //   reader.readAsArrayBuffer(file);
-    // });
-    // input.click();
-  } else {
+
+  Future<void> _selectCoverPhoto() async {
     // Mobile platform
-    final ImagePicker _imagePicker = ImagePicker();
-    final pickedFile = await _imagePicker.pickImage(source: ImageSource.gallery);
+    final ImagePicker imagePicker = ImagePicker();
+    final pickedFile = await imagePicker.pickImage(source: ImageSource.gallery);
     if (pickedFile != null) {
       final bytes = await pickedFile.readAsBytes();
       setState(() {
@@ -132,7 +76,205 @@ Future<void> _selectCoverPhoto() async {
       });
     }
   }
-}
+
+  Future<void> _getSharedUser() async {
+    final input = _sharedWithController.text.trim();
+    if (input.isNotEmpty) {
+      final currentUserEmail = FirebaseAuth.instance.currentUser?.email;
+
+      if (input == currentUserEmail) {
+        // Show a message if the input email is the same as the logged-in user's email
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('You cannot share with yourself'),
+            backgroundColor: Colors.orange,
+          ),
+        );
+        return; // Exit the function early
+      }
+
+      // Search for the user in Firebase Firestore
+      final QuerySnapshot sharedUserRef = await FirebaseFirestore.instance
+          .collection('user')
+          .where('email', isEqualTo: input)
+          .get();
+      if (sharedUserRef.docs.isNotEmpty) {
+        final userDoc = sharedUserRef.docs.first;
+
+        // Check if the user is already in the list
+        if (!_selectedUsers.any((user) => user.id == userDoc.id)) {
+          // Add the userDoc snapshot to the selected users list
+          setState(() {
+            _selectedUsers.add(userDoc);
+            _sharedWithController.clear();
+          });
+        } else {
+          // Show a message if the user is already in the list
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('User is already added'),
+              backgroundColor: Colors.orange,
+            ),
+          );
+        }
+      } else {
+        // Show an error message if the user is not found
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('User not found'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  Widget _buildSelectedUsers() {
+    return Wrap(
+      direction: Axis.horizontal,
+      alignment: WrapAlignment.start,
+      children: _selectedUsers.map((user) {
+        // Fetch the user data safely
+        final Map<String, dynamic>? userData =
+            user.data() as Map<String, dynamic>?;
+        final String? profilePhotoUrl =
+            (userData != null && userData.containsKey('profile_photo_url'))
+                ? user.get('profile_photo_url')
+                : null;
+
+        return Container(
+          margin: const EdgeInsets.fromLTRB(0, 0, 15, 15),
+          padding: const EdgeInsets.fromLTRB(0, 0, 10, 0),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(50),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(2), // Border width
+                decoration: const BoxDecoration(
+                  color: AppColors.textColor, // Border color
+                  shape: BoxShape.circle,
+                ),
+                child: CircleAvatar(
+                  radius: 20,
+                  backgroundImage: profilePhotoUrl != null
+                      ? NetworkImage(profilePhotoUrl) as ImageProvider
+                      : const AssetImage('image/logo.png') as ImageProvider,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Text(
+                user.get('username'),
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(width: 15),
+              Container(
+                width: 24,
+                height: 24,
+                decoration: const BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: AppColors.systemGreay06Light,
+                ),
+                child: IconButton(
+                  padding: EdgeInsets.zero,
+                  icon: const Icon(Icons.close, size: 16, color: Colors.black),
+                  onPressed: () {
+                    setState(() {
+                      _selectedUsers.remove(user);
+                    });
+                  },
+                ),
+              ),
+            ],
+          ),
+        );
+      }).toList(),
+    );
+  }
+
+  Future<void> _capsuleCreateButton() async {
+    final userId = FirebaseAuth.instance.currentUser?.uid;
+    final QuerySnapshot userRef = await FirebaseFirestore.instance
+        .collection('user')
+        .where('userId', isEqualTo: userId)
+        .get();
+    final userReference = FirebaseFirestore.instance
+        .collection('user')
+        .doc(userRef.docs.first.id);
+    final capsuleId = generateUniqueId();
+    if (_formKey.currentState!.validate()) {
+      _formKey.currentState!.save();
+      try {
+        final docRef =
+            await FirebaseFirestore.instance.collection('capsules').add({
+          'userRef': userReference,
+          'userId': userId,
+          'capsuleId': capsuleId,
+          'title': _titleController.text,
+          'message': _messageController.text,
+          'editBeforeDate': _editBeforeDate,
+          'openDate': _openDate,
+        });
+        if (_imageBytes != null) {
+          final coverPhotoRef =
+              FirebaseStorage.instance.ref().child('capsule_covers/$capsuleId');
+          await coverPhotoRef.putData(_imageBytes!);
+          final coverPhotoUrl = await coverPhotoRef.getDownloadURL();
+          await docRef.update({'coverPhotoUrl': coverPhotoUrl});
+        }
+
+        for (int i = 0; i < _imageBytesList.length; i++) {
+          final photoBytes = _imageBytesList[i];
+          if (photoBytes != null) {
+            final photoRef = FirebaseStorage.instance
+                .ref()
+                .child('capsule_photos/$capsuleId/photo_$i');
+            await photoRef.putData(photoBytes);
+            final photoUrl = await photoRef.getDownloadURL();
+            await docRef.update({'capsule_photourl$i': photoUrl});
+          }
+        }
+        if (_selectedUsers.isNotEmpty) {
+          for (int i = 0; i < _selectedUsers.length; i++) {
+            final user = _selectedUsers[i];
+            final userRef =
+                FirebaseFirestore.instance.collection('user').doc(user.id);
+            await docRef.update({'sharedWith$i': userRef});
+          }
+        }
+        setState(() {
+          _titleController.clear();
+          _messageController.clear();
+          _editBeforeDate = DateTime.now();
+          _openDate = DateTime.now();
+        });
+        setState(() {
+          _imageBytes = null;
+          _imageBytesList = List<Uint8List?>.filled(10, null);
+        });
+        setState(() {});
+        // Clear the image bytes list
+      } on FirebaseException catch (e) {
+        setState(() {
+          // print(e.message);
+          errorMessage = e.message!;
+        });
+      }
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (context) => const HomeScreen()),
+        (Route<dynamic> route) => false,
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -145,12 +287,11 @@ Future<void> _selectCoverPhoto() async {
             color: AppColors.backArrow,
           ),
           onPressed: () {
-             Navigator.pushAndRemoveUntil(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => const HomeScreen()),
-                            (Route<dynamic> route) => false,
-                          );
+            Navigator.pushAndRemoveUntil(
+              context,
+              MaterialPageRoute(builder: (context) => const HomeScreen()),
+              (Route<dynamic> route) => false,
+            );
           },
         ),
       ),
@@ -161,6 +302,7 @@ Future<void> _selectCoverPhoto() async {
             key: _formKey,
             child: Column(
               children: [
+                //Capsule Title, Edit Before, Open Date
                 Container(
                   decoration: BoxDecoration(
                     color: Colors.white,
@@ -379,6 +521,7 @@ Future<void> _selectCoverPhoto() async {
                   ),
                 ),
                 const SizedBox(height: 20),
+                //Error Message for edit before
                 const Row(
                   mainAxisAlignment: MainAxisAlignment.start,
                   children: [
@@ -390,6 +533,7 @@ Future<void> _selectCoverPhoto() async {
                   ],
                 ),
                 const SizedBox(height: 20),
+                //Capsule Message Title
                 const Row(
                   mainAxisAlignment: MainAxisAlignment.start,
                   children: [
@@ -406,6 +550,7 @@ Future<void> _selectCoverPhoto() async {
                     ),
                   ],
                 ),
+                //Capsule Message
                 Container(
                   decoration: BoxDecoration(
                     color: Colors.white,
@@ -429,6 +574,7 @@ Future<void> _selectCoverPhoto() async {
                   ),
                 ),
                 const SizedBox(height: 20),
+                //Upload Capsule Cover Photo
                 Row(
                   children: [
                     const Text(
@@ -440,7 +586,6 @@ Future<void> _selectCoverPhoto() async {
                       ),
                     ),
                     const SizedBox(width: 5),
-        
                     Container(
                       decoration: BoxDecoration(
                         color: AppColors.primaryColor,
@@ -472,6 +617,7 @@ Future<void> _selectCoverPhoto() async {
                     )
                   ],
                 ),
+                //Capsule Cover Photo Preview
                 if (_imageBytes != null)
                   Row(
                     children: [
@@ -528,19 +674,8 @@ Future<void> _selectCoverPhoto() async {
                       // Add your other widgets here
                     ],
                   ),
-                // Row(
-                //   children: [
-                //     const Text('Upload up to 10 Photos'),
-                //     const SizedBox(width: 10),
-                //     IconButton(
-                //       icon: const Icon(Icons.camera),
-                //       onPressed: () {
-                //         // Implement photo upload logic
-                //       },
-                //     ),
-                //   ],
-                // ),
                 const SizedBox(height: 20),
+                //Upload Capsule Photos
                 Row(
                   children: [
                     const Text(
@@ -583,6 +718,7 @@ Future<void> _selectCoverPhoto() async {
                     ),
                   ],
                 ),
+                //Capsule Photos Preview
                 Wrap(
                   direction: Axis.horizontal,
                   children: _imageBytesList
@@ -638,15 +774,49 @@ Future<void> _selectCoverPhoto() async {
                       )
                       .toList(),
                 ),
-                // const SizedBox(height: 20),
-                // const Row(
-                //   children: [
-                //     Text('Share Your Capsule with'),
-                //     SizedBox(width: 10),
-                //     Text('Sara'),
-                //   ],
-                // ),
                 const SizedBox(height: 20),
+                //Share Section
+                Row(
+                  children: [
+                    const Text(
+                      'Share with',
+                      style: TextStyle(
+                        color: AppColors.textColor,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(width: 20),
+                    Expanded(
+                      child: SizedBox(
+                        height: 50,
+                        child: TextFormField(
+                          controller: _sharedWithController,
+                          decoration: InputDecoration(
+                              border: OutlineInputBorder(
+                                borderRadius:
+                                    BorderRadius.circular(40), // Border radius
+                                borderSide: BorderSide
+                                    .none, // Remove the default border
+                              ),
+                              filled: true,
+                              fillColor: AppColors.white),
+                          style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.textColor),
+                          onEditingComplete: () => _getSharedUser(),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+                Container(
+                    alignment: AlignmentDirectional.centerStart,
+                    child: _buildSelectedUsers()),
+                const SizedBox(height: 20),
+
+                //Create Capsule implement with firebase
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   mainAxisSize: MainAxisSize.max,
@@ -687,90 +857,11 @@ Future<void> _selectCoverPhoto() async {
                           ),
                           backgroundColor: AppColors.primaryColor,
                         ),
+                        onPressed: _capsuleCreateButton,
                         child: const Text(
                           'Save',
                           style: TextStyle(color: AppColors.white),
                         ),
-                        onPressed: () async {
-                          // _saveData();
-                          // final user = FirebaseAuth.instance.currentUser;
-                          final userId = FirebaseAuth.instance.currentUser?.uid;
-                          // final userRef = FirebaseFirestore.instance.collection('user').doc(userId);
-                          final QuerySnapshot userRef = await FirebaseFirestore
-                              .instance
-                              .collection('user')
-                              .where('userId', isEqualTo: userId)
-                              .get();
-                          final userReference = FirebaseFirestore.instance
-                              .collection('user')
-                              .doc(userRef.docs.first.id);
-                          final capsuleId = generateUniqueId();
-                          if (_formKey.currentState!.validate()) {
-                            _formKey.currentState!.save();
-                            try {
-                              final docRef = await FirebaseFirestore.instance
-                                  .collection('capsules')
-                                  .add({
-                                'userRef': userReference,
-                                'userId': userId,
-                                'capsuleId': capsuleId,
-                                'title': _titleController.text,
-                                'message': _messageController.text,
-                                'editBeforeDate': _editBeforeDate,
-                                'openDate': _openDate,
-                              });
-                              if (_imageBytes != null) {
-                                final coverPhotoRef = FirebaseStorage.instance
-                                    .ref()
-                                    .child('capsule_covers/$capsuleId');
-                                await coverPhotoRef.putData(_imageBytes!);
-                                final coverPhotoUrl =
-                                    await coverPhotoRef.getDownloadURL();
-                                await docRef
-                                    .update({'coverPhotoUrl': coverPhotoUrl});
-                              }
-
-                              for (int i = 0; i < _imageBytesList.length; i++) {
-                                final photoBytes = _imageBytesList[i];
-                                if (photoBytes != null) {
-                                  final photoRef = FirebaseStorage.instance
-                                      .ref()
-                                      .child(
-                                          'capsule_photos/$capsuleId/photo_$i');
-                                  await photoRef.putData(photoBytes);
-                                  final photoUrl =
-                                      await photoRef.getDownloadURL();
-                                  await docRef
-                                      .update({'capsule_photourl$i': photoUrl});
-                                }
-                              }
-                              setState(() {
-                                _titleController.clear();
-                                _messageController.clear();
-                                _editBeforeDate = DateTime.now();
-                                _openDate = DateTime.now();
-                              });
-                              setState(() {
-                                _imageBytes = null;
-                                _imageBytesList =
-                                    List<Uint8List?>.filled(10, null);
-                              });
-                              setState(() {});
-                              // Clear the image bytes list
-                            } on FirebaseException catch (e) {
-                              setState(() {
-                                print(e.message);
-                                errorMessage = e.message!;
-                              });
-                            }
-                            Navigator.pushAndRemoveUntil(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) => const HomeScreen()),
-                              (Route<dynamic> route) => false,
-                            );
-                          }
-                        },
                       ),
                     ),
                   ],
@@ -783,4 +874,3 @@ Future<void> _selectCoverPhoto() async {
     );
   }
 }
-
