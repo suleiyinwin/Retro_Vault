@@ -12,6 +12,7 @@ import 'package:intl/intl.dart';
 import 'package:retro/components/colors.dart';
 import 'package:retro/pages/capsule_management/capsule_list.dart';
 import 'package:uuid/uuid.dart';
+import 'package:http/http.dart' as http;
 
 class EditCapsule extends StatefulWidget {
   final String id;
@@ -46,6 +47,8 @@ class _CapsuleState extends State<EditCapsule> {
   List<Uint8List?> _imageBytesList = List<Uint8List?>.filled(10, null);
   late FirebaseFirestore firestore;
   late FirebaseStorage storage;
+
+  bool coverDismissed = false;
 
   String generateUniqueId() {
     const uuid = Uuid();
@@ -125,6 +128,11 @@ class _CapsuleState extends State<EditCapsule> {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return const Text("Loading");
               }
+
+              var data = snapshot.data!.docs[0].data() as Map<String, dynamic>;
+              String? coverPhotoUrl = data.containsKey('coverPhotoUrl')
+                  ? data['coverPhotoUrl']
+                  : null;
 
               return Form(
                 key: _formKey,
@@ -448,9 +456,73 @@ class _CapsuleState extends State<EditCapsule> {
                         )
                       ],
                     ),
-                    if (_imageBytes != null)
-                      Row(
-                        children: [
+                    // if (_imageBytes != null)
+                    Row(
+                      children: [
+                        Align(
+                            alignment: Alignment.centerLeft,
+                            child: !coverDismissed && coverPhotoUrl != null
+                                ? FutureBuilder<http.Response>(
+                                    future: http.get(Uri.parse(coverPhotoUrl!)),
+                                    builder: (BuildContext context,
+                                        AsyncSnapshot<http.Response> snapshot) {
+                                      return Container(
+                                          width: 140,
+                                          height: 140,
+                                          decoration: BoxDecoration(
+                                              borderRadius:
+                                                  BorderRadius.circular(10)),
+                                          child: Stack(children: [
+                                            Padding(
+                                                padding:
+                                                    const EdgeInsets.all(15),
+                                                child: Padding(
+                                                    padding:
+                                                        const EdgeInsets.all(
+                                                            15),
+                                                    child: Container(
+                                                      width: 100,
+                                                      height: 120,
+                                                      decoration: BoxDecoration(
+                                                          borderRadius:
+                                                              BorderRadius
+                                                                  .circular(7),
+                                                          image:
+                                                              DecorationImage(
+                                                            image: NetworkImage(
+                                                                coverPhotoUrl),
+                                                            fit: BoxFit.cover,
+                                                          )),
+                                                    ))),
+                                            Positioned(
+                                              top: 5,
+                                              right: 15,
+                                              child: Container(
+                                                width: 24,
+                                                height: 24,
+                                                decoration: const BoxDecoration(
+                                                  shape: BoxShape.circle,
+                                                  color: AppColors
+                                                      .systemGreay06Light,
+                                                ),
+                                                child: IconButton(
+                                                  padding: EdgeInsets.zero,
+                                                  icon: const Icon(Icons.close,
+                                                      size: 16,
+                                                      color: Colors.black),
+                                                  onPressed: () {
+                                                    setState(() {
+                                                      coverDismissed = true;
+                                                      _imageBytes = null;
+                                                    });
+                                                  },
+                                                ),
+                                              ),
+                                            ),
+                                          ]));
+                                    })
+                                : Container()),
+                        if (_imageBytes != null)
                           Align(
                             alignment: Alignment.centerLeft,
                             child: Container(
@@ -491,6 +563,7 @@ class _CapsuleState extends State<EditCapsule> {
                                             size: 16, color: Colors.black),
                                         onPressed: () {
                                           setState(() {
+                                            coverDismissed = true;
                                             _imageBytes = null;
                                           });
                                         },
@@ -501,9 +574,9 @@ class _CapsuleState extends State<EditCapsule> {
                               ),
                             ),
                           ),
-                          // Add your other widgets here
-                        ],
-                      ),
+                        // Add your other widgets here
+                      ],
+                    ),
                     // Row(
                     //   children: [
                     //     const Text('Upload up to 10 Photos'),
@@ -642,7 +715,7 @@ class _CapsuleState extends State<EditCapsule> {
                               ),
                             ),
                             child: const Text(
-                              'Cancel',
+                              'Delete',
                               style: TextStyle(color: AppColors.textColor),
                             ),
                             onPressed: () {
@@ -668,7 +741,7 @@ class _CapsuleState extends State<EditCapsule> {
                               backgroundColor: AppColors.primaryColor,
                             ),
                             child: const Text(
-                              'Save',
+                              'Update',
                               style: TextStyle(color: AppColors.white),
                             ),
                             onPressed: () async {
