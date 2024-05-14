@@ -476,24 +476,19 @@ class _CapsuleState extends State<EditCapsule> {
                                             Padding(
                                                 padding:
                                                     const EdgeInsets.all(15),
-                                                child: Padding(
-                                                    padding:
-                                                        const EdgeInsets.all(
-                                                            15),
-                                                    child: Container(
-                                                      width: 100,
-                                                      height: 120,
-                                                      decoration: BoxDecoration(
-                                                          borderRadius:
-                                                              BorderRadius
-                                                                  .circular(7),
-                                                          image:
-                                                              DecorationImage(
-                                                            image: NetworkImage(
-                                                                coverPhotoUrl),
-                                                            fit: BoxFit.cover,
-                                                          )),
-                                                    ))),
+                                                child: Container(
+                                                  width: 100,
+                                                  height: 120,
+                                                  decoration: BoxDecoration(
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              7),
+                                                      image: DecorationImage(
+                                                        image: NetworkImage(
+                                                            coverPhotoUrl),
+                                                        fit: BoxFit.cover,
+                                                      )),
+                                                )),
                                             Positioned(
                                               top: 5,
                                               right: 15,
@@ -577,18 +572,6 @@ class _CapsuleState extends State<EditCapsule> {
                         // Add your other widgets here
                       ],
                     ),
-                    // Row(
-                    //   children: [
-                    //     const Text('Upload up to 10 Photos'),
-                    //     const SizedBox(width: 10),
-                    //     IconButton(
-                    //       icon: const Icon(Icons.camera),
-                    //       onPressed: () {
-                    //         // Implement photo upload logic
-                    //       },
-                    //     ),
-                    //   ],
-                    // ),
                     const SizedBox(height: 20),
                     Row(
                       children: [
