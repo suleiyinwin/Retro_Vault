@@ -1,10 +1,8 @@
 import 'dart:math';
-import 'dart:typed_data';
 
+import 'package:logging/logging.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -12,6 +10,7 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:retro/components/colors.dart';
 import 'package:retro/pages/capsule_management/capsule_list.dart';
+import 'package:retro/pages/capsule_management/utilities.dart';
 import 'package:uuid/uuid.dart';
 import 'package:http/http.dart' as http;
 
@@ -31,6 +30,7 @@ class EditCapsule extends StatefulWidget {
 
 class _CapsuleState extends State<EditCapsule> {
   late Stream<QuerySnapshot> _capsuleStream;
+  late final Logger log;
 
   @override
   void initState() {
@@ -38,6 +38,7 @@ class _CapsuleState extends State<EditCapsule> {
         .collection('capsules')
         .where('capsuleId', isEqualTo: widget.id)
         .snapshots();
+    log = Logger('CreateCapsule');
   }
 
   final _formKey = GlobalKey<FormState>();
@@ -47,7 +48,7 @@ class _CapsuleState extends State<EditCapsule> {
   Uint8List? _imageBytes;
   late DateTime _editBeforeDate = widget.ebd;
   late DateTime _openDate = widget.od;
-  List<Uint8List?> _imageBytesList = List<Uint8List?>.filled(10, null);
+
   late FirebaseFirestore firestore;
   late FirebaseStorage storage;
 
@@ -58,40 +59,18 @@ class _CapsuleState extends State<EditCapsule> {
     return uuid.v4(); // Generate a Version 4 (random) UUID
   }
 
-  final ImagePicker _imagePicker = ImagePicker();
-
-  Future<void> _selectFile() async {
-    if (kIsWeb) {
-    } else {
-      // Mobile platform
-      final ImagePicker _imagePicker = ImagePicker();
-      final pickedFile =
-          await _imagePicker.pickImage(source: ImageSource.gallery);
-      if (pickedFile != null) {
-        final bytes = await pickedFile.readAsBytes();
-        setState(() {
-          for (int i = 0; i < 10; i++) {
-            if (_imageBytesList[i] == null) {
-              _imageBytesList[i] = bytes.buffer.asUint8List();
-              break;
-            }
-          }
-        });
-      }
-    }
-  }
-
   Future<void> _selectCoverPhoto() async {
     if (kIsWeb) {
     } else {
       // Mobile platform
-      final ImagePicker _imagePicker = ImagePicker();
+      final ImagePicker imagePicker = ImagePicker();
       final pickedFile =
-          await _imagePicker.pickImage(source: ImageSource.gallery);
+          await imagePicker.pickImage(source: ImageSource.gallery);
       if (pickedFile != null) {
         final bytes = await pickedFile.readAsBytes();
         setState(() {
           _imageBytes = bytes.buffer.asUint8List();
+          coverDismissed = true;
         });
       }
     }
@@ -137,50 +116,18 @@ class _CapsuleState extends State<EditCapsule> {
                   ? data['coverPhotoUrl']
                   : null;
 
-              String photo0 = data.containsKey('capsule_photourl0')
-                  ? data['capsule_photourl0']
-                  : '';
-              String photo1 = data.containsKey('capsule_photourl1')
-                  ? data['capsule_photourl1']
-                  : '';
-              String photo2 = data.containsKey('capsule_photourl2')
-                  ? data['capsule_photourl2']
-                  : '';
-              String photo3 = data.containsKey('capsule_photourl3')
-                  ? data['capsule_photourl3']
-                  : '';
-              String photo4 = data.containsKey('capsule_photourl4')
-                  ? data['capsule_photourl4']
-                  : '';
-              String photo5 = data.containsKey('capsule_photourl5')
-                  ? data['capsule_photourl5']
-                  : '';
-              String photo6 = data.containsKey('capsule_photourl6')
-                  ? data['capsule_photourl6']
-                  : '';
-              String photo7 = data.containsKey('capsule_photourl7')
-                  ? data['capsule_photourl7']
-                  : '';
-              String photo8 = data.containsKey('capsule_photourl8')
-                  ? data['capsule_photourl8']
-                  : '';
-              String photo9 = data.containsKey('capsule_photourl9')
-                  ? data['capsule_photourl9']
-                  : '';
+              final images =
+                  List.generate(10, (index) => 'capsule_photourl$index')
+                      .map<String>((key) => data[key] ?? '');
 
-              return ChangeNotifierProvider(
-                  create: (BuildContext context) => CapsuleImages(images: [
-                        photo0,
-                        photo1,
-                        photo2,
-                        photo3,
-                        photo4,
-                        photo5,
-                        photo6,
-                        photo7,
-                        photo8,
-                        photo9
-                      ]),
+              return MultiProvider(
+                  providers: [
+                    ChangeNotifierProvider(
+                        create: (BuildContext context) =>
+                            CapsuleImages(images: [...images])),
+                    ChangeNotifierProvider(
+                        create: (BuildContext context) => StagedImages())
+                  ],
                   child: Form(
                     key: _formKey,
                     child: Column(
@@ -527,7 +474,7 @@ class _CapsuleState extends State<EditCapsule> {
                                 child: !coverDismissed && coverPhotoUrl != null
                                     ? FutureBuilder<http.Response>(
                                         future:
-                                            http.get(Uri.parse(coverPhotoUrl!)),
+                                            http.get(Uri.parse(coverPhotoUrl)),
                                         builder: (BuildContext context,
                                             AsyncSnapshot<http.Response>
                                                 snapshot) {
@@ -655,8 +602,9 @@ class _CapsuleState extends State<EditCapsule> {
                               ),
                             ),
                             const SizedBox(width: 5),
-                            Consumer<CapsuleImages>(
-                                builder: (context, capsuleImages, child) =>
+                            Consumer2<CapsuleImages, StagedImages>(
+                                builder: (context, capsuleImages, stagedImages,
+                                        child) =>
                                     Container(
                                       decoration: BoxDecoration(
                                         color: AppColors.primaryColor,
@@ -664,8 +612,21 @@ class _CapsuleState extends State<EditCapsule> {
                                       ),
                                       child: InkWell(
                                         onTap: () {
-                                          if (capsuleImages.freeCount() >= 1) {
-                                            _selectFile();
+                                          if (capsuleImages.freeCount() +
+                                                  stagedImages.freeCount() >
+                                              0) {
+                                            final ImagePicker imagePicker =
+                                                ImagePicker();
+                                            imagePicker
+                                                .pickImage(
+                                                    source: ImageSource.gallery)
+                                                .then((value) async {
+                                              if (value != null) {
+                                                final bytes =
+                                                    await value.readAsBytes();
+                                                stagedImages.fill(bytes);
+                                              }
+                                            });
                                           }
                                         },
                                         child: Row(
@@ -743,66 +704,74 @@ class _CapsuleState extends State<EditCapsule> {
                             ],
                           ),
                         ),
-                        Wrap(
-                          direction: Axis.horizontal,
-                          children: _imageBytesList
-                              .map(
-                                (imageBytes) => imageBytes != null
-                                    ? SizedBox(
-                                        width: 140,
-                                        height: 140,
-                                        child: Stack(
-                                          children: [
-                                            Padding(
-                                              padding:
-                                                  const EdgeInsets.all(15.0),
-                                              child: Container(
-                                                width: 100,
-                                                height: 120,
-                                                decoration: BoxDecoration(
-                                                  borderRadius:
-                                                      BorderRadius.circular(7),
-                                                  image: DecorationImage(
-                                                    image:
-                                                        MemoryImage(imageBytes),
-                                                    fit: BoxFit.cover,
-                                                  ),
+                        Consumer<StagedImages>(
+                            builder: (context, stagedImages, child) => Wrap(
+                                  direction: Axis.horizontal,
+                                  children: stagedImages.images
+                                      .map(
+                                        (imageBytes) => imageBytes != null
+                                            ? SizedBox(
+                                                width: 140,
+                                                height: 140,
+                                                child: Stack(
+                                                  children: [
+                                                    Padding(
+                                                      padding:
+                                                          const EdgeInsets.all(
+                                                              15.0),
+                                                      child: Container(
+                                                        width: 100,
+                                                        height: 120,
+                                                        decoration:
+                                                            BoxDecoration(
+                                                          borderRadius:
+                                                              BorderRadius
+                                                                  .circular(7),
+                                                          image:
+                                                              DecorationImage(
+                                                            image: MemoryImage(
+                                                                imageBytes),
+                                                            fit: BoxFit.cover,
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ),
+                                                    Positioned(
+                                                      top: 5,
+                                                      right: 15,
+                                                      child: Container(
+                                                        width: 24,
+                                                        height: 24,
+                                                        decoration:
+                                                            const BoxDecoration(
+                                                          shape:
+                                                              BoxShape.circle,
+                                                          color: AppColors
+                                                              .systemGreay06Light,
+                                                        ),
+                                                        child: IconButton(
+                                                          padding:
+                                                              EdgeInsets.zero,
+                                                          icon: const Icon(
+                                                              Icons.close,
+                                                              size: 16,
+                                                              color:
+                                                                  Colors.black),
+                                                          onPressed: () {
+                                                            stagedImages
+                                                                .removeByContent(
+                                                                    imageBytes);
+                                                          },
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ],
                                                 ),
-                                              ),
-                                            ),
-                                            Positioned(
-                                              top: 5,
-                                              right: 15,
-                                              child: Container(
-                                                width: 24,
-                                                height: 24,
-                                                decoration: const BoxDecoration(
-                                                  shape: BoxShape.circle,
-                                                  color: AppColors
-                                                      .systemGreay06Light,
-                                                ),
-                                                child: IconButton(
-                                                  padding: EdgeInsets.zero,
-                                                  icon: const Icon(Icons.close,
-                                                      size: 16,
-                                                      color: Colors.black),
-                                                  onPressed: () {
-                                                    setState(() {
-                                                      _imageBytesList[
-                                                          _imageBytesList.indexOf(
-                                                              imageBytes)] = null;
-                                                    });
-                                                  },
-                                                ),
-                                              ),
-                                            ),
-                                          ],
-                                        ),
+                                              )
+                                            : Container(), // or some other widget to display when imageBytes is null
                                       )
-                                    : Container(), // or some other widget to display when imageBytes is null
-                              )
-                              .toList(),
-                        ),
+                                      .toList(),
+                                )),
                         const SizedBox(height: 20),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -834,113 +803,241 @@ class _CapsuleState extends State<EditCapsule> {
                               ),
                             ),
                             const SizedBox(width: 10),
-                            SizedBox(
-                              width: 120,
-                              height: 50,
-                              child: OutlinedButton(
-                                style: OutlinedButton.styleFrom(
-                                  side: const BorderSide(
-                                    color: AppColors.primaryColor,
-                                    width: 1,
-                                  ),
-                                  backgroundColor: AppColors.primaryColor,
-                                ),
-                                child: const Text(
-                                  'Update',
-                                  style: TextStyle(color: AppColors.white),
-                                ),
-                                onPressed: () async {
-                                  // _saveData();
-                                  // final user = FirebaseAuth.instance.currentUser;
-                                  final userId =
-                                      FirebaseAuth.instance.currentUser?.uid;
-                                  // final userRef = FirebaseFirestore.instance.collection('user').doc(userId);
-                                  final QuerySnapshot userRef =
-                                      await FirebaseFirestore.instance
-                                          .collection('user')
-                                          .where('userId', isEqualTo: userId)
-                                          .get();
-                                  final userReference = FirebaseFirestore
-                                      .instance
-                                      .collection('user')
-                                      .doc(userRef.docs.first.id);
-                                  final capsuleId = generateUniqueId();
-                                  if (_formKey.currentState!.validate()) {
-                                    _formKey.currentState!.save();
-                                    try {
-                                      final docRef = await FirebaseFirestore
-                                          .instance
-                                          .collection('capsules')
-                                          .add({
-                                        'userRef': userReference,
-                                        'userId': userId,
-                                        'capsuleId': capsuleId,
-                                        'title': _titleController.text,
-                                        'message': _messageController.text,
-                                        'editBeforeDate': _editBeforeDate,
-                                        'openDate': _openDate,
-                                      });
-                                      if (_imageBytes != null) {
-                                        final coverPhotoRef = FirebaseStorage
-                                            .instance
-                                            .ref()
-                                            .child('capsule_covers/$capsuleId');
-                                        await coverPhotoRef
-                                            .putData(_imageBytes!);
-                                        final coverPhotoUrl =
-                                            await coverPhotoRef
-                                                .getDownloadURL();
-                                        await docRef.update(
-                                            {'coverPhotoUrl': coverPhotoUrl});
-                                      }
+                            Consumer2<CapsuleImages, StagedImages>(
+                                builder: (context, capsuleImages, stagedImages,
+                                        child) =>
+                                    SizedBox(
+                                      width: 120,
+                                      height: 50,
+                                      child: OutlinedButton(
+                                        style: OutlinedButton.styleFrom(
+                                          side: const BorderSide(
+                                            color: AppColors.primaryColor,
+                                            width: 1,
+                                          ),
+                                          backgroundColor:
+                                              AppColors.primaryColor,
+                                        ),
+                                        child: const Text(
+                                          'Update',
+                                          style:
+                                              TextStyle(color: AppColors.white),
+                                        ),
+                                        onPressed: () async {
+                                          final userId = getCurrentUserId();
+                                          DocumentReference capsuleReference =
+                                              snapshot.data!.docs[0].reference;
+                                          String capsuleId = snapshot
+                                              .data!.docs[0]
+                                              .get('capsuleId');
+                                          if (_formKey.currentState!
+                                              .validate()) {
+                                            _formKey.currentState!.save();
 
-                                      for (int i = 0;
-                                          i < _imageBytesList.length;
-                                          i++) {
-                                        final photoBytes = _imageBytesList[i];
-                                        if (photoBytes != null) {
-                                          final photoRef = FirebaseStorage
-                                              .instance
-                                              .ref()
-                                              .child(
-                                                  'capsule_photos/$capsuleId/photo_$i');
-                                          await photoRef.putData(photoBytes);
-                                          final photoUrl =
-                                              await photoRef.getDownloadURL();
-                                          await docRef.update(
-                                              {'capsule_photourl$i': photoUrl});
-                                        }
-                                      }
-                                      setState(() {
-                                        _titleController.clear();
-                                        _messageController.clear();
-                                        _editBeforeDate = DateTime.now();
-                                        _openDate = DateTime.now();
-                                      });
-                                      setState(() {
-                                        _imageBytes = null;
-                                        _imageBytesList =
-                                            List<Uint8List?>.filled(10, null);
-                                      });
-                                      setState(() {});
-                                      // Clear the image bytes list
-                                    } on FirebaseException catch (e) {
-                                      setState(() {
-                                        print(e.message);
-                                        errorMessage = e.message!;
-                                      });
-                                    }
-                                    Navigator.pushAndRemoveUntil(
-                                      context,
-                                      MaterialPageRoute(
-                                          builder: (context) =>
-                                              const HomeScreen()),
-                                      (Route<dynamic> route) => false,
-                                    );
-                                  }
-                                },
-                              ),
-                            ),
+                                            Map<String, dynamic> updates = {
+                                              "title": _titleController.text,
+                                              'message':
+                                                  _messageController.text,
+                                              'editBeforeDate': _editBeforeDate,
+                                              'openDate': _openDate,
+                                            };
+
+                                            try {
+                                              await capsuleReference
+                                                  .update(updates);
+
+                                              if (_imageBytes != null &&
+                                                  coverDismissed) {
+                                                final coverPhotoRef =
+                                                    FirebaseStorage.instance
+                                                        .ref()
+                                                        .child(
+                                                            'capsule_covers/$capsuleId');
+                                                await coverPhotoRef
+                                                    .putData(_imageBytes!);
+                                                final coverPhotoUrl =
+                                                    await coverPhotoRef
+                                                        .getDownloadURL();
+                                                await capsuleReference.update({
+                                                  'coverPhotoUrl': coverPhotoUrl
+                                                });
+                                              } else if (coverDismissed) {
+                                                await capsuleReference.update({
+                                                  'coverPhotoUrl':
+                                                      FieldValue.delete(),
+                                                });
+                                              }
+
+                                              Iterator<int> freeIndexIterator =
+                                                  capsuleImages
+                                                      .freeIndices()
+                                                      .iterator;
+                                              final imageRef = FirebaseStorage
+                                                  .instance
+                                                  .ref();
+                                              List<Uint8List?> clonedImages =
+                                                  List<Uint8List?>.from(
+                                                      stagedImages.images);
+                                              for (final image
+                                                  in clonedImages) {
+                                                if (freeIndexIterator
+                                                    .moveNext()) {
+                                                  int currentIndex =
+                                                      freeIndexIterator.current;
+                                                  final currentImageRef =
+                                                      imageRef.child(
+                                                          'capsule_photos/$capsuleId/photo_$currentIndex');
+                                                  await currentImageRef
+                                                      .putData(image!);
+                                                  final url =
+                                                      await currentImageRef
+                                                          .getDownloadURL();
+                                                  capsuleImages.replaceAt(
+                                                      currentIndex, url);
+                                                  stagedImages
+                                                      .removeByContent(image);
+                                                } else {
+                                                  break;
+                                                }
+                                              }
+
+                                              Map<String, dynamic> newImages =
+                                                  {};
+
+                                              for (int i = 0; i <= 9; ++i) {
+                                                if (capsuleImages
+                                                    .images[i].isNotEmpty) {
+                                                  newImages[
+                                                          'capsule_photourl$i'] =
+                                                      capsuleImages.images[i];
+                                                } else {
+                                                  newImages[
+                                                          'capsule_photourl$i'] =
+                                                      FieldValue.delete();
+                                                }
+                                              }
+
+                                              await capsuleReference
+                                                  .update(newImages);
+
+                                              setState(() {
+                                                _titleController.clear();
+                                                _messageController.clear();
+                                                _editBeforeDate =
+                                                    DateTime.now();
+                                                _openDate = DateTime.now();
+                                              });
+                                              setState(() {
+                                                _imageBytes = null;
+                                                stagedImages.clear();
+                                              });
+                                              setState(() {});
+
+                                              Navigator.pushAndRemoveUntil(
+                                                context,
+                                                MaterialPageRoute(
+                                                    builder: (context) =>
+                                                        const HomeScreen()),
+                                                (Route<dynamic> route) => false,
+                                              );
+                                            } on FirebaseException catch (e) {
+                                              log.severe(e.message);
+                                              setState(() {
+                                                errorMessage = e.message!;
+                                              });
+                                            }
+                                          }
+
+                                          return;
+
+                                          if (_formKey.currentState!
+                                              .validate()) {
+                                            _formKey.currentState!.save();
+                                            try {
+                                              final docRef =
+                                                  await FirebaseFirestore
+                                                      .instance
+                                                      .collection('capsules')
+                                                      .add({
+                                                // 'userRef': userReference,
+                                                'userId': userId,
+                                                'capsuleId': capsuleId,
+                                                'title': _titleController.text,
+                                                'message':
+                                                    _messageController.text,
+                                                'editBeforeDate':
+                                                    _editBeforeDate,
+                                                'openDate': _openDate,
+                                              });
+                                              if (_imageBytes != null) {
+                                                final coverPhotoRef =
+                                                    FirebaseStorage.instance
+                                                        .ref()
+                                                        .child(
+                                                            'capsule_covers/$capsuleId');
+                                                await coverPhotoRef
+                                                    .putData(_imageBytes!);
+                                                final coverPhotoUrl =
+                                                    await coverPhotoRef
+                                                        .getDownloadURL();
+                                                await docRef.update({
+                                                  'coverPhotoUrl': coverPhotoUrl
+                                                });
+                                              }
+
+                                              for (int i = 0;
+                                                  i <
+                                                      stagedImages
+                                                          .images.length;
+                                                  i++) {
+                                                final photoBytes =
+                                                    stagedImages.images[i];
+                                                if (photoBytes != null) {
+                                                  final photoRef = FirebaseStorage
+                                                      .instance
+                                                      .ref()
+                                                      .child(
+                                                          'capsule_photos/$capsuleId/photo_$i');
+                                                  await photoRef
+                                                      .putData(photoBytes);
+                                                  final photoUrl =
+                                                      await photoRef
+                                                          .getDownloadURL();
+                                                  await docRef.update({
+                                                    'capsule_photourl$i':
+                                                        photoUrl
+                                                  });
+                                                }
+                                              }
+                                              setState(() {
+                                                _titleController.clear();
+                                                _messageController.clear();
+                                                _editBeforeDate =
+                                                    DateTime.now();
+                                                _openDate = DateTime.now();
+                                              });
+                                              setState(() {
+                                                _imageBytes = null;
+                                                stagedImages.clear();
+                                              });
+                                              setState(() {});
+                                              // Clear the image bytes list
+                                            } on FirebaseException catch (e) {
+                                              setState(() {
+                                                errorMessage = e.message!;
+                                              });
+                                            }
+                                            Navigator.pushAndRemoveUntil(
+                                              context,
+                                              MaterialPageRoute(
+                                                  builder: (context) =>
+                                                      const HomeScreen()),
+                                              (Route<dynamic> route) => false,
+                                            );
+                                          }
+                                        },
+                                      ),
+                                    )),
                           ],
                         ),
                       ],
