@@ -109,7 +109,6 @@ void _showDeleteCapsuleDialog() {
                 Expanded(
                   child: OutlinedButton(
                     onPressed: () async {
-                      //final userId = FirebaseAuth.instance.currentUser!.uid;
 try {
   final capsuleReference = await FirebaseFirestore.instance
       .collection('capsules')
@@ -119,23 +118,20 @@ try {
   if (capsuleReference.docs.isNotEmpty) {
     final capsuleDocId = capsuleReference.docs.first.id;
 
-    // Delete the user document
+    // Delete the capsule document
     await FirebaseFirestore.instance.collection('capsules').doc(capsuleDocId).delete();
 
-    // Delete the user account from Firebase Authentication
-    //await FirebaseAuth.instance.currentUser!.delete();
-
-    // Navigate to the login page after successful deletion
+    // Navigate to the home page after successful deletion
     Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(builder: (context) => const HomeScreen()),
         (Route<dynamic> route) => false,
       );
   } else {
-    print('User document not found');
+    print('capsule document not found');
   }
 } catch (error) {
-  print('Error deleting user: $error');
+  print('Error deleting capsule: $error');
 }
 
                     },
