@@ -5,9 +5,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/painting.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
+import 'package:retro/pages/capsule_management/capsule_image_widget.dart';
 import 'package:retro/pages/capsule_management/fab.dart';
+import 'package:retro/pages/capsule_management/lock_icon_widget.dart';
 import 'package:retro/pages/capsule_management/opened_capsule.dart';
 import 'package:retro/pages/capsule_management/opened_capsule_text.dart';
+import 'package:retro/pages/capsule_management/utilities.dart';
 import '../../components/colors.dart';
 import 'edit_capsule.dart';
 
@@ -84,8 +87,10 @@ Future<String> getUserName(String userId) async {
 
 //Timestamp
 String parseDate(Timestamp timestamp) {
+  var current = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+
   Duration duration =
-      Duration(seconds: timestamp.seconds - Timestamp.now().seconds);
+      Duration(seconds: timestamp.seconds - current);
 
   if (duration.inMinutes < 60) {
     return '${duration.inMinutes} minutes left';
@@ -96,6 +101,31 @@ String parseDate(Timestamp timestamp) {
   }
 
   return '${duration.inDays} days left';
+}
+
+String parseRemainingTime(Timestamp timestamp) {
+  var current = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+
+  Duration duration =
+  Duration(seconds: timestamp.seconds - current);
+
+  if (duration.inMinutes < 60) {
+    return '${duration.inMinutes} more minutes';
+  }
+
+  if (duration.inHours < 24) {
+    return '${duration.inHours} more hours';
+  }
+
+  return '${duration.inDays} more days';
+}
+
+Future<void> _dialogBuilder(BuildContext context, Timestamp openDate) {
+  return showDialog<void>(context: context, builder: (BuildContext context) {
+    return AlertDialog(
+      content: Text('Your capsule is locked now.\nWait for ${parseRemainingTime(openDate)} to view'),
+    );
+  });
 }
 
 class CapsuleWidget extends StatelessWidget {
@@ -123,48 +153,55 @@ class CapsuleWidget extends StatelessWidget {
         builder: (context, snapshot) {
           return GestureDetector(
             onTap: () {
-              // Navigator.push(
-              //     context,
-              //     MaterialPageRoute(
-              //         builder: (context) => EditCapsule(
-              //             id: capsuleId,
-              //             od: DateTime.parse(openDate.toDate().toString())
-              //                 .toLocal(),
-              //             ebd:
-              //                 DateTime.parse(editBeforeDate.toDate().toString())
-              //                     .toLocal())));
-
-              FirebaseFirestore.instance
-                  .collection('capsules')
-                  .where('capsuleId', isEqualTo: capsuleId)
-                  .get()
-                  .then((value) {
-                if (value.docs.isEmpty) {
-                  return;
+              if (isLocked(openDate)) {
+                if (isEditable(editBeforeDate)) {
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => EditCapsule(
+                              id: capsuleId,
+                              od: DateTime.parse(openDate.toDate().toString())
+                                  .toLocal(),
+                              ebd: DateTime.parse(
+                                      editBeforeDate.toDate().toString())
+                                  .toLocal())));
+                } else {
+                  // show lock modal
+                  _dialogBuilder(context, openDate);
                 }
-
-                final String id = value.docs![0].id;
-                final data = value.docs![0].data();
-
-                bool hasPhotoUrls = false;
-
-                for (int i = 0; i < 10; ++i) {
-                  final key = 'capsule_photourl$i';
-                  if (data.containsKey(key) && data[key] != null) {
-                    hasPhotoUrls = true;
-                    break;
+              } else {
+                FirebaseFirestore.instance
+                    .collection('capsules')
+                    .where('capsuleId', isEqualTo: capsuleId)
+                    .get()
+                    .then((value) {
+                  if (value.docs.isEmpty) {
+                    return;
                   }
-                }
 
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => hasPhotoUrls
-                        ? OpenedCapsule(capsuleId: id)
-                        : OpenedCapsuleText(capsuleId: id),
-                  ),
-                );
-              });
+                  final String id = value.docs![0].id;
+                  final data = value.docs![0].data();
+
+                  bool hasPhotoUrls = false;
+
+                  for (int i = 0; i < 10; ++i) {
+                    final key = 'capsule_photourl$i';
+                    if (data.containsKey(key) && data[key] != null) {
+                      hasPhotoUrls = true;
+                      break;
+                    }
+                  }
+
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => hasPhotoUrls
+                          ? OpenedCapsule(capsuleId: id)
+                          : OpenedCapsuleText(capsuleId: id),
+                    ),
+                  );
+                });
+              }
             },
             child: Container(
               padding: const EdgeInsets.all(4),
@@ -177,18 +214,10 @@ class CapsuleWidget extends StatelessWidget {
                 Row(children: [
                   Expanded(
                     child: ClipRRect(
-                      borderRadius: const BorderRadius.only(
-                          topLeft: Radius.circular(150),
-                          bottomLeft: Radius.circular(150)),
-                      child: imageUrl == ''
-                          ? Image.asset('image/defaultcapsult.png',
-                              fit: BoxFit.cover, height: double.infinity)
-                          : Image.network(
-                              imageUrl,
-                              fit: BoxFit.cover,
-                              height: double.infinity,
-                            ),
-                    ),
+                        borderRadius: const BorderRadius.only(
+                            topLeft: Radius.circular(150),
+                            bottomLeft: Radius.circular(150)),
+                        child: CapsuleImageWidget(imageUrl: imageUrl)),
                   ),
 
                   //Title
@@ -223,7 +252,7 @@ class CapsuleWidget extends StatelessWidget {
                         ),
 
                         //Open Date
-                        Timestamp.now().seconds - openDate.seconds <= 0
+                        isLocked(openDate)
                             ? Padding(
                                 padding:
                                     const EdgeInsets.only(left: 32, right: 8),
@@ -238,13 +267,7 @@ class CapsuleWidget extends StatelessWidget {
                     ),
                   )
                 ]),
-                Center(
-                    child: Image.asset(
-                        Timestamp.now().seconds - openDate.seconds <= 0
-                            ? 'image/locked.png'
-                            : 'image/unlocked.png',
-                        width: 150,
-                        height: 150)),
+                Center(child: LockIconWidget(openDate: openDate)),
               ]),
             ),
           );
