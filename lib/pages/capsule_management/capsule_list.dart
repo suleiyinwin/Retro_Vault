@@ -120,13 +120,94 @@ String parseRemainingTime(Timestamp timestamp) {
   return '${duration.inDays} more days';
 }
 
-Future<void> _dialogBuilder(BuildContext context, Timestamp openDate) {
-  return showDialog<void>(context: context, builder: (BuildContext context) {
-    return AlertDialog(
-      content: Text('Your capsule is locked now.\nWait for ${parseRemainingTime(openDate)} to view'),
-    );
-  });
+Future<void> _dialogBuilder(BuildContext context, Timestamp openDate) async {
+  showDialog(
+    context: context, 
+    builder: (BuildContext context){
+      return AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20.0),
+        ),
+        backgroundColor: AppColors.backgroundColor,
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Image.asset(
+              'image/time.png', 
+              width: 60,
+              height: 60,
+            ),
+            const SizedBox(height: 15),
+            Text.rich(
+              TextSpan(
+                children: [
+                  const TextSpan(
+                    text: 'Your capsule is locked now.\nWait for ',
+                    style: TextStyle(
+                      color: AppColors.textColor,
+                      fontSize: 18,
+                      
+                    ),
+                  ),
+                  TextSpan(
+                    text: parseRemainingTime(openDate),
+                    style: const TextStyle(
+                      color: AppColors.textColor,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const TextSpan(
+                    text: ' to view',
+                    style: TextStyle(
+                      color: AppColors.textColor,
+                      fontSize: 18,
+                      
+                    ),
+                  ),
+                ],
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 20),
+            SizedBox(
+              width: 150, // Set the desired width for the button
+              child: OutlinedButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 12),
+                  child: Text(
+                    "Ok",
+                    style: TextStyle(
+                      color: AppColors.textColor,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                style: OutlinedButton.styleFrom(
+                  side: const BorderSide(color: AppColors.primaryColor),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(30.0),
+                  ),
+                  backgroundColor: AppColors.backgroundColor,
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    },
+  );
 }
+
+    //   content: Text('Your capsule is locked now.\nWait for ${parseRemainingTime(openDate)} to view'),
+    // );
+  
+
 
 class CapsuleWidget extends StatelessWidget {
   final String capsuleId;
