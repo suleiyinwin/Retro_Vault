@@ -423,17 +423,24 @@ class _CapsuleState extends State<EditCapsule> {
                           ),
                         ),
                         const SizedBox(height: 20),
-                        Row(
+                        const Row(
                           children: [
-                            const Text(
+                            Text(
                               'Upload Capsule Cover Photo',
+                              textAlign: TextAlign.left,
                               style: TextStyle(
                                 color: AppColors.textColor,
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
-                            const SizedBox(width: 5),
+                            Spacer()
+                          ],
+                        ),
+                        const SizedBox(height: 5),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: [
                             Container(
                               decoration: BoxDecoration(
                                 color: AppColors.primaryColor,
@@ -444,13 +451,12 @@ class _CapsuleState extends State<EditCapsule> {
                                 child: Row(
                                   children: [
                                     Transform.rotate(
-                                      angle: 45 * pi / 180,
-                                      // 45 degrees in radians
+                                      angle: 45 * pi / 180, // 45 degrees in radians
                                       child: const IconButton(
                                         icon: Icon(Icons.attach_file,
                                             color: AppColors.white),
                                         onPressed:
-                                            null, // Remove the onPressed callback
+                                        null, // Remove the onPressed callback
                                       ),
                                     ),
                                     const Text(
@@ -463,7 +469,7 @@ class _CapsuleState extends State<EditCapsule> {
                                   ],
                                 ),
                               ),
-                            )
+                            ),
                           ],
                         ),
                         // if (_imageBytes != null)
