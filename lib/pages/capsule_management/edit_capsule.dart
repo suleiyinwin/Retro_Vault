@@ -58,6 +58,116 @@ class _CapsuleState extends State<EditCapsule> {
     const uuid = Uuid();
     return uuid.v4(); // Generate a Version 4 (random) UUID
   }
+  // Gemini
+
+void _showDeleteCapsuleDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20.0),
+          ),
+          backgroundColor: AppColors.backgroundColor,
+          content: const Text(
+            "Are you sure you want to delete your capsule?",
+            style: TextStyle(
+              color: AppColors.textColor,
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          actions: [
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                    child: const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 12),
+                      child: Text(
+                        "Cancel",
+                        style: TextStyle(
+                          color: AppColors.textColor,
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    style: OutlinedButton.styleFrom(
+                      side: const BorderSide(color: AppColors.primaryColor),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(30.0),
+                      ),
+                      backgroundColor: AppColors.backgroundColor,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: () async {
+                      //final userId = FirebaseAuth.instance.currentUser!.uid;
+try {
+  final capsuleReference = await FirebaseFirestore.instance
+      .collection('capsules')
+      .where('capsuleId', isEqualTo: widget.id)
+      .get();
+
+  if (capsuleReference.docs.isNotEmpty) {
+    final capsuleDocId = capsuleReference.docs.first.id;
+
+    // Delete the user document
+    await FirebaseFirestore.instance.collection('capsules').doc(capsuleDocId).delete();
+
+    // Delete the user account from Firebase Authentication
+    //await FirebaseAuth.instance.currentUser!.delete();
+
+    // Navigate to the login page after successful deletion
+    Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (context) => const HomeScreen()),
+        (Route<dynamic> route) => false,
+      );
+  } else {
+    print('User document not found');
+  }
+} catch (error) {
+  print('Error deleting user: $error');
+}
+
+                    },
+                    child: const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 12),
+                      child: Text(
+                        "Delete",
+                        style: TextStyle(
+                          color: AppColors.white,
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    style: OutlinedButton.styleFrom(
+                      side: const BorderSide(color: AppColors.primaryColor),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(30.0),
+                      ),
+                      backgroundColor: AppColors.primaryColor,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  // Gemini*
 
   Future<void> _selectCoverPhoto() async {
     if (kIsWeb) {
@@ -803,7 +913,7 @@ class _CapsuleState extends State<EditCapsule> {
                                   'Delete',
                                   style: TextStyle(color: AppColors.textColor),
                                 ),
-                                onPressed: () {
+                                onPressed: _showDeleteCapsuleDialog, /* () {
                                   Navigator.pushAndRemoveUntil(
                                     context,
                                     MaterialPageRoute(
@@ -811,7 +921,7 @@ class _CapsuleState extends State<EditCapsule> {
                                             const HomeScreen()),
                                     (Route<dynamic> route) => false,
                                   );
-                                },
+                                } */
                               ),
                             ),
                             const SizedBox(width: 10),
