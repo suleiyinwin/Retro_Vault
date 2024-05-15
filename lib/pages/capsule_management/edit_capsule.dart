@@ -880,22 +880,25 @@ class _CapsuleState extends State<EditCapsule> {
                                                       stagedImages.images);
                                               for (final image
                                                   in clonedImages) {
-                                                if (freeIndexIterator
-                                                    .moveNext()) {
-                                                  int currentIndex =
-                                                      freeIndexIterator.current;
-                                                  final currentImageRef =
-                                                      imageRef.child(
-                                                          'capsule_photos/$capsuleId/photo_$currentIndex');
-                                                  await currentImageRef
-                                                      .putData(image!);
-                                                  final url =
-                                                      await currentImageRef
-                                                          .getDownloadURL();
-                                                  capsuleImages.replaceAt(
-                                                      currentIndex, url);
-                                                  stagedImages
-                                                      .removeByContent(image);
+                                                if (image != null) {
+                                                  if (freeIndexIterator
+                                                      .moveNext()) {
+                                                    int currentIndex =
+                                                        freeIndexIterator
+                                                            .current;
+                                                    final currentImageRef =
+                                                        imageRef.child(
+                                                            'capsule_photos/$capsuleId/photo_$currentIndex');
+                                                    await currentImageRef
+                                                        .putData(image);
+                                                    final url =
+                                                        await currentImageRef
+                                                            .getDownloadURL();
+                                                    capsuleImages.replaceAt(
+                                                        currentIndex, url);
+                                                    stagedImages
+                                                        .removeByContent(image);
+                                                  }
                                                 } else {
                                                   break;
                                                 }
@@ -946,94 +949,6 @@ class _CapsuleState extends State<EditCapsule> {
                                                 errorMessage = e.message!;
                                               });
                                             }
-                                          }
-
-                                          return;
-
-                                          if (_formKey.currentState!
-                                              .validate()) {
-                                            _formKey.currentState!.save();
-                                            try {
-                                              final docRef =
-                                                  await FirebaseFirestore
-                                                      .instance
-                                                      .collection('capsules')
-                                                      .add({
-                                                // 'userRef': userReference,
-                                                'userId': userId,
-                                                'capsuleId': capsuleId,
-                                                'title': _titleController.text,
-                                                'message':
-                                                    _messageController.text,
-                                                'editBeforeDate':
-                                                    _editBeforeDate,
-                                                'openDate': _openDate,
-                                              });
-                                              if (_imageBytes != null) {
-                                                final coverPhotoRef =
-                                                    FirebaseStorage.instance
-                                                        .ref()
-                                                        .child(
-                                                            'capsule_covers/$capsuleId');
-                                                await coverPhotoRef
-                                                    .putData(_imageBytes!);
-                                                final coverPhotoUrl =
-                                                    await coverPhotoRef
-                                                        .getDownloadURL();
-                                                await docRef.update({
-                                                  'coverPhotoUrl': coverPhotoUrl
-                                                });
-                                              }
-
-                                              for (int i = 0;
-                                                  i <
-                                                      stagedImages
-                                                          .images.length;
-                                                  i++) {
-                                                final photoBytes =
-                                                    stagedImages.images[i];
-                                                if (photoBytes != null) {
-                                                  final photoRef = FirebaseStorage
-                                                      .instance
-                                                      .ref()
-                                                      .child(
-                                                          'capsule_photos/$capsuleId/photo_$i');
-                                                  await photoRef
-                                                      .putData(photoBytes);
-                                                  final photoUrl =
-                                                      await photoRef
-                                                          .getDownloadURL();
-                                                  await docRef.update({
-                                                    'capsule_photourl$i':
-                                                        photoUrl
-                                                  });
-                                                }
-                                              }
-                                              setState(() {
-                                                _titleController.clear();
-                                                _messageController.clear();
-                                                _editBeforeDate =
-                                                    DateTime.now();
-                                                _openDate = DateTime.now();
-                                              });
-                                              setState(() {
-                                                _imageBytes = null;
-                                                stagedImages.clear();
-                                              });
-                                              setState(() {});
-                                              // Clear the image bytes list
-                                            } on FirebaseException catch (e) {
-                                              setState(() {
-                                                errorMessage = e.message!;
-                                              });
-                                            }
-                                            Navigator.pushAndRemoveUntil(
-                                              context,
-                                              MaterialPageRoute(
-                                                  builder: (context) =>
-                                                      const HomeScreen()),
-                                              (Route<dynamic> route) => false,
-                                            );
                                           }
                                         },
                                       ),

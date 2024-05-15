@@ -41,48 +41,49 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyAxCfmol5AddHC1wi-RQcgTzYnKEGuSvIU',
-    appId: '1:85207850072:web:07e41335f5b55396e93e2d',
-    messagingSenderId: '85207850072',
-    projectId: 'retrovault121',
-    authDomain: 'retrovault121.firebaseapp.com',
-    storageBucket: 'retrovault121.appspot.com',
-    measurementId: 'G-5XT4YN0TC8',
+    apiKey: 'AIzaSyAER0LbNjoIp-m_8s0nIu_NwXEu4z6vBtQ',
+    appId: '1:209277499518:web:ce3649547a487f40de802f',
+    messagingSenderId: '209277499518',
+    projectId: 'retrovault-c3010',
+    authDomain: 'retrovault-c3010.firebaseapp.com',
+    storageBucket: 'retrovault-c3010.appspot.com',
+    measurementId: 'G-XTCRCMZ8NB',
   );
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyCGNZSfYKfIdscxM8azjpj8w89cQr9Qar4',
-    appId: '1:85207850072:android:35543cd375ed7369e93e2d',
-    messagingSenderId: '85207850072',
-    projectId: 'retrovault121',
-    storageBucket: 'retrovault121.appspot.com',
+    apiKey: 'AIzaSyDevKU8kBxqobSILIk4mEhqqe_L6ZF8Mzc',
+    appId: '1:209277499518:android:42266cdb697aeea9de802f',
+    messagingSenderId: '209277499518',
+    projectId: 'retrovault-c3010',
+    storageBucket: 'retrovault-c3010.appspot.com',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyDI7MIF6BOiWMLj32BUDWU8zYXcKhfZYIo',
-    appId: '1:85207850072:ios:0f1ab2d0d419ac76e93e2d',
-    messagingSenderId: '85207850072',
-    projectId: 'retrovault121',
-    storageBucket: 'retrovault121.appspot.com',
+    apiKey: 'AIzaSyApVbsODVT0Q6rbi0h1ACV1iiGwoUL7X4g',
+    appId: '1:209277499518:ios:9b122327b888002cde802f',
+    messagingSenderId: '209277499518',
+    projectId: 'retrovault-c3010',
+    storageBucket: 'retrovault-c3010.appspot.com',
     iosBundleId: 'com.example.retro',
   );
 
   static const FirebaseOptions macos = FirebaseOptions(
-    apiKey: 'AIzaSyDI7MIF6BOiWMLj32BUDWU8zYXcKhfZYIo',
-    appId: '1:85207850072:ios:0f1ab2d0d419ac76e93e2d',
-    messagingSenderId: '85207850072',
-    projectId: 'retrovault121',
-    storageBucket: 'retrovault121.appspot.com',
+    apiKey: 'AIzaSyApVbsODVT0Q6rbi0h1ACV1iiGwoUL7X4g',
+    appId: '1:209277499518:ios:9b122327b888002cde802f',
+    messagingSenderId: '209277499518',
+    projectId: 'retrovault-c3010',
+    storageBucket: 'retrovault-c3010.appspot.com',
     iosBundleId: 'com.example.retro',
   );
 
   static const FirebaseOptions windows = FirebaseOptions(
-    apiKey: 'AIzaSyAxCfmol5AddHC1wi-RQcgTzYnKEGuSvIU',
-    appId: '1:85207850072:web:a114f37cc0abab92e93e2d',
-    messagingSenderId: '85207850072',
-    projectId: 'retrovault121',
-    authDomain: 'retrovault121.firebaseapp.com',
-    storageBucket: 'retrovault121.appspot.com',
-    measurementId: 'G-1DKBRC661Y',
+    apiKey: 'AIzaSyAER0LbNjoIp-m_8s0nIu_NwXEu4z6vBtQ',
+    appId: '1:209277499518:web:30f5675d2c0201ecde802f',
+    messagingSenderId: '209277499518',
+    projectId: 'retrovault-c3010',
+    authDomain: 'retrovault-c3010.firebaseapp.com',
+    storageBucket: 'retrovault-c3010.appspot.com',
+    measurementId: 'G-Z58C8GB5P7',
   );
+
 }
