@@ -596,10 +596,11 @@ class _CapsuleState extends State<EditCapsule> {
                             // Add your other widgets here
                           ],
                         ),
-                        const SizedBox(height: 20),
-                        Row(
+                        const SizedBox(height: 15),
+                        const Row(
+                          mainAxisAlignment: MainAxisAlignment.start,
                           children: [
-                            const Text(
+                            Text(
                               'Upload up to 10 photos',
                               style: TextStyle(
                                 color: AppColors.textColor,
@@ -607,10 +608,15 @@ class _CapsuleState extends State<EditCapsule> {
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
-                            const SizedBox(width: 5),
+                          ],
+                        ),
+                        const SizedBox(height: 5),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: [
                             Consumer2<CapsuleImages, StagedImages>(
                                 builder: (context, capsuleImages, stagedImages,
-                                        child) =>
+                                    child) =>
                                     Container(
                                       decoration: BoxDecoration(
                                         color: AppColors.primaryColor,
@@ -619,17 +625,17 @@ class _CapsuleState extends State<EditCapsule> {
                                       child: InkWell(
                                         onTap: () {
                                           if (capsuleImages.freeCount() +
-                                                  stagedImages.freeCount() >
+                                              stagedImages.freeCount() >
                                               0) {
                                             final ImagePicker imagePicker =
-                                                ImagePicker();
+                                            ImagePicker();
                                             imagePicker
                                                 .pickImage(
-                                                    source: ImageSource.gallery)
+                                                source: ImageSource.gallery)
                                                 .then((value) async {
                                               if (value != null) {
                                                 final bytes =
-                                                    await value.readAsBytes();
+                                                await value.readAsBytes();
                                                 stagedImages.fill(bytes);
                                               }
                                             });
@@ -644,7 +650,7 @@ class _CapsuleState extends State<EditCapsule> {
                                                 icon: Icon(Icons.attach_file,
                                                     color: Colors.white),
                                                 onPressed:
-                                                    null, // Remove the onPressed callback
+                                                null, // Remove the onPressed callback
                                               ),
                                             ),
                                             const Text(
@@ -658,7 +664,7 @@ class _CapsuleState extends State<EditCapsule> {
                                         ),
                                       ),
                                     )),
-                          ],
+                          ]
                         ),
                         Consumer<CapsuleImages>(
                           builder: (context, capsuleImages, child) => Wrap(
