@@ -418,6 +418,7 @@ class _CreateCapsuleState extends State<CreateCapsule> {
                                   } else {
                                     setState(() {
                                       _editBeforeDate = picked;
+                                      _openDate = picked;
                                     });
                                   }
                                 }
