@@ -50,7 +50,6 @@ class _LoginPageState extends State<LoginPage> {
     final currentUser = FirebaseAuth.instance.currentUser;
 
     if (currentUser == null) {
-      print('null');
       return false; // No user logged in
     }
 
@@ -65,19 +64,16 @@ class _LoginPageState extends State<LoginPage> {
         oldPassword = userData['password'];
 
         if (oldPassword.trim() == _passwordController.text.trim()) {
-          print("new password is the same as the old one, no need to update");
           return false;
         } else {
           await FirebaseFirestore.instance
               .collection('user')
               .doc(userRef.docs.first.id)
               .update({'password': _passwordController.text.trim()});
-          print("you you you");
           return true;
         }
       }
     } on FirebaseAuthException catch (e) {
-      print('Error reupdating password: $e');
       errorMessage = 'Error: ${e.message}';
       return false;
     }
@@ -181,11 +177,6 @@ class _LoginPageState extends State<LoginPage> {
                               return 'Password is requried';
                             } else if (errorMessage.isNotEmpty) {
                               return errorMessage;
-                            } else if (!passwordRegex.hasMatch(value)) {
-                              return 'Password must contain at least 6 characters, including:\n'
-                                  '• Uppercase\n'
-                                  '• Lowercase\n'
-                                  '• Numbers and special characters';
                             }
                             errorMessage = '';
                             return null;
@@ -278,8 +269,6 @@ class _LoginPageState extends State<LoginPage> {
                                     child: const ForgotPasswordModal(),
                                   ),
                                 );
-
-                                print('Forgot password button pressed');
                               },
                               child: const Text('Forgot password?',
                                   style:
@@ -331,30 +320,7 @@ class _LoginPageState extends State<LoginPage> {
                                   updatePasswordIfDifferent(
                                           _passwordController.text.trim())
                                       .then((updated) {
-                                    if (updated) {
-                                      print("Password updated successfully!");
-                                    } else {
-                                      print(
-                                          "Password is the same or update failed.");
-                                    }
-                                  }); // if(currentUser == null){
-                                  //   print("user haven't loggin yet");
-                                  // }
-
-                                  // try{
-                                  //   final result = await currentUser!.reauthenticateWithCredential(credential);
-                                  //   if(result.user != null){
-                                  //     //new password is the same, no need to update
-                                  //     print("password is the same as the old one, no need to update");
-                                  //   } else{
-                                  //     //update the password
-                                  //     await currentUser!.updatePassword(_passwordController.text.trim());
-                                  //     print("password updated successfully");
-                                  //   }
-                                  // } on FirebaseAuthException catch (e){
-                                  //   print("Error reupdating password: $e");
-                                  //   errorMessage = 'Error: ${e.message}';
-                                  // }
+                                  }); 
                                 } on FirebaseAuthException catch (e) {
                                   // Handle specific errors
                                   if (e.code == 'user-not-found') {
@@ -364,12 +330,10 @@ class _LoginPageState extends State<LoginPage> {
                                   } else if (e.code == 'invalid-credential') {
                                     errorMessage = 'Invalid Credential';
                                   } else {
-                                    print('out $e');
                                     errorMessage = 'Error: ${e.message}';
                                   }
                                 } catch (e) {
                                   // Handle generic errors
-                                  print('catch $e');
                                   errorMessage = 'Error: $e';
                                 }
                               }
@@ -425,7 +389,6 @@ class _LoginPageState extends State<LoginPage> {
                                   builder: (context) => const Signup()),
                             );
                             // Handle sign up logic
-                            print('Sign up button pressed');
                           },
                           child: const Text(
                             'Sign up',
