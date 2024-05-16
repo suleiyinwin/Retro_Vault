@@ -218,6 +218,8 @@ try {
                 return const Text("Loading");
               }
 
+              if (snapshot.data!.docs.isEmpty) return const Text("Deleted");
+
               var data = snapshot.data!.docs[0].data() as Map<String, dynamic>;
               String? coverPhotoUrl = data.containsKey('coverPhotoUrl')
                   ? data['coverPhotoUrl']
