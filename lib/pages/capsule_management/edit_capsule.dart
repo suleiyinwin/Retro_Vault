@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import 'package:retro/components/bottomNavigation.dart';
 import 'package:retro/components/colors.dart';
 import 'package:retro/pages/capsule_management/capsule_list.dart';
 import 'package:retro/pages/capsule_management/utilities.dart';
@@ -58,6 +59,112 @@ class _CapsuleState extends State<EditCapsule> {
     const uuid = Uuid();
     return uuid.v4(); // Generate a Version 4 (random) UUID
   }
+  // Gemini
+
+void _showDeleteCapsuleDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20.0),
+          ),
+          backgroundColor: AppColors.backgroundColor,
+          content: const Text(
+            "Are you sure you want to delete your capsule?",
+            style: TextStyle(
+              color: AppColors.textColor,
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          actions: [
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                    child: const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 12),
+                      child: Text(
+                        "Cancel",
+                        style: TextStyle(
+                          color: AppColors.textColor,
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    style: OutlinedButton.styleFrom(
+                      side: const BorderSide(color: AppColors.primaryColor),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(30.0),
+                      ),
+                      backgroundColor: AppColors.backgroundColor,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: () async {
+try {
+  final capsuleReference = await FirebaseFirestore.instance
+      .collection('capsules')
+      .where('capsuleId', isEqualTo: widget.id)
+      .get();
+
+  if (capsuleReference.docs.isNotEmpty) {
+    final capsuleDocId = capsuleReference.docs.first.id;
+
+    // Delete the capsule document
+    await FirebaseFirestore.instance.collection('capsules').doc(capsuleDocId).delete();
+
+    // Navigate to the home page after successful deletion
+    Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (context) => const BottomNav()),
+        (Route<dynamic> route) => false,
+      );
+  } else {
+    print('capsule document not found');
+  }
+} catch (error) {
+  print('Error deleting capsule: $error');
+}
+
+                    },
+                    child: const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 12),
+                      child: Text(
+                        "Delete",
+                        style: TextStyle(
+                          color: AppColors.white,
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    style: OutlinedButton.styleFrom(
+                      side: const BorderSide(color: AppColors.primaryColor),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(30.0),
+                      ),
+                      backgroundColor: AppColors.primaryColor,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  // Gemini*
 
   Future<void> _selectCoverPhoto() async {
     if (kIsWeb) {
@@ -423,17 +530,24 @@ class _CapsuleState extends State<EditCapsule> {
                           ),
                         ),
                         const SizedBox(height: 20),
-                        Row(
+                        const Row(
                           children: [
-                            const Text(
+                            Text(
                               'Upload Capsule Cover Photo',
+                              textAlign: TextAlign.left,
                               style: TextStyle(
                                 color: AppColors.textColor,
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
-                            const SizedBox(width: 5),
+                            Spacer()
+                          ],
+                        ),
+                        const SizedBox(height: 5),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: [
                             Container(
                               decoration: BoxDecoration(
                                 color: AppColors.primaryColor,
@@ -444,13 +558,12 @@ class _CapsuleState extends State<EditCapsule> {
                                 child: Row(
                                   children: [
                                     Transform.rotate(
-                                      angle: 45 * pi / 180,
-                                      // 45 degrees in radians
+                                      angle: 45 * pi / 180, // 45 degrees in radians
                                       child: const IconButton(
                                         icon: Icon(Icons.attach_file,
                                             color: AppColors.white),
                                         onPressed:
-                                            null, // Remove the onPressed callback
+                                        null, // Remove the onPressed callback
                                       ),
                                     ),
                                     const Text(
@@ -463,7 +576,7 @@ class _CapsuleState extends State<EditCapsule> {
                                   ],
                                 ),
                               ),
-                            )
+                            ),
                           ],
                         ),
                         // if (_imageBytes != null)
@@ -590,10 +703,11 @@ class _CapsuleState extends State<EditCapsule> {
                             // Add your other widgets here
                           ],
                         ),
-                        const SizedBox(height: 20),
-                        Row(
+                        const SizedBox(height: 15),
+                        const Row(
+                          mainAxisAlignment: MainAxisAlignment.start,
                           children: [
-                            const Text(
+                            Text(
                               'Upload up to 10 photos',
                               style: TextStyle(
                                 color: AppColors.textColor,
@@ -601,10 +715,15 @@ class _CapsuleState extends State<EditCapsule> {
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
-                            const SizedBox(width: 5),
+                          ],
+                        ),
+                        const SizedBox(height: 5),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: [
                             Consumer2<CapsuleImages, StagedImages>(
                                 builder: (context, capsuleImages, stagedImages,
-                                        child) =>
+                                    child) =>
                                     Container(
                                       decoration: BoxDecoration(
                                         color: AppColors.primaryColor,
@@ -613,17 +732,17 @@ class _CapsuleState extends State<EditCapsule> {
                                       child: InkWell(
                                         onTap: () {
                                           if (capsuleImages.freeCount() +
-                                                  stagedImages.freeCount() >
+                                              stagedImages.freeCount() >
                                               0) {
                                             final ImagePicker imagePicker =
-                                                ImagePicker();
+                                            ImagePicker();
                                             imagePicker
                                                 .pickImage(
-                                                    source: ImageSource.gallery)
+                                                source: ImageSource.gallery)
                                                 .then((value) async {
                                               if (value != null) {
                                                 final bytes =
-                                                    await value.readAsBytes();
+                                                await value.readAsBytes();
                                                 stagedImages.fill(bytes);
                                               }
                                             });
@@ -638,7 +757,7 @@ class _CapsuleState extends State<EditCapsule> {
                                                 icon: Icon(Icons.attach_file,
                                                     color: Colors.white),
                                                 onPressed:
-                                                    null, // Remove the onPressed callback
+                                                null, // Remove the onPressed callback
                                               ),
                                             ),
                                             const Text(
@@ -652,7 +771,7 @@ class _CapsuleState extends State<EditCapsule> {
                                         ),
                                       ),
                                     )),
-                          ],
+                          ]
                         ),
                         Consumer<CapsuleImages>(
                           builder: (context, capsuleImages, child) => Wrap(
@@ -791,7 +910,7 @@ class _CapsuleState extends State<EditCapsule> {
                                   'Delete',
                                   style: TextStyle(color: AppColors.textColor),
                                 ),
-                                onPressed: () {
+                                onPressed: _showDeleteCapsuleDialog, /* () {
                                   Navigator.pushAndRemoveUntil(
                                     context,
                                     MaterialPageRoute(
@@ -799,7 +918,7 @@ class _CapsuleState extends State<EditCapsule> {
                                             const HomeScreen()),
                                     (Route<dynamic> route) => false,
                                   );
-                                },
+                                } */
                               ),
                             ),
                             const SizedBox(width: 10),
