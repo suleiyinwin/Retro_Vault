@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import 'package:retro/components/bottomNavigation.dart';
 import 'package:retro/components/colors.dart';
 import 'package:retro/pages/capsule_management/capsule_list.dart';
 import 'package:retro/pages/capsule_management/utilities.dart';
@@ -124,7 +125,7 @@ try {
     // Navigate to the home page after successful deletion
     Navigator.pushAndRemoveUntil(
         context,
-        MaterialPageRoute(builder: (context) => const HomeScreen()),
+        MaterialPageRoute(builder: (context) => const BottomNav()),
         (Route<dynamic> route) => false,
       );
   } else {
