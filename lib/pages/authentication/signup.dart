@@ -350,11 +350,7 @@ class _SignupState extends State<Signup> {
                                         errorMessage = e.message!;
                                         
                                      });
-                                   }
-                                  
-                                
-                                    print('User data added to firebase');
-                                  
+                                   }                                  
                                     Fluttertoast.showToast(
                                         msg: "Account Created Successfully",
                                         toastLength: Toast.LENGTH_SHORT,
@@ -370,16 +366,7 @@ class _SignupState extends State<Signup> {
                                     errorMessage = e.toString();
                                   });
                                   _formKey.currentState!.validate();
-                                  print('ehlo $e');
                                 }
-                                print('Username: ${_usernameController.text}');
-                                print('Email: ${_emailController.text}');
-                                print('Password: ${_passwordController.text}');
-                                print(
-                                    'Confirm Password: ${_confirmPasswordController.text}');
-                                // Handle sign up logic
-                                print('user id : ${user!.uid}');
-                                print('Sign up button pressed');
                               }
                             },
                             child: const Text(
@@ -431,7 +418,6 @@ class _SignupState extends State<Signup> {
                                   builder: (context) => const LoginPage()),
                             );
                             // Handle sign up logic
-                            print('Sign up button pressed');
                           },
                           child: const Text('Login here',
                               style: TextStyle(
