@@ -133,9 +133,7 @@ class _OpenedCapsuleState extends State<OpenedCapsule> {
             }
           }
 
-          print("All photoUrls: $photoUrls");
 
-          print(data.keys);
           // Sort photoUrls based on the keys
           photoUrls.sort((a, b) {
             final RegExp regex = RegExp(r'_photo_(\d+)\?');
@@ -197,8 +195,6 @@ class _OpenedCapsuleState extends State<OpenedCapsule> {
                                   controller: _pageController,
                                   itemCount: photoUrls.length,
                                   itemBuilder: (context, index) {
-                                    print(
-                                        "URL at index $index: ${photoUrls[index]}");
                                     if (photoUrls[index] != null) {
                                       // Display the image if the URL is not null
                                       return Image.network(
