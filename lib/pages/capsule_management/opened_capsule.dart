@@ -1,8 +1,11 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 import 'package:retro/components/colors.dart';
+import 'package:retro/components/bottomNavigation.dart';
+
 
 class OpenedCapsule extends StatefulWidget {
   const OpenedCapsule({Key? key, required this.capsuleId}) : super(key: key);
@@ -15,11 +18,19 @@ class OpenedCapsule extends StatefulWidget {
 class _OpenedCapsuleState extends State<OpenedCapsule> {
   PageController _pageController = PageController();
   int _currentPageIndex = 0;
+  late Stream<QuerySnapshot> _capsuleStream;
 
   @override
   void dispose() {
     _pageController.dispose();
     super.dispose();
+  }
+  void initState() {
+    _capsuleStream = FirebaseFirestore.instance
+        .collection('capsules')
+        .where('capsuleId', isEqualTo: widget.capsuleId)
+        .snapshots();
+    //log = Logger('CreateCapsule');
   }
 
   // void _previousImage() {
@@ -45,6 +56,112 @@ class _OpenedCapsuleState extends State<OpenedCapsule> {
   //   //   _pageController.jumpToPage(0);
   //   // }
   // }
+
+  //
+  void _showDeleteCapsuleDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20.0),
+          ),
+          backgroundColor: AppColors.backgroundColor,
+          content: const Text(
+            "Are you sure you want to delete your capsule?",
+            style: TextStyle(
+              color: AppColors.textColor,
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          actions: [
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                    child: const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 12),
+                      child: Text(
+                        "Cancel",
+                        style: TextStyle(
+                          color: AppColors.textColor,
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    style: OutlinedButton.styleFrom(
+                      side: const BorderSide(color: AppColors.primaryColor),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(30.0),
+                      ),
+                      backgroundColor: AppColors.backgroundColor,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: () async {
+try {
+  final capsuleReference = await FirebaseFirestore.instance
+      .collection('capsules')
+      .where('capsuleId', isEqualTo: widget.capsuleId)
+      .get();
+
+  if (capsuleReference.docs.isNotEmpty) {
+    final capsuleDocId = capsuleReference.docs.first.id;
+
+    // Delete the capsule document
+    await FirebaseFirestore.instance.collection('capsules').doc(capsuleDocId).delete();
+
+    // Navigate to the home page after successful deletion
+    Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (context) => const BottomNav()),
+        (Route<dynamic> route) => false,
+      );
+  } else {
+    print('capsule document not found');
+  }
+} catch (error) {
+  print('Error deleting capsule: $error');
+}
+
+                    },
+                    child: const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 12),
+                      child: Text(
+                        "Delete",
+                        style: TextStyle(
+                          color: AppColors.white,
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    style: OutlinedButton.styleFrom(
+                      side: const BorderSide(color: AppColors.primaryColor),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(30.0),
+                      ),
+                      backgroundColor: AppColors.primaryColor,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        );
+      },
+    );
+  }
+  //
+
   void _previousImage(int length) {
     setState(() {
       _currentPageIndex = (_currentPageIndex - 1 + length) % length;
@@ -264,7 +381,59 @@ class _OpenedCapsuleState extends State<OpenedCapsule> {
                   ),
                 ),
               ),
-              Align(
+
+              //const SizedBox(height: 12),
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    mainAxisSize: MainAxisSize.max,
+                    children: [
+                      SizedBox(
+                        width: 120,
+                        height: 50,
+                        child: OutlinedButton(
+                          style: OutlinedButton.styleFrom(
+                            side: const BorderSide(
+                              color: AppColors.primaryColor,
+                              width: 1,
+                            ),
+                          ),
+                          child: const Text(
+                            'Delete',
+                            style: TextStyle(color: AppColors.textColor),
+                          ),
+                          onPressed: _showDeleteCapsuleDialog,
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      SizedBox(
+                        width: 120,
+                        height: 50,
+                        child: OutlinedButton(
+                          style: OutlinedButton.styleFrom(
+                            side: const BorderSide(
+                                color: AppColors.primaryColor, 
+                                width: 1.0),
+                                backgroundColor: 
+                                AppColors.primaryColor,
+                          ),
+                          onPressed: () {
+                            Navigator.pop(context);
+                          },
+                          child: const Text(
+                            'Done',
+                            style: TextStyle(
+                                color: AppColors.white,
+                                fontSize: 16.0),
+                          ),
+                        ),
+                      ),
+                    
+                    ]
+                  ),
+              )
+              /* Align(
                 alignment: Alignment.bottomCenter,
                 child: Padding(
                   padding: const EdgeInsets.only(bottom: 20.0),
@@ -279,6 +448,7 @@ class _OpenedCapsuleState extends State<OpenedCapsule> {
                       onPressed: () {
                         Navigator.pop(context);
                       },
+                      //onPressed: _showDeleteCapsuleDialog,
                       child: const Text(
                         'Done',
                         style: TextStyle(
@@ -288,8 +458,9 @@ class _OpenedCapsuleState extends State<OpenedCapsule> {
                       ),
                     ),
                   ),
+  
                 ),
-              ),
+              ), */
             ],
           );
         },

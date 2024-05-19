@@ -171,7 +171,57 @@ Future<void> _dialogBuilder(BuildContext context, Timestamp openDate) async {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 20),
-            SizedBox(
+            Padding(
+                padding: const EdgeInsets.all(4.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    mainAxisSize: MainAxisSize.max,
+                    children: [
+                      SizedBox(
+                        width: 120,
+                        height: 50,
+                        child: OutlinedButton(
+                          style: OutlinedButton.styleFrom(
+                            side: const BorderSide(
+                              color: AppColors.primaryColor,
+                              width: 1,
+                            ),
+                          ),
+                          child: const Text(
+                            'Delete',
+                            style: TextStyle(color: AppColors.textColor),
+                          ),
+                          onPressed: null,
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      SizedBox(
+                        width: 120,
+                        height: 50,
+                        child: OutlinedButton(
+                          style: OutlinedButton.styleFrom(
+                            side: const BorderSide(
+                                color: AppColors.primaryColor, 
+                                width: 1.0),
+                                backgroundColor: 
+                                AppColors.primaryColor,
+                          ),
+                          onPressed: () {
+                            Navigator.pop(context);
+                          },
+                          child: const Text(
+                            'Done',
+                            style: TextStyle(
+                                color: AppColors.white,
+                                fontSize: 16.0),
+                          ),
+                        ),
+                      ),
+                    
+                    ]
+                  ),
+              )
+            /* SizedBox(
               width: 150, // Set the desired width for the button
               child: OutlinedButton(
                 onPressed: () {
@@ -196,7 +246,7 @@ Future<void> _dialogBuilder(BuildContext context, Timestamp openDate) async {
                   backgroundColor: AppColors.backgroundColor,
                 ),
               ),
-            ),
+            ), */
           ],
         ),
       );
