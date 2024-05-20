@@ -243,13 +243,13 @@ class _CreateCapsuleState extends State<CreateCapsule> {
           }
         }
         if (_selectedUsers.isNotEmpty) {
-          for (int i = 0; i < _selectedUsers.length; i++) {
-            final user = _selectedUsers[i];
-            final userRef =
-                FirebaseFirestore.instance.collection('user').doc(user.id);
-            await docRef.update({'sharedWith$i': userRef});
-          }
-        }
+  final sharedWithArray = _selectedUsers.map((user) {
+    final userRef = FirebaseFirestore.instance.collection('user').doc(user.id);
+    return userRef;
+  }).toList();
+
+  await docRef.update({'sharedWith': sharedWithArray});
+}
         setState(() {
           _titleController.clear();
           _messageController.clear();
