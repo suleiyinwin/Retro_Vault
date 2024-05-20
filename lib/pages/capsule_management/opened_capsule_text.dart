@@ -1,3 +1,5 @@
+//import 'dart:js';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -8,14 +10,27 @@ import 'package:flutter/widgets.dart';
 
 
 
-class OpenedCapsuleText extends StatelessWidget {
-  const OpenedCapsuleText({Key? key, required this.capsuleId})
+class OpenedCapsuleText extends StatefulWidget {
+  OpenedCapsuleText({Key? key, required this.capsuleId})
       : super(key: key);
   final String capsuleId;
 
+  @override
+  State<OpenedCapsuleText> createState() => _OpenedCapsuleTextState();
+}
 
-  //
-  /* void _showDeleteCapsuleDialog() {
+class _OpenedCapsuleTextState extends State<OpenedCapsuleText> {
+  late Stream<QuerySnapshot> _capsuleStream;
+
+  void initState() {
+    _capsuleStream = FirebaseFirestore.instance
+        .collection('capsules')
+        .where('capsuleId', isEqualTo: widget.capsuleId)
+        .snapshots();
+    //log = Logger('CreateCapsule');
+  }
+
+  void _showDeleteCapsuleDialog() {
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -25,7 +40,7 @@ class OpenedCapsuleText extends StatelessWidget {
           ),
           backgroundColor: AppColors.backgroundColor,
           content: const Text(
-            "Are you sure you want to delete your capsule?",
+            "Are you sure you want to delete this capsule?",
             style: TextStyle(
               color: AppColors.textColor,
               fontSize: 20,
@@ -64,31 +79,22 @@ class OpenedCapsuleText extends StatelessWidget {
                 Expanded(
                   child: OutlinedButton(
                     onPressed: () async {
-try {
-  final capsuleReference = await FirebaseFirestore.instance
-      .collection('capsules')
-      .where('capsuleId', isEqualTo: widget.id)
-      .get();
+                      try {
+                        // Have to access capsuleId directly
+                        await FirebaseFirestore.instance
+                            .collection('capsules')
+                            .doc(widget.capsuleId)
+                            .delete();
 
-  if (capsuleReference.docs.isNotEmpty) {
-    final capsuleDocId = capsuleReference.docs.first.id;
-
-    // Delete the capsule document
-    await FirebaseFirestore.instance.collection('capsules').doc(capsuleDocId).delete();
-
-    // Navigate to the home page after successful deletion
-    Navigator.pushAndRemoveUntil(
-        context,
-        MaterialPageRoute(builder: (context) => const BottomNav()),
-        (Route<dynamic> route) => false,
-      );
-  } else {
-    print('capsule document not found');
-  }
-} catch (error) {
-  print('Error deleting capsule: $error');
-}
-
+                        // Navigate to the home page after successful deletion
+                        Navigator.pushAndRemoveUntil(
+                          context,
+                          MaterialPageRoute(builder: (context) => const BottomNav()),
+                          (Route<dynamic> route) => false,
+                        );
+                      } catch (error) {
+                        print('Error deleting capsule: $error');
+                      }
                     },
                     child: const Padding(
                       padding: EdgeInsets.symmetric(vertical: 12),
@@ -116,8 +122,7 @@ try {
         );
       },
     );
-  } */
-  //
+  }
 
     @override
   Widget build(BuildContext context) {
@@ -129,7 +134,7 @@ try {
       body: StreamBuilder<DocumentSnapshot>(
         stream: FirebaseFirestore.instance
             .collection('capsules')
-            .doc(capsuleId)
+            .doc(widget.capsuleId)
             .snapshots(),
         builder:
             (BuildContext context, AsyncSnapshot<DocumentSnapshot> snapshot) {
@@ -218,7 +223,7 @@ try {
                             'Delete',
                             style: TextStyle(color: AppColors.textColor),
                           ),
-                          onPressed: null,
+                          onPressed: _showDeleteCapsuleDialog,
                         ),
                       ),
                       const SizedBox(width: 10),

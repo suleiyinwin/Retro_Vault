@@ -68,7 +68,7 @@ class _OpenedCapsuleState extends State<OpenedCapsule> {
           ),
           backgroundColor: AppColors.backgroundColor,
           content: const Text(
-            "Are you sure you want to delete your capsule?",
+            "Are you sure you want to delete this capsule?",
             style: TextStyle(
               color: AppColors.textColor,
               fontSize: 20,
