@@ -5,11 +5,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter/painting.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
-import 'package:retro/pages/capsule_management/create_capsule.dart';
+import 'package:retro/pages/capsule_management/capsule_image_widget.dart';
 import 'package:retro/pages/capsule_management/fab.dart';
+import 'package:retro/pages/capsule_management/lock_icon_widget.dart';
+import 'package:retro/pages/capsule_management/opened_capsule.dart';
+import 'package:retro/pages/capsule_management/opened_capsule_text.dart';
+import 'package:retro/pages/capsule_management/utilities.dart';
 import '../../components/colors.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'package:retro/firebase_options.dart';
+import 'edit_capsule.dart';
 
 class UserInformation extends StatefulWidget {
   const UserInformation({super.key});
@@ -46,10 +49,13 @@ class _UserInformationState extends State<UserInformation> {
                 snapshot.data!.docs[index].data()! as Map<String, dynamic>;
 
             return CapsuleWidget(
-                title: data['title'],
-                author: getUserName(FirebaseAuth.instance.currentUser!.uid),
-                imageUrl: data['coverPhotoUrl'] ?? '',
-                openDate: data['openDate']);
+              capsuleId: data['capsuleId'],
+              title: data['title'],
+              author: getUserName(FirebaseAuth.instance.currentUser!.uid),
+              imageUrl: data['coverPhotoUrl'] ?? '',
+              openDate: data['openDate'],
+              editBeforeDate: data['editBeforeDate'],
+            );
           },
           separatorBuilder: (context, index) => const Divider(
             color: Colors.transparent,
@@ -81,8 +87,10 @@ Future<String> getUserName(String userId) async {
 
 //Timestamp
 String parseDate(Timestamp timestamp) {
+  var current = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+
   Duration duration =
-      Duration(seconds: timestamp.seconds - Timestamp.now().seconds);
+      Duration(seconds: timestamp.seconds - current);
 
   if (duration.inMinutes < 60) {
     return '${duration.inMinutes} minutes left';
@@ -95,18 +103,128 @@ String parseDate(Timestamp timestamp) {
   return '${duration.inDays} days left';
 }
 
+String parseRemainingTime(Timestamp timestamp) {
+  var current = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+
+  Duration duration =
+  Duration(seconds: timestamp.seconds - current);
+
+  if (duration.inMinutes < 60) {
+    return '${duration.inMinutes} more minutes';
+  }
+
+  if (duration.inHours < 24) {
+    return '${duration.inHours} more hours';
+  }
+
+  return '${duration.inDays} more days';
+}
+
+Future<void> _dialogBuilder(BuildContext context, Timestamp openDate) async {
+  showDialog(
+    context: context, 
+    builder: (BuildContext context){
+      return AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20.0),
+        ),
+        backgroundColor: AppColors.backgroundColor,
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Image.asset(
+              'image/time.png', 
+              width: 60,
+              height: 60,
+            ),
+            const SizedBox(height: 15),
+            Text.rich(
+              TextSpan(
+                children: [
+                  const TextSpan(
+                    text: 'Your capsule is locked now.\nWait for ',
+                    style: TextStyle(
+                      color: AppColors.textColor,
+                      fontSize: 18,
+                      
+                    ),
+                  ),
+                  TextSpan(
+                    text: parseRemainingTime(openDate),
+                    style: const TextStyle(
+                      color: AppColors.textColor,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const TextSpan(
+                    text: ' to view',
+                    style: TextStyle(
+                      color: AppColors.textColor,
+                      fontSize: 18,
+                      
+                    ),
+                  ),
+                ],
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 20),
+            SizedBox(
+              width: 150, // Set the desired width for the button
+              child: OutlinedButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 12),
+                  child: Text(
+                    "Ok",
+                    style: TextStyle(
+                      color: AppColors.textColor,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                style: OutlinedButton.styleFrom(
+                  side: const BorderSide(color: AppColors.primaryColor),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(30.0),
+                  ),
+                  backgroundColor: AppColors.backgroundColor,
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    },
+  );
+}
+
+    //   content: Text('Your capsule is locked now.\nWait for ${parseRemainingTime(openDate)} to view'),
+    // );
+  
+
+
 class CapsuleWidget extends StatelessWidget {
+  final String capsuleId;
   final String title;
   final Future<String> author;
   final String imageUrl;
   final Timestamp openDate;
+  final Timestamp editBeforeDate;
 
   const CapsuleWidget({
     super.key,
+    required this.capsuleId,
     required this.title,
     required this.author,
     required this.imageUrl,
     required this.openDate,
+    required this.editBeforeDate,
   });
 
   @override
@@ -115,10 +233,57 @@ class CapsuleWidget extends StatelessWidget {
         future: author,
         builder: (context, snapshot) {
           return GestureDetector(
-            // onTap: () => Navigator.push(
-            //   context,
-            //   MaterialPageRoute(builder: (context) => const CreateCapsule()),
-            // ),
+            onTap: () {
+              if (isLocked(openDate)) {
+                if (isEditable(editBeforeDate)) {
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => EditCapsule(
+                              id: capsuleId,
+                              od: DateTime.parse(openDate.toDate().toString())
+                                  .toLocal(),
+                              ebd: DateTime.parse(
+                                      editBeforeDate.toDate().toString())
+                                  .toLocal())));
+                } else {
+                  // show lock modal
+                  _dialogBuilder(context, openDate);
+                }
+              } else {
+                FirebaseFirestore.instance
+                    .collection('capsules')
+                    .where('capsuleId', isEqualTo: capsuleId)
+                    .get()
+                    .then((value) {
+                  if (value.docs.isEmpty) {
+                    return;
+                  }
+
+                  final String id = value.docs![0].id;
+                  final data = value.docs![0].data();
+
+                  bool hasPhotoUrls = false;
+
+                  for (int i = 0; i < 10; ++i) {
+                    final key = 'capsule_photourl$i';
+                    if (data.containsKey(key) && data[key] != null) {
+                      hasPhotoUrls = true;
+                      break;
+                    }
+                  }
+
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => hasPhotoUrls
+                          ? OpenedCapsule(capsuleId: id)
+                          : OpenedCapsuleText(capsuleId: id),
+                    ),
+                  );
+                });
+              }
+            },
             child: Container(
               padding: const EdgeInsets.all(4),
               height: 150,
@@ -130,14 +295,10 @@ class CapsuleWidget extends StatelessWidget {
                 Row(children: [
                   Expanded(
                     child: ClipRRect(
-                      borderRadius: const BorderRadius.only(
-                          topLeft: Radius.circular(150),
-                          bottomLeft: Radius.circular(150)),
-                      child: imageUrl == ''
-                          ? Image.asset('image/defaultcapsult.png',
-                              fit: BoxFit.cover)
-                          : Image.network(imageUrl, fit: BoxFit.cover),
-                    ),
+                        borderRadius: const BorderRadius.only(
+                            topLeft: Radius.circular(150),
+                            bottomLeft: Radius.circular(150)),
+                        child: CapsuleImageWidget(imageUrl: imageUrl)),
                   ),
 
                   //Title
@@ -150,6 +311,7 @@ class CapsuleWidget extends StatelessWidget {
                               left: 32, right: 16, top: 48),
                           child: Text(
                             title,
+                            overflow: TextOverflow.ellipsis,
                             style: const TextStyle(
                               fontSize: 17,
                               color: AppColors.primaryColor,
@@ -163,6 +325,7 @@ class CapsuleWidget extends StatelessWidget {
                           padding: const EdgeInsets.only(left: 32, right: 16),
                           child: Text(
                               'Shared by ${snapshot.connectionState == ConnectionState.waiting ? '…' : snapshot.data}',
+                              overflow: TextOverflow.ellipsis,
                               style: const TextStyle(
                                 fontSize: 12,
                                 color: AppColors.primaryColor,
@@ -170,7 +333,7 @@ class CapsuleWidget extends StatelessWidget {
                         ),
 
                         //Open Date
-                        Timestamp.now().seconds - openDate.seconds <= 0
+                        isLocked(openDate)
                             ? Padding(
                                 padding:
                                     const EdgeInsets.only(left: 32, right: 8),
@@ -185,13 +348,7 @@ class CapsuleWidget extends StatelessWidget {
                     ),
                   )
                 ]),
-                Center(
-                    child: Image.asset(
-                        Timestamp.now().seconds - openDate.seconds <= 0
-                            ? 'image/locked.png'
-                            : 'image/unlocked.png',
-                        width: 150,
-                        height: 150)),
+                Center(child: LockIconWidget(openDate: openDate)),
               ]),
             ),
           );

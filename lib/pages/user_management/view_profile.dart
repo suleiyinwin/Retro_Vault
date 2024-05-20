@@ -242,59 +242,56 @@ try {
                         ),
                       ),
                       const SizedBox(width: 16),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          StreamBuilder<String>(
-                            stream: _usernameStream,
-                            builder: (context, snapshot) {
-                              if (snapshot.connectionState ==
-                                  ConnectionState.waiting) {
-                                return const Text(
-                                  'Loading...',
-                                  style: TextStyle(
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.bold,
-                                    color: AppColors.textColor,
-                                  ),
-                                );
-                              } else if (snapshot.hasError) {
-                                return Text(
-                                  'Error: ${snapshot.error}',
-                                  style: const TextStyle(
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.bold,
-                                    color: AppColors.textColor,
-                                  ),
-                                );
-                              } else {
-                                return Text(
-                                  snapshot.data ?? 'Username not found',
-                                  style: const TextStyle(
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.bold,
-                                    color: AppColors.textColor,
-                                  ),
-                                );
-                              }
-                            },
-                          ),
-                          const SizedBox(height: 8),
-                          Row(
-                            children: [
-                              const Text(
-                                'Edit Profile',
-                                style: TextStyle(color: AppColors.textColor),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                      const SizedBox(width: 50),
                       Expanded(
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
+                            StreamBuilder<String>(
+                              stream: _usernameStream,
+                              builder: (context, snapshot) {
+                                if (snapshot.connectionState ==
+                                    ConnectionState.waiting) {
+                                  return const Text(
+                                    'Loading...',
+                                    style: TextStyle(
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.bold,
+                                      color: AppColors.textColor,
+                                    ),
+                                  );
+                                } else if (snapshot.hasError) {
+                                  return Text(
+                                    'Error: ${snapshot.error}',
+                                    style: const TextStyle(
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.bold,
+                                      color: AppColors.textColor,
+                                    ),
+                                  );
+                                } else {
+                                  return Text(
+                                    snapshot.data ?? 'Username not found',
+                                    style: const TextStyle(
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.bold,
+                                      color: AppColors.textColor,
+                                    ),
+                                  );
+                                }
+                              },
+                            ),
+                            const SizedBox(height: 8),
+                            const Row(
+                              children: [
+                                Text(
+                                  'Edit Profile',
+                                  style: TextStyle(color: AppColors.textColor),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
                             IconButton(
                               icon: const Icon(Icons.chevron_right),
                               onPressed: () {
@@ -303,11 +300,8 @@ try {
                                   MaterialPageRoute(
                                     builder: (context) => const EditProfile(),
                                   ),
-                                );
-                              },
-                            ),
-                          ],
-                        ),
+                          );
+                        },
                       ),
                     ],
                   ),
@@ -328,7 +322,8 @@ try {
                     children: [
                       Row(
                         children: [
-                          const Text('Change Password'),
+                          const Text('Change Password',
+                          style: TextStyle(color: AppColors.textColor),),
                           Expanded(
                             child: Row(
                                mainAxisAlignment: MainAxisAlignment.end,
@@ -345,7 +340,8 @@ try {
                       const Divider(color: AppColors.primaryColor),
                       Row(
                         children: [
-                          const Text('Delete My Account'),
+                          const Text('Delete My Account',
+                          style: TextStyle(color: AppColors.textColor),),
                           Expanded(
                             child: Row(
                                mainAxisAlignment: MainAxisAlignment.end,
@@ -362,7 +358,8 @@ try {
                       const Divider(color: AppColors.primaryColor),
                       Row(
                         children: [
-                          const Text('Log Out'),
+                          const Text('Log Out',
+                          style: TextStyle(color: AppColors.textColor),),
                           Expanded(
                             child: Row(
                                mainAxisAlignment: MainAxisAlignment.end,

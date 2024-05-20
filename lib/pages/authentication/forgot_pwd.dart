@@ -46,7 +46,6 @@ class _ForgotPasswordModalState extends State<ForgotPasswordModal> {
   }
 
   void _handleSendEmail() {
-    print('handle send');
     // Simulate sending email with OTP code (replace with actual logic)
     setState(() {
       showEmailField = false;
@@ -179,11 +178,8 @@ class _ForgotPasswordModalState extends State<ForgotPasswordModal> {
                               }
                               //when user found in collection
                               else {
-                                print('user found');
                                 try {
-                                  print('object');
                                   var email = _emailController.text.trim();
-                                  print(email);
                                   await FirebaseAuth.instance
                                       .sendPasswordResetEmail(
                                           email: _emailController.text.trim());
@@ -203,9 +199,7 @@ class _ForgotPasswordModalState extends State<ForgotPasswordModal> {
                                    } else if (e.code == 'invalid-email') {
                                      errorMessage = 'Invalid email address.';
                                    } else {
-                                     print("error: $e");
                                      errorMessage = e.code; // Set error message to error code
-                                     print("error1: $errorMessage");
                                      _formKey.currentState!
                                          .validate(); // This might not be necessary here
                                      
@@ -228,10 +222,7 @@ class _ForgotPasswordModalState extends State<ForgotPasswordModal> {
                               } else if (e.code == 'invalid-email') {
                                 errorMessage = 'Invalid email address.';
                               } else {
-                                print("error: $e");
-                                errorMessage =
-                                    e.code; // Set error message to error code
-                                print("error1: $errorMessage");
+                                errorMessage = e.code; // Set error message to error code
                                 _formKey.currentState!
                                     .validate(); // This might not be necessary here
                               }
