@@ -830,68 +830,6 @@ try {
                             ],
                           ),
                         ),
-                        Consumer<SharedUsers>(builder: (context, sharedUsers, child) {
-                          return Wrap(
-                            direction: Axis.horizontal,
-                            alignment: WrapAlignment.start,
-                            children: [...sharedUsers.users.map((user) {
-                              final u = user.data() as Map<String, dynamic>;
-                              final String? profilePhotoUrl = u['profile_photo_url'];
-
-                              return Container(
-                                margin: const EdgeInsets.fromLTRB(0, 0, 15, 15),
-                                padding: const EdgeInsets.fromLTRB(0, 0, 10, 0),
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(50),
-                                ),
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.start,
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Container(
-                                      padding: const EdgeInsets.all(2), // Border width
-                                      decoration: const BoxDecoration(
-                                        color: AppColors.textColor, // Border color
-                                        shape: BoxShape.circle,
-                                      ),
-                                      child: CircleAvatar(
-                                        radius: 20,
-                                        backgroundImage: profilePhotoUrl != null
-                                            ? NetworkImage(profilePhotoUrl) as ImageProvider
-                                            : const AssetImage('image/logo.png') as ImageProvider,
-                                      ),
-                                    ),
-                                    const SizedBox(width: 10),
-                                    Text(
-                                      user.get('username'),
-                                      style: const TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                    const SizedBox(width: 15),
-                                    Container(
-                                      width: 24,
-                                      height: 24,
-                                      decoration: const BoxDecoration(
-                                        shape: BoxShape.circle,
-                                        color: AppColors.systemGreay06Light,
-                                      ),
-                                      child: IconButton(
-                                        padding: EdgeInsets.zero,
-                                        icon: const Icon(Icons.close, size: 16, color: Colors.black),
-                                        onPressed: () {
-                                          sharedUsers.remove(user);
-                                        },
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              );
-                            })],
-                          );
-                        }),
                         Consumer<StagedImages>(
                             builder: (context, stagedImages, child) => Wrap(
                                   direction: Axis.horizontal,
@@ -960,6 +898,70 @@ try {
                                       )
                                       .toList(),
                                 )),
+                        const SizedBox(height: 20),
+                        Consumer<SharedUsers>(builder: (context, sharedUsers, child) {
+                          return Wrap(
+                            runSpacing: 8,
+                            spacing: 8,
+                            alignment: WrapAlignment.start,
+                            children: [...sharedUsers.users.map((user) {
+                              final u = user.data() as Map<String, dynamic>;
+                              final String? profilePhotoUrl = u['profile_photo_url'];
+
+                              return Container(
+                                // margin: const EdgeInsets.fromLTRB(0, 0, 15, 15),
+                                padding: const EdgeInsets.fromLTRB(0, 0, 10, 0),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(50),
+                                ),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.start,
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.all(2), // Border width
+                                      decoration: const BoxDecoration(
+                                        color: AppColors.textColor, // Border color
+                                        shape: BoxShape.circle,
+                                      ),
+                                      child: CircleAvatar(
+                                        radius: 20,
+                                        backgroundImage: profilePhotoUrl != null
+                                            ? NetworkImage(profilePhotoUrl) as ImageProvider
+                                            : const AssetImage('image/logo.png') as ImageProvider,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 10),
+                                    Text(
+                                      user.get('username'),
+                                      style: const TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 15),
+                                    Container(
+                                      width: 24,
+                                      height: 24,
+                                      decoration: const BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        color: AppColors.systemGreay06Light,
+                                      ),
+                                      child: IconButton(
+                                        padding: EdgeInsets.zero,
+                                        icon: const Icon(Icons.close, size: 16, color: Colors.black),
+                                        onPressed: () {
+                                          sharedUsers.remove(user);
+                                        },
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            })],
+                          );
+                        }),
                         const SizedBox(height: 20),
                         Row(
                           children: [
