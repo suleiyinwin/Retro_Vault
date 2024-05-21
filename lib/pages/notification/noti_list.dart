@@ -18,27 +18,51 @@ class _NotiPageState extends State<NotiPage> {
   @override
   void initState() {
     super.initState();
-    _startPolling();
+    _loadInitialNotifications();
+    _startDelayedPolling();
   }
 
-  void _startPolling() {
-    Timer.periodic(const Duration(seconds: 20), (timer) async {
-      final userId = FirebaseAuth.instance.currentUser?.uid;
+  Future<void> _loadInitialNotifications() async {
+    final userId = FirebaseAuth.instance.currentUser?.uid;
+    if (userId != null) {
       final snapshot = await FirebaseFirestore.instance
-        .collection('notifications')
-        .where('userId', isEqualTo: userId)
-        .orderBy('timestamp', descending: true)
-        .get();
-      print(snapshot.docs.length); // Debugging (remove later
+          .collection('notifications')
+          .where('userId', isEqualTo: userId)
+          .orderBy('timestamp', descending: true)
+          .get();
       final List<Map<String, dynamic>> notifications = snapshot.docs
-        .map((doc) => {
-            'message': doc['message'],
-          })
-        .toList();
-
+          .map((doc) => {'message': doc['message']})
+          .toList();
       setState(() {
         _notifications = notifications;
       });
+    }
+  }
+
+  void _startDelayedPolling() {
+    Future.delayed(const Duration(seconds: 10), () {
+      _startPolling();
+    });
+  }
+
+  void _startPolling() {
+    Timer.periodic(const Duration(seconds: 10), (timer) async {
+      final userId = FirebaseAuth.instance.currentUser?.uid;
+      if (userId != null) {
+        final snapshot = await FirebaseFirestore.instance
+            .collection('notifications')
+            .where('userId', isEqualTo: userId)
+            .orderBy('timestamp', descending: true)
+            .get();
+        print(snapshot.docs.length); // Debugging (remove later)
+        final List<Map<String, dynamic>> notifications = snapshot.docs
+            .map((doc) => {'message': doc['message']})
+            .toList();
+
+        setState(() {
+          _notifications = notifications;
+        });
+      }
     });
   }
 
