@@ -1,17 +1,137 @@
-import 'package:flutter/material.dart';
+import 'dart:async';
 
-class NotiPage extends StatelessWidget {
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
+import 'package:retro/components/colors.dart';
+
+class NotiPage extends StatefulWidget {
   const NotiPage({super.key});
 
   @override
+  State<NotiPage> createState() => _NotiPageState();
+}
+
+class _NotiPageState extends State<NotiPage> {
+  List<Map<String, dynamic>> _notifications = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _startPolling();
+  }
+
+  void _startPolling() {
+    Timer.periodic(const Duration(seconds: 20), (timer) async {
+      final userId = FirebaseAuth.instance.currentUser?.uid;
+      final snapshot = await FirebaseFirestore.instance
+        .collection('notifications')
+        .where('userId', isEqualTo: userId)
+        .orderBy('timestamp', descending: true)
+        .get();
+      print(snapshot.docs.length); // Debugging (remove later
+      final List<Map<String, dynamic>> notifications = snapshot.docs
+        .map((doc) => {
+            'message': doc['message'],
+          })
+        .toList();
+
+      setState(() {
+        _notifications = notifications;
+      });
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Notification'), 
+        backgroundColor: AppColors.backgroundColor,
+        leading: ModalRoute.of(context)?.canPop == true
+            ? IconButton(
+                icon: const Icon(Icons.arrow_back),
+                onPressed: () => Navigator.pop(context),
+              )
+            : null,
       ),
-      body: const Center(
-        child: Text('Notification Page'),
-      ),
+      backgroundColor: AppColors.backgroundColor,
+      body: LayoutBuilder(builder: (context, constraints) {
+        return ListView.builder(
+          itemCount: _notifications.length,
+          itemBuilder: (context, index) {
+            return NotiCard(
+              message: _notifications[index]['message'], 
+              constraints: constraints);
+          },
+        );
+      }),
+    );
+  }
+}
+
+class NotiCard extends StatelessWidget {
+  final String message;
+  final BoxConstraints constraints;
+
+  const NotiCard({
+    super.key,
+    required this.message,
+    required this.constraints,});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 1.0),
+      child: Container(
+        height: 100.0,
+        child: Card(
+          surfaceTintColor: AppColors.systemGreay06Light,
+          // shadowColor: AppColors.systemGreay06Light,
+          color: AppColors.systemGreay06Light,
+          child: ListTile(
+            contentPadding: const EdgeInsets.all(10.0),
+            leading: Container(
+              width: 64,
+              height: 64,
+              decoration: const BoxDecoration(
+                shape: BoxShape.circle,
+                color: AppColors.primaryColor,
+              ),
+              child: ClipOval(
+                child: Container(
+                  width: 64,
+                  height: 64,
+                  decoration: const BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: AppColors.primaryColor,
+                  ),
+                //  child: _profilePhotoUrl.isNotEmpty
+                //   ? Image.network(_profilePhotoUrl,width: 100, height: 100,fit: BoxFit.cover,) // Load profile photo from URL
+                //   : Image.asset('image/splashlogo.png', width: 100, height: 100,fit: BoxFit.cover,), // Fallback image if URL is empty
+                ),
+              ),
+            ),
+            title: const Text(
+              'Username', 
+              style: TextStyle(
+                color: AppColors.textColor,
+                fontSize: 15.0,fontWeight: 
+                FontWeight.bold
+              )
+            ),
+            subtitle: Text(
+              message,
+              style: const TextStyle(
+                color: AppColors.textColor,
+                fontSize: 12.0,
+              ),
+            // Use the constraints to conditionally adjust the layout
+            // trailing: constraints.maxWidth > 600 ? Icon(Icons.more_vert) : null,
+            ),
+          ),
+        ),
+      )
     );
   }
 }
