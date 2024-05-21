@@ -164,7 +164,7 @@ class NotiCard extends StatelessWidget {
               .get();
 
           if (capsuleData.docs.isNotEmpty) {
-            final data = capsuleData.docs.first.data()!;
+            final data = capsuleData.docs.first.data();
             // print(data);
             final String title = data['title'];
             final String imageUrl = data['coverPhotoUrl'] ?? '';
@@ -203,7 +203,7 @@ class NotiCard extends StatelessWidget {
                 backgroundColor: AppColors.primaryColor,
                 backgroundImage: profilePic.isNotEmpty
                     ? NetworkImage(profilePic)
-                    : AssetImage('image/splashlogo.png') as ImageProvider,
+                    : const AssetImage('image/splashlogo.png') as ImageProvider,
               ),
               title: Text(
                 username, 
@@ -236,7 +236,7 @@ class NotiCard extends StatelessWidget {
         .get();
     if (userData.docs.isNotEmpty) {
       // print(userData.docs.first.data());
-      return userData.docs.first.data()!['username'];
+      return userData.docs.first.data()['username'];
     }
     } catch (error) {
       print('Error fetching: $error');
