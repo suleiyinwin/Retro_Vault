@@ -4,7 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:retro/components/colors.dart';
-import 'package:retro/pages/capsule_management/capsule_list.dart';
+import 'package:retro/pages/notification/noti_capsule.dart';
 
 class NotiPage extends StatefulWidget {
   const NotiPage({super.key});
@@ -165,7 +165,7 @@ class NotiCard extends StatelessWidget {
 
           if (capsuleData.docs.isNotEmpty) {
             final data = capsuleData.docs.first.data()!;
-            print(data);
+            // print(data);
             final String title = data['title'];
             final String imageUrl = data['coverPhotoUrl'] ?? '';
             final Future<String> author = getAuthor(data['userId']);
@@ -175,7 +175,7 @@ class NotiCard extends StatelessWidget {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => CapsuleWidget(
+                builder: (context) => NotiCapsule(
                   capsuleId: capsuleId,
                   title: title,
                   author: author,
@@ -235,7 +235,7 @@ class NotiCard extends StatelessWidget {
         .where('userId', isEqualTo: authorId)
         .get();
     if (userData.docs.isNotEmpty) {
-      print(userData.docs.first.data());
+      // print(userData.docs.first.data());
       return userData.docs.first.data()!['username'];
     }
     } catch (error) {
