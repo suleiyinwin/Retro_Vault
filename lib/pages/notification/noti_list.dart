@@ -25,17 +25,37 @@ class _NotiPageState extends State<NotiPage> {
   Future<void> _loadInitialNotifications() async {
     final userId = FirebaseAuth.instance.currentUser?.uid;
     if (userId != null) {
-      final snapshot = await FirebaseFirestore.instance
-          .collection('notifications')
-          .where('userId', isEqualTo: userId)
-          .orderBy('timestamp', descending: true)
-          .get();
-      final List<Map<String, dynamic>> notifications = snapshot.docs
-          .map((doc) => {'message': doc['message']})
-          .toList();
-      setState(() {
-        _notifications = notifications;
-      });
+      try {
+        final snapshot = await FirebaseFirestore.instance
+            .collection('notifications')
+            .where('userId', isEqualTo: userId)
+            .orderBy('timestamp', descending: true)
+            .get();
+        if(snapshot.docs.isNotEmpty){
+          print(snapshot.docs.length); // Debugging (remove later)
+          final List<Map<String, dynamic>> notifications = [];
+          for (var doc in snapshot.docs) {
+            final sharedUserRef = doc['shareduser'] as DocumentReference;
+            final sharedUserSnapshot = await sharedUserRef.get();
+            if(sharedUserSnapshot.exists){
+              final sharedUserData = sharedUserSnapshot.data() as Map<String, dynamic>;
+              print(sharedUserData); // Debugging (remove later
+
+              notifications.add({
+                'message': doc['message'],
+                'username': sharedUserData['username'],
+                'profilePic': sharedUserData['profile_photo_url'] ?? '',
+              });
+            }
+
+            setState(() {
+              _notifications = notifications;
+            });
+          }
+        }
+      } catch (error) {
+        print('Error fetching: $error');
+      }
     }
   }
 
@@ -49,19 +69,37 @@ class _NotiPageState extends State<NotiPage> {
     Timer.periodic(const Duration(seconds: 10), (timer) async {
       final userId = FirebaseAuth.instance.currentUser?.uid;
       if (userId != null) {
-        final snapshot = await FirebaseFirestore.instance
-            .collection('notifications')
-            .where('userId', isEqualTo: userId)
-            .orderBy('timestamp', descending: true)
-            .get();
-        print(snapshot.docs.length); // Debugging (remove later)
-        final List<Map<String, dynamic>> notifications = snapshot.docs
-            .map((doc) => {'message': doc['message']})
-            .toList();
+        try {
+          final snapshot = await FirebaseFirestore.instance
+              .collection('notifications')
+              .where('userId', isEqualTo: userId)
+              .orderBy('timestamp', descending: true)
+              .get();
+          if(snapshot.docs.isNotEmpty){
+            print(snapshot.docs.length); // Debugging (remove later)
+            final List<Map<String, dynamic>> notifications = [];
+            for (var doc in snapshot.docs) {
+              final sharedUserRef = doc['shareduser'] as DocumentReference;
+              final sharedUserSnapshot = await sharedUserRef.get();
+              if(sharedUserSnapshot.exists){
+                final sharedUserData = sharedUserSnapshot.data() as Map<String, dynamic>;
+                print(sharedUserData); // Debugging (remove later
 
-        setState(() {
-          _notifications = notifications;
-        });
+                notifications.add({
+                  'message': doc['message'],
+                  'username': sharedUserData['username'],
+                  'profilePic': sharedUserData['profile_photo_url'] ?? '',
+                });
+              }
+
+              setState(() {
+                _notifications = notifications;
+              });
+            }
+          }
+        } catch (error) {
+          print('Error fetching: $error');
+        }
       }
     });
   }
@@ -85,7 +123,9 @@ class _NotiPageState extends State<NotiPage> {
           itemCount: _notifications.length,
           itemBuilder: (context, index) {
             return NotiCard(
-              message: _notifications[index]['message'], 
+              username: _notifications[index]['username'],
+              profilePic: _notifications[index]['profilePic'],
+              message: _notifications[index]['message'],
               constraints: constraints);
           },
         );
@@ -95,11 +135,15 @@ class _NotiPageState extends State<NotiPage> {
 }
 
 class NotiCard extends StatelessWidget {
+  final String username;
+  final String profilePic;
   final String message;
   final BoxConstraints constraints;
 
   const NotiCard({
     super.key,
+    required this.username,
+    required this.profilePic,
     required this.message,
     required this.constraints,});
 
@@ -123,22 +167,27 @@ class NotiCard extends StatelessWidget {
                 color: AppColors.primaryColor,
               ),
               child: ClipOval(
-                child: Container(
+                child: profilePic.isNotEmpty 
+                ? Image.network(
+                  profilePic,
                   width: 64,
                   height: 64,
-                  decoration: const BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: AppColors.primaryColor,
-                  ),
+                  fit: BoxFit.cover,
+                ) : Image.asset(
+                  'image/splashlogo.png',
+                  width: 64,
+                  height: 64,
+                  fit: BoxFit.cover,
+                ),
                 //  child: _profilePhotoUrl.isNotEmpty
                 //   ? Image.network(_profilePhotoUrl,width: 100, height: 100,fit: BoxFit.cover,) // Load profile photo from URL
                 //   : Image.asset('image/splashlogo.png', width: 100, height: 100,fit: BoxFit.cover,), // Fallback image if URL is empty
-                ),
+                // ),
               ),
             ),
-            title: const Text(
-              'Username', 
-              style: TextStyle(
+            title: Text(
+              username, 
+              style: const TextStyle(
                 color: AppColors.textColor,
                 fontSize: 15.0,fontWeight: 
                 FontWeight.bold
