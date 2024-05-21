@@ -313,17 +313,18 @@ try {
                                 children: [
                                   const Icon(
                                     Icons.calendar_month_outlined,
-                                    color: AppColors.textColor,
+                                    color: AppColors.systemGreay04Light,
                                   ),
                                   const SizedBox(width: 10),
                                   const Text(
                                     'Edit Before',
                                     style:
-                                        TextStyle(color: AppColors.textColor),
+                                        TextStyle(color: AppColors.systemGreay04Light),
                                   ),
                                   const Spacer(),
                                   GestureDetector(
                                     onTap: () {
+                                      return;
                                       showDatePicker(
                                         context: context,
                                         initialDate: _editBeforeDate,
@@ -379,7 +380,7 @@ try {
                                       DateFormat.yMMMd()
                                           .format(_editBeforeDate),
                                       style: const TextStyle(
-                                          color: AppColors.textColor),
+                                          color: AppColors.systemGreay04Light),
                                     ),
                                   )
                                 ],
