@@ -1,11 +1,7 @@
 import 'dart:async'; //needed to use Timer to set default time for loading screen
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
-import 'package:retro/pages/capsule_management/capsule_list.dart';
-import '../../firebase_options.dart';
 import 'login.dart';
 import '../../components/colors.dart'; // Assuming this file defines your app colors
 
