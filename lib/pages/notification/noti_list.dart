@@ -159,31 +159,12 @@ class NotiCard extends StatelessWidget {
           color: AppColors.systemGreay06Light,
           child: ListTile(
             contentPadding: const EdgeInsets.all(10.0),
-            leading: Container(
-              width: 64,
-              height: 64,
-              decoration: const BoxDecoration(
-                shape: BoxShape.circle,
-                color: AppColors.primaryColor,
-              ),
-              child: ClipOval(
-                child: profilePic.isNotEmpty 
-                ? Image.network(
-                  profilePic,
-                  width: 64,
-                  height: 64,
-                  fit: BoxFit.cover,
-                ) : Image.asset(
-                  'image/splashlogo.png',
-                  width: 64,
-                  height: 64,
-                  fit: BoxFit.cover,
-                ),
-                //  child: _profilePhotoUrl.isNotEmpty
-                //   ? Image.network(_profilePhotoUrl,width: 100, height: 100,fit: BoxFit.cover,) // Load profile photo from URL
-                //   : Image.asset('image/splashlogo.png', width: 100, height: 100,fit: BoxFit.cover,), // Fallback image if URL is empty
-                // ),
-              ),
+            leading: CircleAvatar(
+              radius: 32, // Adjust the radius to change the size
+              backgroundColor: AppColors.primaryColor,
+              backgroundImage: profilePic.isNotEmpty
+                  ? NetworkImage(profilePic)
+                  : AssetImage('image/splashlogo.png') as ImageProvider,
             ),
             title: Text(
               username, 
