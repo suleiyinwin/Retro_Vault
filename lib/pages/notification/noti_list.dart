@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:retro/components/colors.dart';
+import 'package:retro/pages/capsule_management/capsule_list.dart';
 
 class NotiPage extends StatefulWidget {
   const NotiPage({super.key});
@@ -41,6 +42,7 @@ class _NotiPageState extends State<NotiPage> {
               final sharedUserData = sharedUserSnapshot.data() as Map<String, dynamic>; 
 
               notifications.add({
+                'capsuleId': doc['capsuleId'],
                 'message': doc['message'],
                 'username': sharedUserData['username'],
                 'profilePic': sharedUserData['profile_photo_url'] ?? '',
@@ -83,6 +85,7 @@ class _NotiPageState extends State<NotiPage> {
                 final sharedUserData = sharedUserSnapshot.data() as Map<String, dynamic>;
 
                 notifications.add({
+                  'capsuleId': doc['capsuleId'],
                   'message': doc['message'],
                   'username': sharedUserData['username'],
                   'profilePic': sharedUserData['profile_photo_url'] ?? '',
@@ -120,6 +123,7 @@ class _NotiPageState extends State<NotiPage> {
           itemCount: _notifications.length,
           itemBuilder: (context, index) {
             return NotiCard(
+              capsuleId: _notifications[index]['capsuleId'],
               username: _notifications[index]['username'],
               profilePic: _notifications[index]['profilePic'],
               message: _notifications[index]['message'],
@@ -135,6 +139,7 @@ class NotiCard extends StatelessWidget {
   final String username;
   final String profilePic;
   final String message;
+  final String capsuleId;
   final BoxConstraints constraints;
 
   const NotiCard({
@@ -142,47 +147,101 @@ class NotiCard extends StatelessWidget {
     required this.username,
     required this.profilePic,
     required this.message,
+    required this.capsuleId,
     required this.constraints,});
 
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 1.0),
-      child: Container(
-        height: 100.0,
-        child: Card(
-          surfaceTintColor: AppColors.systemGreay06Light,
-          // shadowColor: AppColors.systemGreay06Light,
-          color: AppColors.systemGreay06Light,
-          child: ListTile(
-            contentPadding: const EdgeInsets.all(10.0),
-            leading: CircleAvatar(
-              radius: 32, // Adjust the radius to change the size
-              backgroundColor: AppColors.primaryColor,
-              backgroundImage: profilePic.isNotEmpty
-                  ? NetworkImage(profilePic)
-                  : AssetImage('image/splashlogo.png') as ImageProvider,
-            ),
-            title: Text(
-              username, 
-              style: const TextStyle(
-                color: AppColors.textColor,
-                fontSize: 15.0,fontWeight: 
-                FontWeight.bold
-              )
-            ),
-            subtitle: Text(
-              message,
-              style: const TextStyle(
-                color: AppColors.textColor,
-                fontSize: 12.0,
+      child: GestureDetector(
+        onTap: () async {
+          if(capsuleId.isNotEmpty){
+          try {
+          final capsuleData = await FirebaseFirestore.instance
+              .collection('capsules')
+              .where('capsuleId', isEqualTo: capsuleId)
+              .get();
+
+          if (capsuleData.docs.isNotEmpty) {
+            final data = capsuleData.docs.first.data()!;
+            print(data);
+            final String title = data['title'];
+            final String imageUrl = data['coverPhotoUrl'] ?? '';
+            final Future<String> author = getAuthor(data['userId']);
+            final Timestamp openDate = data['openDate'];
+            final Timestamp editBeforeDate = data['editBeforeDate'];
+
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => CapsuleWidget(
+                  capsuleId: capsuleId,
+                  title: title,
+                  author: author,
+                  imageUrl: imageUrl,
+                  openDate: openDate,
+                  editBeforeDate: editBeforeDate,
+                ),
               ),
-            // Use the constraints to conditionally adjust the layout
-            // trailing: constraints.maxWidth > 600 ? Icon(Icons.more_vert) : null,
+            );
+          }
+          } catch (error) {
+            print('Error fetching: $error');
+          }}
+        },
+        child: Container(
+          height: 100.0,
+          child: Card(
+            surfaceTintColor: AppColors.systemGreay06Light,
+            // shadowColor: AppColors.systemGreay06Light,
+            color: AppColors.systemGreay06Light,
+            child: ListTile(
+              contentPadding: const EdgeInsets.all(10.0),
+              leading: CircleAvatar(
+                radius: 32, // Adjust the radius to change the size
+                backgroundColor: AppColors.primaryColor,
+                backgroundImage: profilePic.isNotEmpty
+                    ? NetworkImage(profilePic)
+                    : AssetImage('image/splashlogo.png') as ImageProvider,
+              ),
+              title: Text(
+                username, 
+                style: const TextStyle(
+                  color: AppColors.textColor,
+                  fontSize: 15.0,fontWeight: 
+                  FontWeight.bold
+                )
+              ),
+              subtitle: Text(
+                message,
+                style: const TextStyle(
+                  color: AppColors.textColor,
+                  fontSize: 12.0,
+                ),
+              // Use the constraints to conditionally adjust the layout
+              // trailing: constraints.maxWidth > 600 ? Icon(Icons.more_vert) : null,
+              ),
             ),
           ),
         ),
       )
     );
+  }
+  Future<String> getAuthor(String authorId) async {
+    try{
+    final userData = await FirebaseFirestore.instance
+        .collection('user')
+        .where('userId', isEqualTo: authorId)
+        .get();
+    if (userData.docs.isNotEmpty) {
+      print(userData.docs.first.data());
+      return userData.docs.first.data()!['username'];
+    }
+    } catch (error) {
+      print('Error fetching: $error');
+      
+    }
+    return 'Unknown';
   }
 }
