@@ -32,14 +32,13 @@ class _NotiPageState extends State<NotiPage> {
             .orderBy('timestamp', descending: true)
             .get();
         if(snapshot.docs.isNotEmpty){
-          print(snapshot.docs.length); // Debugging (remove later)
+
           final List<Map<String, dynamic>> notifications = [];
           for (var doc in snapshot.docs) {
             final sharedUserRef = doc['shareduser'] as DocumentReference;
             final sharedUserSnapshot = await sharedUserRef.get();
             if(sharedUserSnapshot.exists){
-              final sharedUserData = sharedUserSnapshot.data() as Map<String, dynamic>;
-              print(sharedUserData); // Debugging (remove later
+              final sharedUserData = sharedUserSnapshot.data() as Map<String, dynamic>; 
 
               notifications.add({
                 'message': doc['message'],
@@ -76,14 +75,12 @@ class _NotiPageState extends State<NotiPage> {
               .orderBy('timestamp', descending: true)
               .get();
           if(snapshot.docs.isNotEmpty){
-            print(snapshot.docs.length); // Debugging (remove later)
             final List<Map<String, dynamic>> notifications = [];
             for (var doc in snapshot.docs) {
               final sharedUserRef = doc['shareduser'] as DocumentReference;
               final sharedUserSnapshot = await sharedUserRef.get();
               if(sharedUserSnapshot.exists){
                 final sharedUserData = sharedUserSnapshot.data() as Map<String, dynamic>;
-                print(sharedUserData); // Debugging (remove later
 
                 notifications.add({
                   'message': doc['message'],
