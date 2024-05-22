@@ -11,6 +11,7 @@ import 'package:provider/provider.dart';
 import 'package:retro/components/bottomNavigation.dart';
 import 'package:retro/components/colors.dart';
 import 'package:retro/pages/capsule_management/capsule_list.dart';
+import 'package:retro/pages/capsule_management/shared_users.dart';
 import 'package:retro/pages/capsule_management/utilities.dart';
 import 'package:uuid/uuid.dart';
 import 'package:http/http.dart' as http;
@@ -50,6 +51,7 @@ class _CapsuleState extends State<EditCapsule> {
   String errorMessage = '';
   final _titleController = TextEditingController();
   final _messageController = TextEditingController();
+  final _sharedWithController = TextEditingController();
   Uint8List? _imageBytes;
   late DateTime _editBeforeDate = widget.ebd;
   late DateTime _openDate = widget.od;
@@ -226,6 +228,7 @@ try {
 
               if (snapshot.data!.docs.isEmpty) return const Text("Deleted");
 
+              var capsuleDocId = snapshot.data!.docs[0].id;
               var data = snapshot.data!.docs[0].data() as Map<String, dynamic>;
               String? coverPhotoUrl = data.containsKey('coverPhotoUrl')
                   ? data['coverPhotoUrl']
@@ -241,7 +244,8 @@ try {
                         create: (BuildContext context) =>
                             CapsuleImages(images: [...images])),
                     ChangeNotifierProvider(
-                        create: (BuildContext context) => StagedImages())
+                        create: (BuildContext context) => StagedImages()),
+                    ChangeNotifierProvider(create: (BuildContext context) => SharedUsers(capsuleDocId: capsuleDocId)),
                   ],
                   child: Form(
                     key: _formKey,
@@ -315,17 +319,18 @@ try {
                                 children: [
                                   const Icon(
                                     Icons.calendar_month_outlined,
-                                    color: AppColors.textColor,
+                                    color: AppColors.systemGreay04Light,
                                   ),
                                   const SizedBox(width: 10),
                                   const Text(
                                     'Edit Before',
                                     style:
-                                        TextStyle(color: AppColors.textColor),
+                                        TextStyle(color: AppColors.systemGreay04Light),
                                   ),
                                   const Spacer(),
                                   GestureDetector(
                                     onTap: () {
+                                      return;
                                       showDatePicker(
                                         context: context,
                                         initialDate: _editBeforeDate,
@@ -381,7 +386,7 @@ try {
                                       DateFormat.yMMMd()
                                           .format(_editBeforeDate),
                                       style: const TextStyle(
-                                          color: AppColors.textColor),
+                                          color: AppColors.systemGreay04Light),
                                     ),
                                   )
                                 ],
@@ -901,6 +906,133 @@ try {
                                 )),
                         const SizedBox(height: 20),
                         Row(
+                          children: [
+                            const Text(
+                              'Share with',
+                              style: TextStyle(
+                                color: AppColors.textColor,
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(width: 20),
+                            Consumer<SharedUsers>(
+                              builder: (context, sharedUsers, child) =>
+                            Expanded(
+                              child: SizedBox(
+                                height: 50,
+                                child: TextFormField(
+                                  controller: _sharedWithController,
+                                  decoration: InputDecoration(
+                                      border: OutlineInputBorder(
+                                        borderRadius:
+                                        BorderRadius.circular(40), // Border radius
+                                        borderSide: BorderSide
+                                            .none, // Remove the default border
+                                      ),
+                                      filled: true,
+                                      fillColor: AppColors.white),
+                                  style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      color: AppColors.textColor),
+                                  // onEditingComplete: () => _getSharedUser(),
+                                  onEditingComplete: () async {
+                                    String email = _sharedWithController.text.trim();
+
+                                    if (SharedUsers.isUserAuthedUser(email)) {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(
+                                          content: Text('You cannot share with yourself'),
+                                          backgroundColor: Colors.orange,
+                                        ),
+                                      );
+
+                                      return;
+                                    }
+
+                                    try {
+                                      await sharedUsers.add(email);
+                                      _sharedWithController.clear();
+                                    } catch (e) {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(
+                                          content: Text(e.toString().replaceAll('Exception: ', '')),
+                                          backgroundColor: e.toString().contains('added') ? Colors.orange : Colors.red,
+                                        ),
+                                      );
+                                    }
+                                  },
+                                ),
+                              ),
+                            ),
+                            )
+                          ],
+                        ),
+                        const SizedBox(height: 20),
+                        Consumer<SharedUsers>(builder: (context, sharedUsers, child) {
+                          return Wrap(
+                            direction: Axis.horizontal,
+                            alignment: WrapAlignment.start,
+                            children: [...sharedUsers.users.map((user) {
+                              final u = user.data() as Map<String, dynamic>;
+                              final String? profilePhotoUrl = u['profile_photo_url'];
+
+                              return Container(
+                                margin: const EdgeInsets.fromLTRB(0, 0, 15, 15),
+                                padding: const EdgeInsets.fromLTRB(0, 0, 10, 0),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(50),
+                                ),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.start,
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.all(2), // Border width
+                                      decoration: const BoxDecoration(
+                                        color: AppColors.textColor, // Border color
+                                        shape: BoxShape.circle,
+                                      ),
+                                      child: CircleAvatar(
+                                        radius: 20,
+                                        backgroundImage: profilePhotoUrl != null
+                                            ? NetworkImage(profilePhotoUrl) as ImageProvider
+                                            : const AssetImage('image/logo.png') as ImageProvider,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 10),
+                                    Text(
+                                      user.get('username'),
+                                      style: const TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 15),
+                                    Container(
+                                      width: 24,
+                                      height: 24,
+                                      decoration: const BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        color: AppColors.systemGreay06Light,
+                                      ),
+                                      child: IconButton(
+                                        padding: EdgeInsets.zero,
+                                        icon: const Icon(Icons.close, size: 16, color: Colors.black),
+                                        onPressed: () {
+                                          sharedUsers.remove(user);
+                                        },
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            })],
+                          );
+                        }),
+                        const SizedBox(height: 20),
+                        Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           mainAxisSize: MainAxisSize.max,
                           children: [
@@ -922,9 +1054,8 @@ try {
                               ),
                             ),
                             const SizedBox(width: 10),
-                            Consumer2<CapsuleImages, StagedImages>(
-                                builder: (context, capsuleImages, stagedImages,
-                                        child) =>
+                            Consumer3<CapsuleImages, StagedImages, SharedUsers>(
+                                builder: (context, capsuleImages, stagedImages, sharedUsers, child) =>
                                     SizedBox(
                                       width: 120,
                                       height: 50,
@@ -1042,9 +1173,16 @@ try {
                                               await capsuleReference
                                                   .update(newImages);
 
+                                              final userRefs = sharedUsers.users.map((user) {
+                                                return user.reference;
+                                              });
+
+                                              await capsuleReference.update({'sharedWith': userRefs});
+
                                               setState(() {
                                                 _titleController.clear();
                                                 _messageController.clear();
+                                                _sharedWithController.clear();
                                                 _editBeforeDate =
                                                     DateTime.now();
                                                 _openDate = DateTime.now();
