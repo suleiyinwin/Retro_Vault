@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_ui_auth/firebase_ui_auth.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:go_router/go_router.dart'; // new
-import 'package:provider/provider.dart';
+// new
 import 'pages/authentication/splashscreen.dart'; // new
-import 'package:get/get.dart'; // new
+// new
 
 void main() {
   runApp(const MyApp());

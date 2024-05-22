@@ -25,6 +25,10 @@ class EditCapsule extends StatefulWidget {
   const EditCapsule(
       {super.key, required this.id, required this.ebd, required this.od});
 
+ /*  void getCapsuleData({super.key, required this.id}) {
+    // Method body goes here
+  } */
+
   @override
   _CapsuleState createState() => _CapsuleState();
 }
@@ -63,6 +67,8 @@ class _CapsuleState extends State<EditCapsule> {
 
 void _showDeleteCapsuleDialog() {
     showDialog(
+      //backgroundColor: AppColors.primaryColor,
+      //barrierColor: AppColors.primaryColor,
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
@@ -912,15 +918,7 @@ try {
                                   'Delete',
                                   style: TextStyle(color: AppColors.textColor),
                                 ),
-                                onPressed: _showDeleteCapsuleDialog, /* () {
-                                  Navigator.pushAndRemoveUntil(
-                                    context,
-                                    MaterialPageRoute(
-                                        builder: (context) =>
-                                            const HomeScreen()),
-                                    (Route<dynamic> route) => false,
-                                  );
-                                } */
+                                onPressed: _showDeleteCapsuleDialog,
                               ),
                             ),
                             const SizedBox(width: 10),
