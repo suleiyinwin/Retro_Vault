@@ -1,4 +1,3 @@
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -6,7 +5,6 @@ import 'package:retro/components/colors.dart';
 import 'package:retro/pages/authentication/login.dart';
 import 'package:retro/pages/user_management/edit_profile.dart';
 import 'package:retro/pages/user_management/change_pwd.dart';
-import 'dart:typed_data';
 
 class ProfileView extends StatefulWidget {
   const ProfileView({super.key});
