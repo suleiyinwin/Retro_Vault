@@ -965,15 +965,14 @@ try {
                         const SizedBox(height: 20),
                         Consumer<SharedUsers>(builder: (context, sharedUsers, child) {
                           return Wrap(
-                            runSpacing: 8,
-                            spacing: 8,
+                            direction: Axis.horizontal,
                             alignment: WrapAlignment.start,
                             children: [...sharedUsers.users.map((user) {
                               final u = user.data() as Map<String, dynamic>;
                               final String? profilePhotoUrl = u['profile_photo_url'];
 
                               return Container(
-                                // margin: const EdgeInsets.fromLTRB(0, 0, 15, 15),
+                                margin: const EdgeInsets.fromLTRB(0, 0, 15, 15),
                                 padding: const EdgeInsets.fromLTRB(0, 0, 10, 0),
                                 decoration: BoxDecoration(
                                   color: Colors.white,
