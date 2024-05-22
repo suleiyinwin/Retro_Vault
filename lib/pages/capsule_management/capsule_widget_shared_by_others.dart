@@ -6,7 +6,6 @@ import 'package:retro/pages/capsule_management/utilities.dart';
 import '../../components/colors.dart';
 import 'capsule_image_widget.dart';
 import 'capsule_list.dart';
-import 'edit_capsule.dart';
 import 'lock_icon_widget.dart';
 import 'opened_capsule.dart';
 import 'opened_capsule_text.dart';

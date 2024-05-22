@@ -31,6 +31,12 @@ String parseRemainingTime(Timestamp timestamp) {
   return '${duration.inDays} more days';
 }
 
+Future<String> getName(Future<DocumentSnapshot<Map<String, dynamic>>> userRef) async {
+  final DocumentSnapshot<Map<String, dynamic>> user = await userRef;
+
+  return user.data()?['username'];
+}
+
 Future<String> getUserName(String userId) async {
   Map<String, String> simpleCache = <String, String>{};
 

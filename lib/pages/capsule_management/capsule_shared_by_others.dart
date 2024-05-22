@@ -59,8 +59,8 @@ class _SharedByOthersState extends State<SharedByOthers> {
                     return SharedByOthersCapsuleWidget(
                       capsuleId: data['capsuleId'],
                       title: data['title'],
-                      author:
-                          getUserName(FirebaseAuth.instance.currentUser!.uid),
+                      author: getName(data['userRef'].get()),
+                          // getUserName(FirebaseAuth.instance.currentUser!.uid),
                       imageUrl: data['coverPhotoUrl'] ?? '',
                       openDate: data['openDate'],
                       editBeforeDate: data['editBeforeDate'],
