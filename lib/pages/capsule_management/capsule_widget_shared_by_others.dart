@@ -1,95 +1,19 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/painting.dart';
-import 'package:flutter/rendering.dart';
-import 'package:flutter/widgets.dart';
-import 'package:retro/pages/capsule_management/capsule_image_widget.dart';
-import 'package:retro/pages/capsule_management/fab.dart';
-import 'package:retro/pages/capsule_management/lock_icon_widget.dart';
-import 'package:retro/pages/capsule_management/opened_capsule.dart';
-import 'package:retro/pages/capsule_management/opened_capsule_text.dart';
 import 'package:retro/pages/capsule_management/utilities.dart';
+
 import '../../components/colors.dart';
-import 'capsule_shared_by_others.dart';
+import 'capsule_image_widget.dart';
+import 'capsule_list.dart';
 import 'edit_capsule.dart';
-
-class UserInformation extends StatefulWidget {
-  const UserInformation({super.key});
-
-  @override
-  // ignore: library_private_types_in_public_api
-  _UserInformationState createState() => _UserInformationState();
-}
-
-class _UserInformationState extends State<UserInformation> {
-  final Stream<QuerySnapshot> _usersStream = FirebaseFirestore.instance
-      .collection('capsules')
-      .where('userId', isEqualTo: FirebaseAuth.instance.currentUser!.uid)
-      .snapshots();
-
-  @override
-  Widget build(BuildContext context) {
-    return StreamBuilder<QuerySnapshot>(
-      stream: _usersStream,
-      builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
-        if (snapshot.hasError) {
-          return const Text('Something went wrong');
-        }
-
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Text("Loading");
-        }
-
-        return ListView.separated(
-          padding: const EdgeInsets.fromLTRB(32, 16, 32, 16),
-          itemCount: snapshot.data!.docs.length,
-          itemBuilder: (BuildContext context, int index) {
-            Map<String, dynamic> data =
-                snapshot.data!.docs[index].data()! as Map<String, dynamic>;
-
-            return CapsuleWidget(
-              capsuleId: data['capsuleId'],
-              title: data['title'],
-              author: getUserName(FirebaseAuth.instance.currentUser!.uid),
-              imageUrl: data['coverPhotoUrl'] ?? '',
-              openDate: data['openDate'],
-              editBeforeDate: data['editBeforeDate'],
-            );
-          },
-          separatorBuilder: (context, index) => const Divider(
-            color: Colors.transparent,
-          ),
-        );
-      },
-    );
-  }
-}
-
-//UserInformationState
-
-//Timestamp
-String parseDate(Timestamp timestamp) {
-  var current = DateTime.now().millisecondsSinceEpoch ~/ 1000;
-
-  Duration duration =
-      Duration(seconds: timestamp.seconds - current);
-
-  if (duration.inMinutes < 60) {
-    return '${duration.inMinutes} minutes left';
-  }
-
-  if (duration.inHours < 24) {
-    return '${duration.inHours} hours left';
-  }
-
-  return '${duration.inDays} days left';
-}
+import 'lock_icon_widget.dart';
+import 'opened_capsule.dart';
+import 'opened_capsule_text.dart';
 
 Future<void> _dialogBuilder(BuildContext context, Timestamp openDate) async {
   showDialog(
-    context: context, 
+    context: context,
     builder: (BuildContext context){
       return AlertDialog(
         shape: RoundedRectangleBorder(
@@ -101,7 +25,7 @@ Future<void> _dialogBuilder(BuildContext context, Timestamp openDate) async {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Image.asset(
-              'image/time.png', 
+              'image/time.png',
               width: 60,
               height: 60,
             ),
@@ -114,7 +38,7 @@ Future<void> _dialogBuilder(BuildContext context, Timestamp openDate) async {
                     style: TextStyle(
                       color: AppColors.textColor,
                       fontSize: 18,
-                      
+
                     ),
                   ),
                   TextSpan(
@@ -130,7 +54,7 @@ Future<void> _dialogBuilder(BuildContext context, Timestamp openDate) async {
                     style: TextStyle(
                       color: AppColors.textColor,
                       fontSize: 18,
-                      
+
                     ),
                   ),
                 ],
@@ -171,12 +95,7 @@ Future<void> _dialogBuilder(BuildContext context, Timestamp openDate) async {
   );
 }
 
-    //   content: Text('Your capsule is locked now.\nWait for ${parseRemainingTime(openDate)} to view'),
-    // );
-  
-
-
-class CapsuleWidget extends StatelessWidget {
+class SharedByOthersCapsuleWidget extends StatelessWidget {
   final String capsuleId;
   final String title;
   final Future<String> author;
@@ -184,7 +103,7 @@ class CapsuleWidget extends StatelessWidget {
   final Timestamp openDate;
   final Timestamp editBeforeDate;
 
-  const CapsuleWidget({
+  const SharedByOthersCapsuleWidget({
     super.key,
     required this.capsuleId,
     required this.title,
@@ -202,21 +121,7 @@ class CapsuleWidget extends StatelessWidget {
           return GestureDetector(
             onTap: () {
               if (isLocked(openDate)) {
-                if (isEditable(editBeforeDate)) {
-                  Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => EditCapsule(
-                              id: capsuleId,
-                              od: DateTime.parse(openDate.toDate().toString())
-                                  .toLocal(),
-                              ebd: DateTime.parse(
-                                      editBeforeDate.toDate().toString())
-                                  .toLocal())));
-                } else {
-                  // show lock modal
-                  _dialogBuilder(context, openDate);
-                }
+                _dialogBuilder(context, openDate);
               } else {
                 FirebaseFirestore.instance
                     .collection('capsules')
@@ -302,14 +207,14 @@ class CapsuleWidget extends StatelessWidget {
                         //Open Date
                         isLocked(openDate)
                             ? Padding(
-                                padding:
-                                    const EdgeInsets.only(left: 32, right: 8),
-                                child: Text(parseDate(openDate),
-                                    style: const TextStyle(
-                                      fontSize: 12,
-                                      color: AppColors.primaryColor,
-                                    )),
-                              )
+                          padding:
+                          const EdgeInsets.only(left: 32, right: 8),
+                          child: Text(parseDate(openDate),
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: AppColors.primaryColor,
+                              )),
+                        )
                             : Container(),
                       ],
                     ),
@@ -320,43 +225,5 @@ class CapsuleWidget extends StatelessWidget {
             ),
           );
         });
-  }
-}
-
-class HomeScreen extends StatelessWidget {
-  const HomeScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      theme: ThemeData(
-        scaffoldBackgroundColor: AppColors.backgroundColor,
-      ),
-      home: DefaultTabController(
-        length: 2,
-        child: Scaffold(
-            appBar: AppBar(
-              shape: const Border(
-                  bottom: BorderSide(color: AppColors.primaryColor)),
-              backgroundColor: AppColors.backgroundColor,
-              bottom: const TabBar(
-                indicatorColor: AppColors.primaryColor,
-                indicatorSize: TabBarIndicatorSize.tab,
-                labelStyle: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w400,
-                    color: AppColors.primaryColor),
-                tabs: <Widget>[Tab(text: 'By Me'), Tab(text: 'By Others')],
-              ),
-            ),
-            floatingActionButton: const FAB(),
-            body: const TabBarView(
-              children: <Widget>[
-                UserInformation(),
-                SharedByOthers(),
-              ],
-            )),
-      ),
-    );
   }
 }
