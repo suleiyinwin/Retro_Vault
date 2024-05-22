@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -19,6 +20,7 @@ class _OpenedCapsuleState extends State<OpenedCapsule> {
   PageController _pageController = PageController();
   int _currentPageIndex = 0;
   late Stream<QuerySnapshot> _capsuleStream;
+  late User? currentUser;
 
   @override
   void dispose() {
@@ -26,38 +28,15 @@ class _OpenedCapsuleState extends State<OpenedCapsule> {
     super.dispose();
   }
   void initState() {
+    super.initState();
+    currentUser = FirebaseAuth.instance.currentUser;
     _capsuleStream = FirebaseFirestore.instance
         .collection('capsules')
         .where('capsuleId', isEqualTo: widget.capsuleId)
         .snapshots();
-    //log = Logger('CreateCapsule');
   }
 
-  // void _previousImage() {
-  //    _currentPageIndex = (_currentPageIndex - 1) % 10;
-  // _pageController.animateToPage(
-  //   _currentPageIndex,
-  //   duration: const Duration(milliseconds: 300),
-  //   curve: Curves.ease,
-  //     );
-  //   // } else {
-  //   //   _pageController.jumpToPage(9);
-  //   // }
-  // }
-
-  // void _nextImage() {
-  //   _currentPageIndex = (_currentPageIndex + 1) % 10;
-  // _pageController.animateToPage(
-  //   _currentPageIndex,
-  //   duration: const Duration(milliseconds: 300),
-  //   curve: Curves.ease,
-  //     );
-  //   // } else {
-  //   //   _pageController.jumpToPage(0);
-  //   // }
-  // }
-
-  //
+ 
   void _showDeleteCapsuleDialog() {
     showDialog(
       context: context,
@@ -238,6 +217,8 @@ class _OpenedCapsuleState extends State<OpenedCapsule> {
               photoUrls.add(photoUrl);
             }
           }
+           final userId = data['userId'] ?? "";
+          final isOwner = currentUser != null && userId == currentUser!.uid;
 
 
           // Sort photoUrls based on the keys
@@ -371,9 +352,10 @@ class _OpenedCapsuleState extends State<OpenedCapsule> {
               Padding(
                 padding: const EdgeInsets.all(16.0),
                   child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    mainAxisAlignment: isOwner ? MainAxisAlignment.spaceBetween : MainAxisAlignment.center,
                     mainAxisSize: MainAxisSize.max,
                     children: [
+                      if (isOwner)
                       SizedBox(
                         width: 120,
                         height: 50,
