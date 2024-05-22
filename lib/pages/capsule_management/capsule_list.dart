@@ -164,7 +164,6 @@ Future<void> _dialogBuilder(BuildContext context, Timestamp openDate, String cap
                   ),
                   onPressed: () async {
                     try {
-                      print(capsuleId);
                       await FirebaseFirestore.instance
                           .collection('capsules')
                           .doc(capsuleRef.id)
