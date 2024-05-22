@@ -1,7 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:retro/components/colors.dart';
-import 'package:retro/pages/capsule_management/capsule_list.dart';
+// import 'package:retro/pages/capsule_management/capsule_list.dart';
+import 'package:retro/pages/capsule_management/capsule_widget_shared_by_others.dart';
 
 class NotiCapsule extends StatefulWidget {
   final String capsuleId;
@@ -37,7 +38,7 @@ class _NotiCapsuleState extends State<NotiCapsule> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              CapsuleWidget(
+              SharedByOthersCapsuleWidget(
                 capsuleId: widget.capsuleId,
                 title: widget.title,
                 author: widget.author,
