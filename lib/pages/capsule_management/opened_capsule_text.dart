@@ -1,5 +1,6 @@
 //import 'dart:js';
 
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -20,8 +21,11 @@ class OpenedCapsuleText extends StatefulWidget {
 
 class _OpenedCapsuleTextState extends State<OpenedCapsuleText> {
   late Stream<QuerySnapshot> _capsuleStream;
+  late User? currentUser;
 
   void initState() {
+      super.initState();
+     currentUser = FirebaseAuth.instance.currentUser;
     _capsuleStream = FirebaseFirestore.instance
         .collection('capsules')
         .where('capsuleId', isEqualTo: widget.capsuleId)
@@ -158,6 +162,8 @@ class _OpenedCapsuleTextState extends State<OpenedCapsuleText> {
           final data = snapshot.data!;
           final title = data['title'] ?? "Title not found";
           final text = data['message'] ?? "Text not found";
+          final userId = data['userId'] ?? "";
+          final isOwner = currentUser != null && userId == currentUser!.uid;
 
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -201,13 +207,14 @@ class _OpenedCapsuleTextState extends State<OpenedCapsuleText> {
                   ),
                 ),
               ),
-
+              
               Padding(
                 padding: const EdgeInsets.all(16.0),
                   child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                     mainAxisAlignment: isOwner ? MainAxisAlignment.spaceBetween : MainAxisAlignment.center,
                     mainAxisSize: MainAxisSize.max,
                     children: [
+                      if (isOwner)
                       SizedBox(
                         width: 120,
                         height: 50,

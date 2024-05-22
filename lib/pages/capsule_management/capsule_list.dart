@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/painting.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
+import 'package:retro/components/bottomNavigation.dart';
 import 'package:retro/pages/capsule_management/capsule_image_widget.dart';
 import 'package:retro/pages/capsule_management/fab.dart';
 import 'package:retro/pages/capsule_management/lock_icon_widget.dart';
@@ -41,15 +42,17 @@ class _UserInformationState extends State<UserInformation> {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Text("Loading");
         }
-
+         print('Snapshot data: ${snapshot.data?.docs}');
         return ListView.separated(
           padding: const EdgeInsets.fromLTRB(32, 16, 32, 16),
           itemCount: snapshot.data!.docs.length,
           itemBuilder: (BuildContext context, int index) {
+            final capsuleRef = snapshot.data!.docs[index].reference;
             Map<String, dynamic> data =
                 snapshot.data!.docs[index].data()! as Map<String, dynamic>;
 
             return CapsuleWidget(
+              capsuleRef: capsuleRef,
               capsuleId: data['capsuleId'],
               title: data['title'],
               author: getUserName(FirebaseAuth.instance.currentUser!.uid),
@@ -87,7 +90,7 @@ String parseDate(Timestamp timestamp) {
   return '${duration.inDays} days left';
 }
 
-Future<void> _dialogBuilder(BuildContext context, Timestamp openDate) async {
+Future<void> _dialogBuilder(BuildContext context, Timestamp openDate, String capsuleId, DocumentReference<Object?> capsuleRef) async {
   showDialog(
     context: context, 
     builder: (BuildContext context){
@@ -138,84 +141,71 @@ Future<void> _dialogBuilder(BuildContext context, Timestamp openDate) async {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 20),
-            Padding(
-                padding: const EdgeInsets.all(4.0),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    mainAxisSize: MainAxisSize.max,
-                    children: [
-                      SizedBox(
-                        width: 120,
-                        height: 50,
-                        child: OutlinedButton(
-                          style: OutlinedButton.styleFrom(
-                            side: const BorderSide(
-                              color: AppColors.primaryColor,
-                              width: 1,
-                            ),
-                          ),
-                          child: const Text(
-                            'Delete',
-                            style: TextStyle(color: AppColors.textColor),
-                          ),
-                          onPressed: null,
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      SizedBox(
-                        width: 120,
-                        height: 50,
-                        child: OutlinedButton(
-                          style: OutlinedButton.styleFrom(
-                            side: const BorderSide(
-                                color: AppColors.primaryColor, 
-                                width: 1.0),
-                                backgroundColor: 
-                                AppColors.primaryColor,
-                          ),
-                          onPressed: () {
-                            Navigator.pop(context);
-                          },
-                          child: const Text(
-                            'Done',
-                            style: TextStyle(
-                                color: AppColors.white,
-                                fontSize: 16.0),
-                          ),
-                        ),
-                      ),
-                    
-                    ]
-                  ),
-              )
-            /* SizedBox(
-              width: 150, // Set the desired width for the button
-              child: OutlinedButton(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-                child: const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 12),
-                  child: Text(
-                    "Ok",
-                    style: TextStyle(
-                      color: AppColors.textColor,
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-                style: OutlinedButton.styleFrom(
-                  side: const BorderSide(color: AppColors.primaryColor),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(30.0),
-                  ),
-                  backgroundColor: AppColors.backgroundColor,
-                ),
-              ),
-            ), */
           ],
         ),
+        actions: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            mainAxisSize: MainAxisSize.max,
+            children: [
+              SizedBox(
+                width: 120,
+                height: 50,
+                child: OutlinedButton(
+                  style: OutlinedButton.styleFrom(
+                    side: const BorderSide(
+                      color: AppColors.primaryColor,
+                      width: 1,
+                    ),
+                  ),
+                  child: const Text(
+                    'Delete',
+                    style: TextStyle(color: AppColors.textColor,fontSize: 16),
+                  ),
+                  onPressed: () async {
+                    try {
+                      await FirebaseFirestore.instance
+                          .collection('capsules')
+                          .doc(capsuleRef.id)
+                          .delete();
+                      Navigator.pop(context);
+                    } catch (error) {
+                      print('Error deleting capsule: $error');
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Error deleting capsule: $error'),
+                        ),
+                      );
+                    }
+                  },
+                ),
+              ),
+              const SizedBox(width: 10),
+              SizedBox(
+                width: 120,
+                height: 50,
+                child: OutlinedButton(
+                  style: OutlinedButton.styleFrom(
+                    side: const BorderSide(
+                        color: AppColors.primaryColor, 
+                        width: 1.0),
+                        backgroundColor: 
+                        AppColors.primaryColor,
+                  ),
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                  child: const Text(
+                    'Cancel',
+                    style: TextStyle(
+                        color: AppColors.white,
+                        fontSize: 16.0),
+                  ),
+                ),
+              ),
+            ]
+          ),
+        ],
       );
     },
   );
@@ -227,6 +217,7 @@ Future<void> _dialogBuilder(BuildContext context, Timestamp openDate) async {
 
 
 class CapsuleWidget extends StatelessWidget {
+  final DocumentReference<Object?> capsuleRef;
   final String capsuleId;
   final String title;
   final Future<String> author;
@@ -236,6 +227,7 @@ class CapsuleWidget extends StatelessWidget {
 
   const CapsuleWidget({
     super.key,
+    required this.capsuleRef,
     required this.capsuleId,
     required this.title,
     required this.author,
@@ -265,7 +257,7 @@ class CapsuleWidget extends StatelessWidget {
                                   .toLocal())));
                 } else {
                   // show lock modal
-                  _dialogBuilder(context, openDate);
+                  _dialogBuilder(context, openDate, capsuleId, capsuleRef);
                 }
               } else {
                 FirebaseFirestore.instance
