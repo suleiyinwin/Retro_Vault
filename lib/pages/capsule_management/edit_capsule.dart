@@ -899,6 +899,70 @@ try {
                                       .toList(),
                                 )),
                         const SizedBox(height: 20),
+                        Row(
+                          children: [
+                            const Text(
+                              'Share with',
+                              style: TextStyle(
+                                color: AppColors.textColor,
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(width: 20),
+                            Consumer<SharedUsers>(
+                              builder: (context, sharedUsers, child) =>
+                            Expanded(
+                              child: SizedBox(
+                                height: 50,
+                                child: TextFormField(
+                                  controller: _sharedWithController,
+                                  decoration: InputDecoration(
+                                      border: OutlineInputBorder(
+                                        borderRadius:
+                                        BorderRadius.circular(40), // Border radius
+                                        borderSide: BorderSide
+                                            .none, // Remove the default border
+                                      ),
+                                      filled: true,
+                                      fillColor: AppColors.white),
+                                  style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      color: AppColors.textColor),
+                                  // onEditingComplete: () => _getSharedUser(),
+                                  onEditingComplete: () async {
+                                    String email = _sharedWithController.text.trim();
+
+                                    if (SharedUsers.isUserAuthedUser(email)) {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(
+                                          content: Text('You cannot share with yourself'),
+                                          backgroundColor: Colors.orange,
+                                        ),
+                                      );
+
+                                      return;
+                                    }
+
+                                    try {
+                                      await sharedUsers.add(email);
+                                      _sharedWithController.clear();
+                                    } catch (e) {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(
+                                          content: Text(e.toString().replaceAll('Exception: ', '')),
+                                          backgroundColor: e.toString().contains('added') ? Colors.orange : Colors.red,
+                                        ),
+                                      );
+                                    }
+                                  },
+                                ),
+                              ),
+                            ),
+                            )
+                          ],
+                        ),
+                        const SizedBox(height: 20),
                         Consumer<SharedUsers>(builder: (context, sharedUsers, child) {
                           return Wrap(
                             runSpacing: 8,
@@ -963,69 +1027,6 @@ try {
                           );
                         }),
                         const SizedBox(height: 20),
-                        Row(
-                          children: [
-                            const Text(
-                              'Share with',
-                              style: TextStyle(
-                                color: AppColors.textColor,
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            const SizedBox(width: 20),
-                            Consumer<SharedUsers>(
-                              builder: (context, sharedUsers, child) =>
-                            Expanded(
-                              child: SizedBox(
-                                height: 50,
-                                child: TextFormField(
-                                  controller: _sharedWithController,
-                                  decoration: InputDecoration(
-                                      border: OutlineInputBorder(
-                                        borderRadius:
-                                        BorderRadius.circular(40), // Border radius
-                                        borderSide: BorderSide
-                                            .none, // Remove the default border
-                                      ),
-                                      filled: true,
-                                      fillColor: AppColors.white),
-                                  style: const TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      color: AppColors.textColor),
-                                  // onEditingComplete: () => _getSharedUser(),
-                                  onEditingComplete: () async {
-                                    String email = _sharedWithController.text.trim();
-
-                                    if (SharedUsers.isUserAuthedUser(email)) {
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        const SnackBar(
-                                          content: Text('You cannot share with yourself'),
-                                          backgroundColor: Colors.orange,
-                                        ),
-                                      );
-
-                                      return;
-                                    }
-
-                                    try {
-                                      await sharedUsers.add(email);
-                                      _sharedWithController.clear();
-                                    } catch (e) {
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        SnackBar(
-                                          content: Text(e.toString().replaceAll('Exception: ', '')),
-                                          backgroundColor: e.toString().contains('added') ? Colors.orange : Colors.red,
-                                        ),
-                                      );
-                                    }
-                                  },
-                                ),
-                              ),
-                            ),
-                            )
-                          ],
-                        ),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           mainAxisSize: MainAxisSize.max,
