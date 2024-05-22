@@ -47,10 +47,12 @@ class _UserInformationState extends State<UserInformation> {
           padding: const EdgeInsets.fromLTRB(32, 16, 32, 16),
           itemCount: snapshot.data!.docs.length,
           itemBuilder: (BuildContext context, int index) {
+            final capsuleRef = snapshot.data!.docs[index].reference;
             Map<String, dynamic> data =
                 snapshot.data!.docs[index].data()! as Map<String, dynamic>;
 
             return CapsuleWidget(
+              capsuleRef: capsuleRef,
               capsuleId: data['capsuleId'],
               title: data['title'],
               author: getUserName(FirebaseAuth.instance.currentUser!.uid),
@@ -88,7 +90,7 @@ String parseDate(Timestamp timestamp) {
   return '${duration.inDays} days left';
 }
 
-Future<void> _dialogBuilder(BuildContext context, Timestamp openDate, String capsuleId) async {
+Future<void> _dialogBuilder(BuildContext context, Timestamp openDate, String capsuleId, DocumentReference<Object?> capsuleRef) async {
   showDialog(
     context: context, 
     builder: (BuildContext context){
@@ -162,9 +164,10 @@ Future<void> _dialogBuilder(BuildContext context, Timestamp openDate, String cap
                   ),
                   onPressed: () async {
                     try {
+                      print(capsuleId);
                       await FirebaseFirestore.instance
                           .collection('capsules')
-                          .doc(capsuleId)
+                          .doc(capsuleRef.id)
                           .delete();
                       Navigator.pop(context);
                     } catch (error) {
@@ -215,6 +218,7 @@ Future<void> _dialogBuilder(BuildContext context, Timestamp openDate, String cap
 
 
 class CapsuleWidget extends StatelessWidget {
+  final DocumentReference<Object?> capsuleRef;
   final String capsuleId;
   final String title;
   final Future<String> author;
@@ -224,6 +228,7 @@ class CapsuleWidget extends StatelessWidget {
 
   const CapsuleWidget({
     super.key,
+    required this.capsuleRef,
     required this.capsuleId,
     required this.title,
     required this.author,
@@ -253,7 +258,7 @@ class CapsuleWidget extends StatelessWidget {
                                   .toLocal())));
                 } else {
                   // show lock modal
-                  _dialogBuilder(context, openDate, capsuleId);
+                  _dialogBuilder(context, openDate, capsuleId, capsuleRef);
                 }
               } else {
                 FirebaseFirestore.instance
