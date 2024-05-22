@@ -243,12 +243,21 @@ class _CreateCapsuleState extends State<CreateCapsule> {
           }
         }
         if (_selectedUsers.isNotEmpty) {
-  final sharedWithArray = _selectedUsers.map((user) {
-    final userRef = FirebaseFirestore.instance.collection('user').doc(user.id);
-    return userRef;
-  }).toList();
+  final sharedWithArray = await Future.wait(_selectedUsers.map((user) async {
+  final userRef = FirebaseFirestore.instance.collection('user').doc(user.id);
+  final userDoc = await userRef.get();
+  final userId = userDoc.data()?['userId'];
+  await FirebaseFirestore.instance.collection('notifications').add({
+    'userId': userId,
+    'shareduser': userReference,
+    'capsuleId': capsuleId,
+    'message': 'Shared a capsule with you',
+    'timestamp': FieldValue.serverTimestamp(),
+  });
+  return userRef;
+}));
 
-  await docRef.update({'sharedWith': sharedWithArray});
+await docRef.update({'sharedWith': sharedWithArray});
 }
         setState(() {
           _titleController.clear();

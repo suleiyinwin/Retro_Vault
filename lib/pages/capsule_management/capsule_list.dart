@@ -12,6 +12,7 @@ import 'package:retro/pages/capsule_management/opened_capsule.dart';
 import 'package:retro/pages/capsule_management/opened_capsule_text.dart';
 import 'package:retro/pages/capsule_management/utilities.dart';
 import '../../components/colors.dart';
+import 'capsule_shared_by_others.dart';
 import 'edit_capsule.dart';
 
 class UserInformation extends StatefulWidget {
@@ -67,23 +68,6 @@ class _UserInformationState extends State<UserInformation> {
 }
 
 //UserInformationState
-Future<String> getUserName(String userId) async {
-  Map<String, String> simpleCache = <String, String>{};
-
-  if (simpleCache.containsKey(userId)) {
-    return simpleCache[userId]!;
-  } else {
-    var snapshot = await FirebaseFirestore.instance
-        .collection('user')
-        .where('userId', isEqualTo: userId)
-        .get();
-
-    var username = await snapshot.docs[0].get('username');
-    simpleCache[userId] = username;
-
-    return username;
-  }
-}
 
 //Timestamp
 String parseDate(Timestamp timestamp) {
@@ -101,23 +85,6 @@ String parseDate(Timestamp timestamp) {
   }
 
   return '${duration.inDays} days left';
-}
-
-String parseRemainingTime(Timestamp timestamp) {
-  var current = DateTime.now().millisecondsSinceEpoch ~/ 1000;
-
-  Duration duration =
-  Duration(seconds: timestamp.seconds - current);
-
-  if (duration.inMinutes < 60) {
-    return '${duration.inMinutes} more minutes';
-  }
-
-  if (duration.inHours < 24) {
-    return '${duration.inHours} more hours';
-  }
-
-  return '${duration.inDays} more days';
 }
 
 Future<void> _dialogBuilder(BuildContext context, Timestamp openDate) async {
@@ -171,7 +138,57 @@ Future<void> _dialogBuilder(BuildContext context, Timestamp openDate) async {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 20),
-            SizedBox(
+            Padding(
+                padding: const EdgeInsets.all(4.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    mainAxisSize: MainAxisSize.max,
+                    children: [
+                      SizedBox(
+                        width: 120,
+                        height: 50,
+                        child: OutlinedButton(
+                          style: OutlinedButton.styleFrom(
+                            side: const BorderSide(
+                              color: AppColors.primaryColor,
+                              width: 1,
+                            ),
+                          ),
+                          child: const Text(
+                            'Delete',
+                            style: TextStyle(color: AppColors.textColor),
+                          ),
+                          onPressed: null,
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      SizedBox(
+                        width: 120,
+                        height: 50,
+                        child: OutlinedButton(
+                          style: OutlinedButton.styleFrom(
+                            side: const BorderSide(
+                                color: AppColors.primaryColor, 
+                                width: 1.0),
+                                backgroundColor: 
+                                AppColors.primaryColor,
+                          ),
+                          onPressed: () {
+                            Navigator.pop(context);
+                          },
+                          child: const Text(
+                            'Done',
+                            style: TextStyle(
+                                color: AppColors.white,
+                                fontSize: 16.0),
+                          ),
+                        ),
+                      ),
+                    
+                    ]
+                  ),
+              )
+            /* SizedBox(
               width: 150, // Set the desired width for the button
               child: OutlinedButton(
                 onPressed: () {
@@ -196,7 +213,7 @@ Future<void> _dialogBuilder(BuildContext context, Timestamp openDate) async {
                   backgroundColor: AppColors.backgroundColor,
                 ),
               ),
-            ),
+            ), */
           ],
         ),
       );
@@ -386,9 +403,7 @@ class HomeScreen extends StatelessWidget {
             body: const TabBarView(
               children: <Widget>[
                 UserInformation(),
-                Column(
-                  children: [],
-                ),
+                SharedByOthers(),
               ],
             )),
       ),
