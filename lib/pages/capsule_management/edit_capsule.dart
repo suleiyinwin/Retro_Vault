@@ -118,30 +118,41 @@ void _showDeleteCapsuleDialog() {
                 Expanded(
                   child: OutlinedButton(
                     onPressed: () async {
-try {
-  final capsuleReference = await FirebaseFirestore.instance
-      .collection('capsules')
-      .where('capsuleId', isEqualTo: widget.id)
-      .get();
+                      try {
+                        final capsuleReference = await FirebaseFirestore.instance
+                            .collection('capsules')
+                            .where('capsuleId', isEqualTo: widget.id)
+                            .get();
 
-  if (capsuleReference.docs.isNotEmpty) {
-    final capsuleDocId = capsuleReference.docs.first.id;
+                        if (capsuleReference.docs.isNotEmpty) {
+                          final capsuleDocId = capsuleReference.docs.first.id;
 
-    // Delete the capsule document
-    await FirebaseFirestore.instance.collection('capsules').doc(capsuleDocId).delete();
+                          // Delete the capsule document
+                          await FirebaseFirestore.instance.collection('capsules').doc(capsuleDocId).delete();
 
-    // Navigate to the home page after successful deletion
-    Navigator.pushAndRemoveUntil(
-        context,
-        MaterialPageRoute(builder: (context) => const BottomNav()),
-        (Route<dynamic> route) => false,
-      );
-  } else {
-    print('capsule document not found');
-  }
-} catch (error) {
-  print('Error deleting capsule: $error');
-}
+                          // Delete the capsule notifications
+                          await FirebaseFirestore.instance
+                              .collection('notifications')
+                              .where('capsuleId', isEqualTo: widget.id)
+                              .get()
+                              .then((snapshot) {
+                            for (DocumentSnapshot doc in snapshot.docs) {
+                              doc.reference.delete();
+                            }
+                          });
+
+                          // Navigate to the home page after successful deletion
+                          Navigator.pushAndRemoveUntil(
+                              context,
+                              MaterialPageRoute(builder: (context) => const BottomNav()),
+                              (Route<dynamic> route) => false,
+                            );
+                        } else {
+                          print('capsule document not found');
+                        }
+                      } catch (error) {
+                        print('Error deleting capsule: $error');
+                      }
 
                     },
                     child: const Padding(
