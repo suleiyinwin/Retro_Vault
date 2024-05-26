@@ -1020,8 +1020,24 @@ try {
                                       child: IconButton(
                                         padding: EdgeInsets.zero,
                                         icon: const Icon(Icons.close, size: 16, color: Colors.black),
-                                        onPressed: () {
+                                        onPressed: () async {
                                           sharedUsers.remove(user);
+                                          //remove notification for this user for this capsule
+                                          final querySnapshot = await FirebaseFirestore.instance
+                                              .collection('notifications')
+                                              .where('capsuleId', isEqualTo: widget.id)
+                                              .where('userId', isEqualTo: user.get('userId'))
+                                              .get();
+                                          if (querySnapshot.docs.isNotEmpty) {
+                                            // Get the document ID of the first matching document
+                                            final docId = querySnapshot.docs.first.id;
+
+                                            // Delete the document by its ID
+                                            await FirebaseFirestore.instance
+                                              .collection('notifications')
+                                              .doc(docId)
+                                              .delete();
+                                          }
                                         },
                                       ),
                                     ),
