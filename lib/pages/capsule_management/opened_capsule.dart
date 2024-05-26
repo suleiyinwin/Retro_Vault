@@ -87,6 +87,25 @@ class _OpenedCapsuleState extends State<OpenedCapsule> {
                   child: OutlinedButton(
                     onPressed: () async {
                       try {
+                        // Delete capsule notifications from notifications collection
+                        final capsuleDoc = await FirebaseFirestore.instance
+                            .collection('capsules')
+                            .doc(widget.capsuleId)
+                            .get();
+
+                        final realId = capsuleDoc['capsuleId'];
+
+                        final snapshot = await FirebaseFirestore.instance
+                            .collection('notifications')
+                            .where('capsuleId', isEqualTo: realId)
+                            .get();
+                        if (snapshot.docs.isNotEmpty) {
+                          for (DocumentSnapshot doc in snapshot.docs) {
+                            await doc.reference.delete();
+                            // print('Notification ${doc.id} deleted.');
+                          }
+                        }
+                        
                         // Have to access capsuleId directly
                         await FirebaseFirestore.instance
                             .collection('capsules')
