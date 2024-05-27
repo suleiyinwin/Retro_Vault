@@ -1104,6 +1104,9 @@ void _showDeleteCapsuleDialog() {
                                             };
 
                                             try {
+                                              // Step 1: Retrieve the old list of shared users
+                                              List<dynamic> oldSharedUsersRefs = await capsuleReference.get().then((doc) => doc['sharedWith']);
+
                                               await capsuleReference
                                                   .update(updates);
 
@@ -1189,6 +1192,54 @@ void _showDeleteCapsuleDialog() {
                                               });
 
                                               await capsuleReference.update({'sharedWith': userRefs});
+
+                                               // Step 3: Identify removed users
+                                              Set<dynamic> oldUserIds = oldSharedUsersRefs.map((ref) => ref.id).toSet();
+                                              Set<dynamic> newUserIds = userRefs.map((ref) => ref.id).toSet();
+                                              
+                                              Set<dynamic> removedUserIds = oldUserIds.difference(newUserIds);
+                                              Set<dynamic> addedUserIds = newUserIds.difference(oldUserIds);
+
+                                              // Step 4: Delete notifications for removed users
+                                              for (final ruserId in removedUserIds) {
+                                                try{
+                                                final removeUserRef = FirebaseFirestore.instance.collection('user').doc(ruserId);
+                                                final removeUserDoc = await removeUserRef.get();
+                                                final removeUserId = removeUserDoc.data()?['userId'];
+                                                
+                                                final notifications = await FirebaseFirestore.instance
+                                                    .collection('notifications')
+                                                    .where('userId', isEqualTo: removeUserId)
+                                                    .where('capsuleId', isEqualTo: capsuleId)
+                                                    .get();
+                                                if (notifications.docs.isNotEmpty) {
+                                                  for (DocumentSnapshot doc in notifications.docs) {
+                                                    await doc.reference.delete();
+                                                    // print('Notification ${doc.id} deleted.');
+                                                  }
+                                                }
+                                                } catch (e) {
+                                                  print('Error deleting notification: $e');
+                                                }
+                                              }
+
+                                              // Step 5: Add notifications for newly added users
+                                              for (final userRef in userRefs) {
+                                                if (addedUserIds.contains(userRef.id)) {
+
+                                                  final newUserRef = FirebaseFirestore.instance.collection('user').doc(userRef.id);
+                                                  final newUserDoc = await newUserRef.get();
+                                                  final newUserId = newUserDoc.data()?['userId'];
+
+                                                  await FirebaseFirestore.instance.collection('notifications').add({
+                                                    'userId': newUserId,
+                                                    'shareduser': userId,
+                                                    'capsuleId': capsuleId,
+                                                    'message': 'Shared a capsule with you',
+                                                    'timestamp': FieldValue.serverTimestamp(),
+                                                  });
+                                                }
+                                              }
 
                                               setState(() {
                                                 _titleController.clear();
