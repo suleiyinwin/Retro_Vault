@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -19,6 +20,7 @@ class _OpenedCapsuleState extends State<OpenedCapsule> {
   PageController _pageController = PageController();
   int _currentPageIndex = 0;
   late Stream<QuerySnapshot> _capsuleStream;
+  late User? currentUser;
 
   @override
   void dispose() {
@@ -26,38 +28,15 @@ class _OpenedCapsuleState extends State<OpenedCapsule> {
     super.dispose();
   }
   void initState() {
+    super.initState();
+    currentUser = FirebaseAuth.instance.currentUser;
     _capsuleStream = FirebaseFirestore.instance
         .collection('capsules')
         .where('capsuleId', isEqualTo: widget.capsuleId)
         .snapshots();
-    //log = Logger('CreateCapsule');
   }
 
-  // void _previousImage() {
-  //    _currentPageIndex = (_currentPageIndex - 1) % 10;
-  // _pageController.animateToPage(
-  //   _currentPageIndex,
-  //   duration: const Duration(milliseconds: 300),
-  //   curve: Curves.ease,
-  //     );
-  //   // } else {
-  //   //   _pageController.jumpToPage(9);
-  //   // }
-  // }
-
-  // void _nextImage() {
-  //   _currentPageIndex = (_currentPageIndex + 1) % 10;
-  // _pageController.animateToPage(
-  //   _currentPageIndex,
-  //   duration: const Duration(milliseconds: 300),
-  //   curve: Curves.ease,
-  //     );
-  //   // } else {
-  //   //   _pageController.jumpToPage(0);
-  //   // }
-  // }
-
-  //
+ 
   void _showDeleteCapsuleDialog() {
     showDialog(
       context: context,
@@ -108,6 +87,25 @@ class _OpenedCapsuleState extends State<OpenedCapsule> {
                   child: OutlinedButton(
                     onPressed: () async {
                       try {
+                        // Delete capsule notifications from notifications collection
+                        final capsuleDoc = await FirebaseFirestore.instance
+                            .collection('capsules')
+                            .doc(widget.capsuleId)
+                            .get();
+
+                        final realId = capsuleDoc['capsuleId'];
+
+                        final snapshot = await FirebaseFirestore.instance
+                            .collection('notifications')
+                            .where('capsuleId', isEqualTo: realId)
+                            .get();
+                        if (snapshot.docs.isNotEmpty) {
+                          for (DocumentSnapshot doc in snapshot.docs) {
+                            await doc.reference.delete();
+                            // print('Notification ${doc.id} deleted.');
+                          }
+                        }
+                        
                         // Have to access capsuleId directly
                         await FirebaseFirestore.instance
                             .collection('capsules')
@@ -238,10 +236,10 @@ class _OpenedCapsuleState extends State<OpenedCapsule> {
               photoUrls.add(photoUrl);
             }
           }
+           final userId = data['userId'] ?? "";
+          final isOwner = currentUser != null && userId == currentUser!.uid;
 
-          print("All photoUrls: $photoUrls");
 
-          print(data.keys);
           // Sort photoUrls based on the keys
           photoUrls.sort((a, b) {
             final RegExp regex = RegExp(r'_photo_(\d+)\?');
@@ -303,8 +301,6 @@ class _OpenedCapsuleState extends State<OpenedCapsule> {
                                   controller: _pageController,
                                   itemCount: photoUrls.length,
                                   itemBuilder: (context, index) {
-                                    print(
-                                        "URL at index $index: ${photoUrls[index]}");
                                     if (photoUrls[index] != null) {
                                       // Display the image if the URL is not null
                                       return Image.network(
@@ -375,9 +371,10 @@ class _OpenedCapsuleState extends State<OpenedCapsule> {
               Padding(
                 padding: const EdgeInsets.all(16.0),
                   child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    mainAxisAlignment: isOwner ? MainAxisAlignment.spaceBetween : MainAxisAlignment.center,
                     mainAxisSize: MainAxisSize.max,
                     children: [
+                      if (isOwner)
                       SizedBox(
                         width: 120,
                         height: 50,

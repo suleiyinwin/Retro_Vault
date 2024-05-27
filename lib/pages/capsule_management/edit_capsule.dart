@@ -118,30 +118,41 @@ void _showDeleteCapsuleDialog() {
                 Expanded(
                   child: OutlinedButton(
                     onPressed: () async {
-try {
-  final capsuleReference = await FirebaseFirestore.instance
-      .collection('capsules')
-      .where('capsuleId', isEqualTo: widget.id)
-      .get();
+                      try {
+                        final capsuleReference = await FirebaseFirestore.instance
+                            .collection('capsules')
+                            .where('capsuleId', isEqualTo: widget.id)
+                            .get();
 
-  if (capsuleReference.docs.isNotEmpty) {
-    final capsuleDocId = capsuleReference.docs.first.id;
+                        if (capsuleReference.docs.isNotEmpty) {
+                          final capsuleDocId = capsuleReference.docs.first.id;
 
-    // Delete the capsule document
-    await FirebaseFirestore.instance.collection('capsules').doc(capsuleDocId).delete();
+                          // Delete the capsule document
+                          await FirebaseFirestore.instance.collection('capsules').doc(capsuleDocId).delete();
 
-    // Navigate to the home page after successful deletion
-    Navigator.pushAndRemoveUntil(
-        context,
-        MaterialPageRoute(builder: (context) => const BottomNav()),
-        (Route<dynamic> route) => false,
-      );
-  } else {
-    print('capsule document not found');
-  }
-} catch (error) {
-  print('Error deleting capsule: $error');
-}
+                          // Delete the capsule notifications
+                          await FirebaseFirestore.instance
+                              .collection('notifications')
+                              .where('capsuleId', isEqualTo: widget.id)
+                              .get()
+                              .then((snapshot) {
+                            for (DocumentSnapshot doc in snapshot.docs) {
+                              doc.reference.delete();
+                            }
+                          });
+
+                          // Navigate to the home page after successful deletion
+                          Navigator.pushAndRemoveUntil(
+                              context,
+                              MaterialPageRoute(builder: (context) => const BottomNav()),
+                              (Route<dynamic> route) => false,
+                            );
+                        } else {
+                          print('capsule document not found');
+                        }
+                      } catch (error) {
+                        print('Error deleting capsule: $error');
+                      }
 
                     },
                     child: const Padding(
@@ -1020,7 +1031,7 @@ try {
                                       child: IconButton(
                                         padding: EdgeInsets.zero,
                                         icon: const Icon(Icons.close, size: 16, color: Colors.black),
-                                        onPressed: () {
+                                        onPressed: () async {
                                           sharedUsers.remove(user);
                                         },
                                       ),
@@ -1093,6 +1104,9 @@ try {
                                             };
 
                                             try {
+                                              // Step 1: Retrieve the old list of shared users
+                                              List<dynamic> oldSharedUsersRefs = await capsuleReference.get().then((doc) => doc['sharedWith']);
+
                                               await capsuleReference
                                                   .update(updates);
 
@@ -1178,6 +1192,54 @@ try {
                                               });
 
                                               await capsuleReference.update({'sharedWith': userRefs});
+
+                                               // Step 3: Identify removed users
+                                              Set<dynamic> oldUserIds = oldSharedUsersRefs.map((ref) => ref.id).toSet();
+                                              Set<dynamic> newUserIds = userRefs.map((ref) => ref.id).toSet();
+                                              
+                                              Set<dynamic> removedUserIds = oldUserIds.difference(newUserIds);
+                                              Set<dynamic> addedUserIds = newUserIds.difference(oldUserIds);
+
+                                              // Step 4: Delete notifications for removed users
+                                              for (final ruserId in removedUserIds) {
+                                                try{
+                                                final removeUserRef = FirebaseFirestore.instance.collection('user').doc(ruserId);
+                                                final removeUserDoc = await removeUserRef.get();
+                                                final removeUserId = removeUserDoc.data()?['userId'];
+                                                
+                                                final notifications = await FirebaseFirestore.instance
+                                                    .collection('notifications')
+                                                    .where('userId', isEqualTo: removeUserId)
+                                                    .where('capsuleId', isEqualTo: capsuleId)
+                                                    .get();
+                                                if (notifications.docs.isNotEmpty) {
+                                                  for (DocumentSnapshot doc in notifications.docs) {
+                                                    await doc.reference.delete();
+                                                    // print('Notification ${doc.id} deleted.');
+                                                  }
+                                                }
+                                                } catch (e) {
+                                                  print('Error deleting notification: $e');
+                                                }
+                                              }
+
+                                              // Step 5: Add notifications for newly added users
+                                              for (final userRef in userRefs) {
+                                                if (addedUserIds.contains(userRef.id)) {
+
+                                                  final newUserRef = FirebaseFirestore.instance.collection('user').doc(userRef.id);
+                                                  final newUserDoc = await newUserRef.get();
+                                                  final newUserId = newUserDoc.data()?['userId'];
+
+                                                  await FirebaseFirestore.instance.collection('notifications').add({
+                                                    'userId': newUserId,
+                                                    'shareduser': userId,
+                                                    'capsuleId': capsuleId,
+                                                    'message': 'Shared a capsule with you',
+                                                    'timestamp': FieldValue.serverTimestamp(),
+                                                  });
+                                                }
+                                              }
 
                                               setState(() {
                                                 _titleController.clear();

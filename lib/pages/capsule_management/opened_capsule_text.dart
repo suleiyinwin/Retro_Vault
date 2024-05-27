@@ -1,5 +1,6 @@
 //import 'dart:js';
 
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -20,8 +21,11 @@ class OpenedCapsuleText extends StatefulWidget {
 
 class _OpenedCapsuleTextState extends State<OpenedCapsuleText> {
   late Stream<QuerySnapshot> _capsuleStream;
+  late User? currentUser;
 
   void initState() {
+      super.initState();
+     currentUser = FirebaseAuth.instance.currentUser;
     _capsuleStream = FirebaseFirestore.instance
         .collection('capsules')
         .where('capsuleId', isEqualTo: widget.capsuleId)
@@ -79,6 +83,25 @@ class _OpenedCapsuleTextState extends State<OpenedCapsuleText> {
                   child: OutlinedButton(
                     onPressed: () async {
                       try {
+                        // Delete capsule notifications from notifications collection
+                        final capsuleDoc = await FirebaseFirestore.instance
+                            .collection('capsules')
+                            .doc(widget.capsuleId)
+                            .get();
+
+                        final realId = capsuleDoc['capsuleId'];
+
+                        final snapshot = await FirebaseFirestore.instance
+                            .collection('notifications')
+                            .where('capsuleId', isEqualTo: realId)
+                            .get();
+                        if (snapshot.docs.isNotEmpty) {
+                          for (DocumentSnapshot doc in snapshot.docs) {
+                            await doc.reference.delete();
+                            // print('Notification ${doc.id} deleted.');
+                          }
+                        }
+                          
                         // Have to access capsuleId directly
                         await FirebaseFirestore.instance
                             .collection('capsules')
@@ -158,6 +181,8 @@ class _OpenedCapsuleTextState extends State<OpenedCapsuleText> {
           final data = snapshot.data!;
           final title = data['title'] ?? "Title not found";
           final text = data['message'] ?? "Text not found";
+          final userId = data['userId'] ?? "";
+          final isOwner = currentUser != null && userId == currentUser!.uid;
 
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -201,13 +226,14 @@ class _OpenedCapsuleTextState extends State<OpenedCapsuleText> {
                   ),
                 ),
               ),
-
+              
               Padding(
                 padding: const EdgeInsets.all(16.0),
                   child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                     mainAxisAlignment: isOwner ? MainAxisAlignment.spaceBetween : MainAxisAlignment.center,
                     mainAxisSize: MainAxisSize.max,
                     children: [
+                      if (isOwner)
                       SizedBox(
                         width: 120,
                         height: 50,

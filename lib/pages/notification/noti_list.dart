@@ -15,6 +15,7 @@ class NotiPage extends StatefulWidget {
 
 class _NotiPageState extends State<NotiPage> {
   List<Map<String, dynamic>> _notifications = [];
+  Timer? _timer;
 
   @override
   void initState() {
@@ -62,12 +63,14 @@ class _NotiPageState extends State<NotiPage> {
 
   void _startDelayedPolling() {
     Future.delayed(const Duration(seconds: 10), () {
-      _startPolling();
+      if (mounted) {
+        _startPolling();
+      }
     });
   }
 
   void _startPolling() {
-    Timer.periodic(const Duration(seconds: 10), (timer) async {
+    _timer = Timer.periodic(const Duration(seconds: 10), (timer) async {
       final userId = FirebaseAuth.instance.currentUser?.uid;
       if (userId != null) {
         try {
@@ -102,6 +105,12 @@ class _NotiPageState extends State<NotiPage> {
         }
       }
     });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
   }
 
   @override
