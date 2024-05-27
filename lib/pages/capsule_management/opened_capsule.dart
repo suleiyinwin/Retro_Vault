@@ -1,8 +1,12 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 import 'package:retro/components/colors.dart';
+import 'package:retro/components/bottomNavigation.dart';
+
 
 class OpenedCapsule extends StatefulWidget {
   const OpenedCapsule({Key? key, required this.capsuleId}) : super(key: key);
@@ -15,36 +19,136 @@ class OpenedCapsule extends StatefulWidget {
 class _OpenedCapsuleState extends State<OpenedCapsule> {
   PageController _pageController = PageController();
   int _currentPageIndex = 0;
+  late Stream<QuerySnapshot> _capsuleStream;
+  late User? currentUser;
 
   @override
   void dispose() {
     _pageController.dispose();
     super.dispose();
   }
+  void initState() {
+    super.initState();
+    currentUser = FirebaseAuth.instance.currentUser;
+    _capsuleStream = FirebaseFirestore.instance
+        .collection('capsules')
+        .where('capsuleId', isEqualTo: widget.capsuleId)
+        .snapshots();
+  }
 
-  // void _previousImage() {
-  //    _currentPageIndex = (_currentPageIndex - 1) % 10;
-  // _pageController.animateToPage(
-  //   _currentPageIndex,
-  //   duration: const Duration(milliseconds: 300),
-  //   curve: Curves.ease,
-  //     );
-  //   // } else {
-  //   //   _pageController.jumpToPage(9);
-  //   // }
-  // }
+ 
+  void _showDeleteCapsuleDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20.0),
+          ),
+          backgroundColor: AppColors.backgroundColor,
+          content: const Text(
+            "Are you sure you want to delete this capsule?",
+            style: TextStyle(
+              color: AppColors.textColor,
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          actions: [
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                    child: const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 12),
+                      child: Text(
+                        "Cancel",
+                        style: TextStyle(
+                          color: AppColors.textColor,
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    style: OutlinedButton.styleFrom(
+                      side: const BorderSide(color: AppColors.primaryColor),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(30.0),
+                      ),
+                      backgroundColor: AppColors.backgroundColor,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: () async {
+                      try {
+                        // Delete capsule notifications from notifications collection
+                        final capsuleDoc = await FirebaseFirestore.instance
+                            .collection('capsules')
+                            .doc(widget.capsuleId)
+                            .get();
 
-  // void _nextImage() {
-  //   _currentPageIndex = (_currentPageIndex + 1) % 10;
-  // _pageController.animateToPage(
-  //   _currentPageIndex,
-  //   duration: const Duration(milliseconds: 300),
-  //   curve: Curves.ease,
-  //     );
-  //   // } else {
-  //   //   _pageController.jumpToPage(0);
-  //   // }
-  // }
+                        final realId = capsuleDoc['capsuleId'];
+
+                        final snapshot = await FirebaseFirestore.instance
+                            .collection('notifications')
+                            .where('capsuleId', isEqualTo: realId)
+                            .get();
+                        if (snapshot.docs.isNotEmpty) {
+                          for (DocumentSnapshot doc in snapshot.docs) {
+                            await doc.reference.delete();
+                            // print('Notification ${doc.id} deleted.');
+                          }
+                        }
+                        
+                        // Have to access capsuleId directly
+                        await FirebaseFirestore.instance
+                            .collection('capsules')
+                            .doc(widget.capsuleId)
+                            .delete();
+
+                        // Navigate to the home page after successful deletion
+                        Navigator.pushAndRemoveUntil(
+                          context,
+                          MaterialPageRoute(builder: (context) => const BottomNav()),
+                          (Route<dynamic> route) => false,
+                        );
+                      } catch (error) {
+                        print('Error deleting capsule: $error');
+                      }
+                    },
+                    child: const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 12),
+                      child: Text(
+                        "Delete",
+                        style: TextStyle(
+                          color: AppColors.white,
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    style: OutlinedButton.styleFrom(
+                      side: const BorderSide(color: AppColors.primaryColor),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(30.0),
+                      ),
+                      backgroundColor: AppColors.primaryColor,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        );
+      },
+    );
+  }
   void _previousImage(int length) {
     setState(() {
       _currentPageIndex = (_currentPageIndex - 1 + length) % length;
@@ -132,10 +236,10 @@ class _OpenedCapsuleState extends State<OpenedCapsule> {
               photoUrls.add(photoUrl);
             }
           }
+           final userId = data['userId'] ?? "";
+          final isOwner = currentUser != null && userId == currentUser!.uid;
 
-          print("All photoUrls: $photoUrls");
 
-          print(data.keys);
           // Sort photoUrls based on the keys
           photoUrls.sort((a, b) {
             final RegExp regex = RegExp(r'_photo_(\d+)\?');
@@ -197,8 +301,6 @@ class _OpenedCapsuleState extends State<OpenedCapsule> {
                                   controller: _pageController,
                                   itemCount: photoUrls.length,
                                   itemBuilder: (context, index) {
-                                    print(
-                                        "URL at index $index: ${photoUrls[index]}");
                                     if (photoUrls[index] != null) {
                                       // Display the image if the URL is not null
                                       return Image.network(
@@ -264,7 +366,60 @@ class _OpenedCapsuleState extends State<OpenedCapsule> {
                   ),
                 ),
               ),
-              Align(
+
+              //const SizedBox(height: 12),
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                  child: Row(
+                    mainAxisAlignment: isOwner ? MainAxisAlignment.spaceBetween : MainAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.max,
+                    children: [
+                      if (isOwner)
+                      SizedBox(
+                        width: 120,
+                        height: 50,
+                        child: OutlinedButton(
+                          style: OutlinedButton.styleFrom(
+                            side: const BorderSide(
+                              color: AppColors.primaryColor,
+                              width: 1,
+                            ),
+                          ),
+                          child: const Text(
+                            'Delete',
+                            style: TextStyle(color: AppColors.textColor),
+                          ),
+                          onPressed: _showDeleteCapsuleDialog,
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      SizedBox(
+                        width: 120,
+                        height: 50,
+                        child: OutlinedButton(
+                          style: OutlinedButton.styleFrom(
+                            side: const BorderSide(
+                                color: AppColors.primaryColor, 
+                                width: 1.0),
+                                backgroundColor: 
+                                AppColors.primaryColor,
+                          ),
+                          onPressed: () {
+                            Navigator.pop(context);
+                          },
+                          child: const Text(
+                            'Done',
+                            style: TextStyle(
+                                color: AppColors.white,
+                                fontSize: 16.0),
+                          ),
+                        ),
+                      ),
+                    
+                    ]
+                  ),
+              )
+              /* Align(
                 alignment: Alignment.bottomCenter,
                 child: Padding(
                   padding: const EdgeInsets.only(bottom: 20.0),
@@ -279,6 +434,7 @@ class _OpenedCapsuleState extends State<OpenedCapsule> {
                       onPressed: () {
                         Navigator.pop(context);
                       },
+                      //onPressed: _showDeleteCapsuleDialog,
                       child: const Text(
                         'Done',
                         style: TextStyle(
@@ -288,8 +444,9 @@ class _OpenedCapsuleState extends State<OpenedCapsule> {
                       ),
                     ),
                   ),
+  
                 ),
-              ),
+              ), */
             ],
           );
         },
