@@ -42,7 +42,7 @@ class _UserInformationState extends State<UserInformation> {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Text("Loading");
         }
-         print('Snapshot data: ${snapshot.data?.docs}');
+        //  print('Snapshot data: ${snapshot.data?.docs}');
         return ListView.separated(
           padding: const EdgeInsets.fromLTRB(32, 16, 32, 16),
           itemCount: snapshot.data!.docs.length,
