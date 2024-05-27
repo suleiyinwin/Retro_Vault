@@ -14,6 +14,7 @@ class ChgPwd extends StatefulWidget {
 class ChgPwdState extends State<ChgPwd> {
   final _formKey = GlobalKey<FormState>();
   String errorMessage = '';
+  bool newPasswordError = false;
   final _currentPasswordController = TextEditingController();
   final _newPasswordController = TextEditingController();
   final _confirmNewPasswordController = TextEditingController();
@@ -40,6 +41,10 @@ class ChgPwdState extends State<ChgPwd> {
   }
 
   Future<void> _updatePassword(String newPassword) async {
+    setState(() {
+      errorMessage = '';
+    });
+
     try {
       // Verify new password and confirm password match
       if (newPassword != _newPasswordController.text) {
@@ -67,6 +72,7 @@ class ChgPwdState extends State<ChgPwd> {
         setState(() {
           errorMessage = 'Wrong current password. Try again.';
         });
+        _formKey.currentState!.validate();
         return;
       }
 
@@ -107,11 +113,13 @@ class ChgPwdState extends State<ChgPwd> {
       setState(() {
         errorMessage = 'Wrong current password. Try again.';
       });
+      _formKey.currentState!.validate();
     } catch (e) {
       // Handle other errors
       setState(() {
         errorMessage = 'Error updating password';
       });
+      _formKey.currentState!.validate();
     }
   }
 
@@ -154,17 +162,6 @@ class ChgPwdState extends State<ChgPwd> {
                                 fontSize: 16,
                               ),
                             ),
-                            // if (errorMessage.isNotEmpty)
-                            //   Padding(
-                            //     padding: const EdgeInsets.only(left: 0, top: 5.0),
-                            //     child: Text(
-                            //       errorMessage,
-                            //       style: const TextStyle(
-                            //         color: Colors.red,
-                            //         fontSize: 14.0,
-                            //       ),
-                            //     ),
-                            //   ),
                           ],
                         ),
                       ),
@@ -210,7 +207,6 @@ class ChgPwdState extends State<ChgPwd> {
                               borderRadius: BorderRadius.circular(20.0),
                               borderSide: const BorderSide(color: Colors.red),
                             ),
-                            // floatingLabelBehavior: FloatingLabelBehavior.always,
                           ),
                         ),
                       ),
@@ -233,9 +229,18 @@ class ChgPwdState extends State<ChgPwd> {
                           obscureText: passwordVisibleTwo,
                           controller: _newPasswordController,
                           validator: (value) {
+                            setState(() {
+                              newPasswordError = false;
+                            });
                             if (value == null || value.isEmpty) {
+                              setState(() {
+                                newPasswordError = true;
+                              });
                               return 'Please Enter a password';
                             } else if (!passwordRegex.hasMatch(value)) {
+                              setState(() {
+                                newPasswordError = true;
+                              });
                               return 'Password must contain at least 6 characters, including:\n'
                                   '• Uppercase\n'
                                   '• Lowercase\n'
@@ -258,6 +263,16 @@ class ChgPwdState extends State<ChgPwd> {
                                 },
                               ),
                             ),
+                            helperText: newPasswordError
+                                ? null
+                                : 'Password must contain at least 6 characters, including:\n'
+                                  '• Uppercase\n'
+                                  '• Lowercase\n'
+                                  '• Numbers and special characters',
+                            helperStyle: const TextStyle(
+                              color: AppColors.textColor,
+                              fontSize: 12,
+                            ),
                             fillColor: Colors.white,
                             filled: true,
                             border: OutlineInputBorder(
@@ -267,23 +282,6 @@ class ChgPwdState extends State<ChgPwd> {
                             errorBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(20.0),
                               borderSide: const BorderSide(color: Colors.red),
-                            ),
-                            // floatingLabelBehavior: FloatingLabelBehavior.always,
-                          ),
-                        ),
-                      ),
-                      const Align(
-                        alignment: Alignment.centerLeft,
-                        child: Padding(
-                          padding: EdgeInsets.only(left: 30.0),
-                          child: Text(
-                            'Password must contain \n'
-                            '• At least 6 characters\n'
-                            '• At least one numeric character (0-9)\n'
-                            '• At least one special character',
-                            style: TextStyle(
-                              color: AppColors.textColor,
-                              fontSize: 12,
                             ),
                           ),
                         ),
@@ -339,7 +337,6 @@ class ChgPwdState extends State<ChgPwd> {
                               borderRadius: BorderRadius.circular(20.0),
                               borderSide: const BorderSide(color: Colors.red),
                             ),
-                            // floatingLabelBehavior: FloatingLabelBehavior.always,
                           ),
                         ),
                       ),
