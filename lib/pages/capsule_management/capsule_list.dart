@@ -164,6 +164,25 @@ Future<void> _dialogBuilder(BuildContext context, Timestamp openDate, String cap
                   ),
                   onPressed: () async {
                     try {
+                      // Delete capsule notifications from notifications collection
+                      final capsuleDoc = await FirebaseFirestore.instance
+                          .collection('capsules')
+                          .doc(capsuleRef.id)
+                          .get();
+
+                      final realId = capsuleDoc['capsuleId'];
+
+                      final snapshot = await FirebaseFirestore.instance
+                          .collection('notifications')
+                          .where('capsuleId', isEqualTo: realId)
+                          .get();
+                      if (snapshot.docs.isNotEmpty) {
+                        for (DocumentSnapshot doc in snapshot.docs) {
+                          await doc.reference.delete();
+                          // print('Notification ${doc.id} deleted.');
+                        }
+                      }
+                        
                       await FirebaseFirestore.instance
                           .collection('capsules')
                           .doc(capsuleRef.id)
